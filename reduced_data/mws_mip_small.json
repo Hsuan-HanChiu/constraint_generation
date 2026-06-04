@@ -1,0 +1,49 @@
+{
+ "sets": {
+  "p": [
+   "DCOST",
+   "CARS",
+   "DOVTT",
+   "DIVTT",
+   "INTCPT"
+  ],
+  "T": [
+   1,
+   2,
+   3,
+   4
+  ]
+ },
+ "indexed_params": {
+  "X": {
+   "1|DCOST": 33.0,
+   "1|CARS": 2.0,
+   "1|DOVTT": 10.0,
+   "1|DIVTT": 36.0,
+   "1|INTCPT": 1.0,
+   "1|DEPEND": 1.0,
+   "2|DCOST": -69.5,
+   "2|CARS": 1.0,
+   "2|DOVTT": -4.0,
+   "2|DIVTT": 12.0,
+   "2|INTCPT": 1.0,
+   "2|DEPEND": 0.0,
+   "3|DCOST": 15.0,
+   "3|CARS": 3.0,
+   "3|DOVTT": 22.0,
+   "3|DIVTT": -8.0,
+   "3|INTCPT": 1.0,
+   "3|DEPEND": 1.0,
+   "4|DCOST": -40.0,
+   "4|CARS": 0.0,
+   "4|DOVTT": 5.0,
+   "4|DIVTT": 28.0,
+   "4|INTCPT": 1.0,
+   "4|DEPEND": 0.0
+  }
+ },
+ "scalar_params": {
+  "delta": 10,
+  "normalize_X": 1
+ }
+}

@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+"""Builder for the trnspwl_mip constraint-generation dataset.
+
+Transportation problem with piecewise-linear economies of scale (formulation B).
+The genuinely-nonlinear constraint `defsqrt` (the piecewise-linear approximation
+of the square-root cost curve, carrying irrational sqrt coefficients) is EXCLUDED
+and not Z3-gradable; only the linear constraints are built.
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "trnspwl_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": ["seattle", "san-diego"],
+         "doc": "the supply locations, each a canning plant that ships product out"},
+        {"name": "j", "members": ["new-york", "chicago", "topeka"],
+         "doc": "the demand locations, each a market that must receive product"},
+        {"name": "s", "members": ["slope0", "s1", "s2", "s3", "s4", "s5", "s6", "slopeN"],
+         "doc": "the ordered breakpoints of the piecewise-linear cost curve, listed from the lowest to the highest shipment level"},
+        {"name": "g", "members": ["slope0", "s1", "s2", "s3", "s4", "s5", "s6"],
+         "doc": "the segments of the piecewise-linear cost curve, one per interval between consecutive breakpoints; a subset of the breakpoints that excludes the final one"},
+    ],
+    "params": [
+        {"name": "a", "index": "i", "kind": "capacity",
+         "doc": "the shipping capacity of each plant, in cases; the most that plant can send out in total"},
+        {"name": "b", "index": "j", "kind": "demand",
+         "doc": "the demand at each market, in cases; the least that market must receive in total"},
+        {"name": "c", "index": "i,j", "kind": "cost",
+         "doc": "the transport cost coefficient for each plant-market pair, in thousands of dollars, applied per unit of the square-root shipment measure"},
+        {"name": "p", "index": "s", "kind": "level",
+         "doc": "the shipment quantity at each breakpoint of the cost curve, in cases; the x-coordinate of that breakpoint"},
+        {"name": "nseg", "index": "g", "kind": "width",
+         "doc": "the width of each segment along the shipment axis, in cases; the gap in shipment quantity between a segment's breakpoint and the next breakpoint"},
+    ],
+    "vars": [
+        {"name": "x", "index": "i,j", "domain": "NonNegativeReals",
+         "doc": "the shipment quantity sent from a plant to a market, in cases"},
+        {"name": "sqrtx", "index": "i,j", "domain": "NonNegativeReals",
+         "doc": "the square-root measure of the shipment quantity for a plant-market pair, used to price the concave economy-of-scale cost"},
+        {"name": "seg", "index": "i,j,s", "domain": "NonNegativeReals",
+         "doc": "the amount of shipment placed within a given segment of the cost curve for a plant-market pair, as a fraction-like fill of that segment"},
+        {"name": "gs", "index": "i,j,s", "domain": "Binary",
+         "doc": "the segment-selection indicator for a plant-market pair; equals 1 if that segment is the active one and 0 otherwise"},
+        {"name": "z", "index": "", "domain": "Reals",
+         "doc": "the total transportation cost over all plant-market pairs, in thousands of dollars"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "z"},
+}
+
+NARRATIVE = (
+    "We ship a product from several canning plants to several markets. For each plant and "
+    "market we decide how much to ship, and because the per-unit transport cost falls as the "
+    "shipped quantity grows, we also decide how that quantity is placed along a piecewise-linear "
+    "cost curve by choosing which segment of the curve is active and how far into it the shipment "
+    "reaches. The objective is to minimize the total transportation cost across all plant-market pairs."
+)
+
+SUPPLY = (
+    "def supply_rule(model, i):\n"
+    "    return sum(model.x[i, j] for j in model.j) <= model.a[i]\n"
+    "model.supply = Constraint(model.i, rule=supply_rule)"
+)
+DEMAND = (
+    "def demand_rule(model, j):\n"
+    "    return sum(model.x[i, j] for i in model.i) >= model.b[j]\n"
+    "model.demand = Constraint(model.j, rule=demand_rule)"
+)
+DEFX = (
+    "def defx_rule(model, i, j):\n"
+    "    return model.x[i, j] == sum(model.p[g] * model.gs[i, j, g] + model.nseg[g] * model.seg[i, j, g] for g in model.g)\n"
+    "model.defx = Constraint(model.i, model.j, rule=defx_rule)"
+)
+DEFSEG = (
+    "def defseg_rule(model, i, j, g):\n"
+    "    return model.seg[i, j, g] <= model.gs[i, j, g]\n"
+    "model.defseg = Constraint(model.i, model.j, model.g, rule=defseg_rule)"
+)
+DEFGS = (
+    "def defgs_rule(model, i, j):\n"
+    "    return sum(model.gs[i, j, g] for g in model.g) <= 1\n"
+    "model.defgs = Constraint(model.i, model.j, rule=defgs_rule)"
+)
+DEFOBJDISC = (
+    "def defobjdisc_rule(model):\n"
+    "    return model.z == sum(model.c[i, j] * model.sqrtx[i, j] for i in model.i for j in model.j)\n"
+    "model.defobjdisc = Constraint(rule=defobjdisc_rule)"
+)
+WHOLESET = "\n".join([SUPPLY, DEMAND, DEFX, DEFSEG, DEFGS, DEFOBJDISC])
+
+records = [
+    {"description": (
+        "Each plant cannot ship out more than it is able to. For every plant, the total shipment "
+        "sent from it across all markets must not exceed that plant's shipping capacity."),
+     "expected_pyomo": SUPPLY},
+    {"description": (
+        "Every market must have its demand met. For each market, the total shipment arriving into "
+        "it from all plants must be at least that market's required amount."),
+     "expected_pyomo": DEMAND},
+    {"description": (
+        "For each plant and market, the shipment quantity must equal the level reconstructed from "
+        "the cost-curve segments. Add up, over all segments, the shipment level at each segment's "
+        "starting breakpoint counted when that segment is the active one, plus the segment width "
+        "scaled by how far the shipment reaches into that segment, and set the shipment quantity "
+        "equal to that total."),
+     "expected_pyomo": DEFX},
+    {"description": (
+        "A segment can only be filled if it is the active segment. For each plant, market, and "
+        "segment, the amount of shipment placed within that segment must not exceed the indicator "
+        "that marks that segment as active."),
+     "expected_pyomo": DEFSEG},
+    {"description": (
+        "For each plant and market, at most one segment of the cost curve may be chosen as active. "
+        "Across all segments, the selection indicators add up to no more than one."),
+     "expected_pyomo": DEFGS},
+    {"description": (
+        "The total transportation cost adds up the priced shipment over every plant-market pair. "
+        "For each pair, multiply that pair's cost coefficient by its square-root shipment measure, "
+        "sum these across all plant-market pairs, and set the total cost equal to that sum."),
+     "expected_pyomo": DEFOBJDISC},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "trnspwl_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

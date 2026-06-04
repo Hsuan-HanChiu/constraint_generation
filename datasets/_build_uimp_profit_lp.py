@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+"""Builder for the uimp_profit_lp (seasonal production-planning) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "uimp_profit_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": ["summer", "winter"],
+         "doc": "the planning periods in chronological order; summer is the opening period and winter follows it, so any stock stored at the end of summer carries forward into winter"},
+        {"name": "j", "members": ["normal", "overtime"],
+         "doc": "the production modes available, namely a normal shift and an overtime shift"},
+        {"name": "k", "members": ["nuts", "bolts", "washers"],
+         "doc": "the products that can be made, sold, and stored"},
+        {"name": "l", "members": ["m1", "m2", "m3"],
+         "doc": "the machines that perform production"},
+    ],
+    "params": [
+        {"name": "t", "index": "i,j,k,l", "kind": "rate",
+         "doc": "the machine time needed to make one unit of a product on a given machine in a given period and mode, in hours per unit"},
+        {"name": "a", "index": "i,j,l", "kind": "capacity",
+         "doc": "the machine hours available on a machine in a given period and mode, in hours"},
+        {"name": "c", "index": "i,j,k,l", "kind": "cost",
+         "doc": "the production cost to make one unit of a product on a given machine in a given period and mode, in dollars per unit"},
+        {"name": "s", "index": "k", "kind": "cost",
+         "doc": "the storage cost charged for each unit of a product held from one period to the next, in dollars per unit"},
+        {"name": "p", "index": "i,k", "kind": "price",
+         "doc": "the selling price per unit of a product in a given period, in dollars per unit"},
+        {"name": "mh", "index": "l,k", "kind": "mask",
+         "doc": "the base machine hours per unit for making a product on a machine; a value of zero marks a machine-product pair that is impossible because that machine cannot make that product, while any nonzero value marks a feasible pairing"},
+        {"name": "d", "index": "i,k", "kind": "demand",
+         "doc": "the demand for each product in each period, in units; this is enforced elsewhere as a lower bound on units sold and is not itself a constraint of this set"},
+        {"name": "h", "index": "k", "kind": "capacity",
+         "doc": "the storage capacity for each product, in units; this is enforced elsewhere as an upper bound on units stored and is not itself a constraint of this set"},
+    ],
+    "vars": [
+        {"name": "x", "index": "i,j,k,l", "domain": "NonNegativeReals",
+         "doc": "the number of units of a product made on a given machine in a given period and mode"},
+        {"name": "y", "index": "i,k", "domain": "NonNegativeReals",
+         "doc": "the number of units of a product stored at the end of each period"},
+        {"name": "z", "index": "i,k", "domain": "Reals",
+         "doc": "the number of units of a product sold in each period"},
+        {"name": "cost", "index": "", "domain": "Reals",
+         "doc": "the total cost over the whole horizon, covering production and storage, in dollars"},
+        {"name": "revenue", "index": "", "domain": "Reals",
+         "doc": "the total sales revenue over the whole horizon, in dollars"},
+        {"name": "profit", "index": "", "domain": "Reals",
+         "doc": "the total profit over the whole horizon, in dollars"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "profit"},
+}
+
+NARRATIVE = (
+    "We plan production for a small workshop across two seasons. In each season we decide how "
+    "many units of each product to make on each machine under either a normal or an overtime "
+    "shift, how many units of each product to sell, and how many to carry over in storage to the "
+    "next season. Making units costs money that depends on the machine, product, period, and "
+    "shift, and carrying units in storage costs money per unit held. Selling units brings in "
+    "revenue at a per-unit price that varies by product and season. The objective is to maximize "
+    "the total profit, which is the sales revenue earned over the horizon less the total "
+    "production and storage cost."
+)
+
+PDEF = (
+    "def pdef_rule(model):\n"
+    "    return model.profit == model.revenue - model.cost\n"
+    "model.pdef = Constraint(rule=pdef_rule)"
+)
+CDEF = (
+    "def cdef_rule(model):\n"
+    "    return sum(model.s[k]*model.y[i,k] + sum(model.c[i,j,k,l]*model.x[i,j,k,l] for j in model.j for l in model.l) for i in model.i for k in model.k) == model.cost\n"
+    "model.cdef = Constraint(rule=cdef_rule)"
+)
+RDEF = (
+    "def rdef_rule(model):\n"
+    "    return sum(model.p[i,k]*model.z[i,k] for i in model.i for k in model.k) == model.revenue\n"
+    "model.rdef = Constraint(rule=rdef_rule)"
+)
+MA = (
+    "def ma_rule(model, i, j, l):\n"
+    "    return sum(model.t[i,j,k,l]*model.x[i,j,k,l] for k in model.k) <= model.a[i,j,l]\n"
+    "model.ma = Constraint(model.i, model.j, model.l, rule=ma_rule)"
+)
+IB = (
+    "def ib_rule(model, i, k):\n"
+    "    if i != 'summer':\n"
+    "        y_prev = model.y['summer', k]\n"
+    "    else:\n"
+    "        y_prev = 0\n"
+    "    total = sum(model.x[i,j,k,l] for j in model.j for l in model.l if value(model.mh[l,k]) != 0)\n"
+    "    return total + y_prev == model.z[i,k] + model.y[i,k]\n"
+    "model.ib = Constraint(model.i, model.k, rule=ib_rule)"
+)
+WHOLESET = "\n".join([PDEF, CDEF, RDEF, MA, IB])
+
+records = [
+    {"description": (
+        "Profit is what is left after costs are taken out of sales. Set the total profit equal to "
+        "the total revenue minus the total cost."),
+     "expected_pyomo": PDEF},
+    {"description": (
+        "The total cost gathers everything spent over the whole horizon. For each product in each "
+        "period, charge the storage cost for every unit of that product held over, and charge the "
+        "production cost for every unit of that product made, summed over every machine and every "
+        "production mode. Set the total cost equal to the sum of all these amounts across all "
+        "products and all periods."),
+     "expected_pyomo": CDEF},
+    {"description": (
+        "The total revenue comes from selling. For each product in each period, value the units "
+        "sold at that product's selling price for that period, and set the total revenue equal to "
+        "the sum of those amounts across all products and all periods."),
+     "expected_pyomo": RDEF},
+    {"description": (
+        "Each machine has only so many hours available. For every combination of period, "
+        "production mode, and machine, the total machine time consumed by making the products on "
+        "that machine, adding up the time across all products, must not exceed the hours available "
+        "on that machine in that period and mode."),
+     "expected_pyomo": MA},
+    {"description": (
+        "Everything available of a product in a period is either sold or stored, and what is "
+        "available is what was made that period plus what was carried in. For each product in each "
+        "period, take the total units produced that period across all machines and production "
+        "modes, counting only the machines that are actually able to make that product, and add "
+        "the units of that product carried in from storage at the end of the previous period. In "
+        "the opening period there is no previous period, so nothing is carried in. This available "
+        "amount must equal the units sold that period plus the units stored at the end of that "
+        "period."),
+     "expected_pyomo": IB},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "uimp_profit_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

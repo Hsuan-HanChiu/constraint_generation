@@ -1,0 +1,270 @@
+#!/usr/bin/env python
+"""Builder for the pak_lp (Optimal Patterns of Growth and Aid - Pakistan) constraint-generation dataset.
+
+All 15 native constraints are LINEAR (param*var, sums, var-vs-var). The model was
+flagged as possibly nonlinear; verification of every constraint expression shows no
+var*var, sqrt, or variable-in-denominator term (the 1/k(j) in capb is a constant
+coefficient). All constraints are therefore included.
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "pak_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "te", "members": [1962, 1963, 1964, 1965, "...", 1985],
+         "doc": "the extended planning years in chronological order from 1962 through 1985; the first member 1962 is the base year that carries the fixed initial conditions, and each later member follows the one before it"},
+        {"name": "t", "members": [1963, 1964, 1965, "...", 1985],
+         "doc": "the planning years in chronological order from 1963 through 1985; this is the extended horizon with the base year 1962 removed, so it covers every year that is actually planned"},
+        {"name": "j", "members": ["non-traded", "traded"],
+         "doc": "the production sectors of the economy, one that produces non-traded goods and one that produces traded goods"},
+    ],
+    "params": [
+        {"name": "sb", "index": "", "kind": "level",
+         "doc": "gross savings in the base year 1962, in billions of rupees"},
+        {"name": "tib", "index": "", "kind": "level",
+         "doc": "total investment in the base year 1962, in billions of rupees"},
+        {"name": "mb", "index": "", "kind": "level",
+         "doc": "traditional imports in the base year 1962, in billions of rupees"},
+        {"name": "gnpb", "index": "", "kind": "level",
+         "doc": "gross national product in the base year 1962, in billions of rupees"},
+        {"name": "alpha", "index": "", "kind": "rate",
+         "doc": "the marginal savings rate, the fraction of any gain in gross national product above the base year that is added to base-year savings to cap savings"},
+        {"name": "mgnp", "index": "", "kind": "rate",
+         "doc": "the marginal import requirement per unit of gross national product above the base year"},
+        {"name": "mi", "index": "", "kind": "rate",
+         "doc": "the marginal import requirement per unit of total investment above the base year"},
+        {"name": "p", "index": "", "kind": "rate",
+         "doc": "the population growth rate per year, used to set the minimum year-over-year growth of consumption"},
+        {"name": "beta", "index": "", "kind": "rate",
+         "doc": "the maximum allowed year-over-year fractional growth of total investment"},
+        {"name": "q", "index": "", "kind": "rate",
+         "doc": "the aid ratio, the maximum net capital inflow allowed in a year as a fraction of that year's gross national product"},
+        {"name": "k", "index": "j", "kind": "ratio",
+         "doc": "the capital-output ratio of each sector, the units of capital stock needed per unit of net output; its reciprocal converts capital stock into output capacity"},
+        {"name": "vb", "index": "j", "kind": "level",
+         "doc": "the base-year output capacity of each sector available without any new capital; the non-traded sector starts with the base-year gross national product and the traded sector starts at zero"},
+        {"name": "e", "index": "t", "kind": "level",
+         "doc": "exports in each planning year, in billions of rupees, growing exogenously from the base-year export level"},
+        {"name": "delt", "index": "t", "kind": "weight",
+         "doc": "the present-value discount factor applied to each planning year, declining from one as the year moves further into the future"},
+    ],
+    "vars": [
+        {"name": "gnp", "index": "t", "domain": "Reals",
+         "doc": "gross national product in each planning year, in billions of rupees"},
+        {"name": "v", "index": "t,j", "domain": "NonNegativeReals",
+         "doc": "net output of each sector in each planning year, in billions of rupees"},
+        {"name": "ti", "index": "te", "domain": "Reals",
+         "doc": "total investment in each extended-horizon year, in billions of rupees"},
+        {"name": "i", "index": "te,j", "domain": "NonNegativeReals",
+         "doc": "investment placed in each sector in each extended-horizon year, in billions of rupees"},
+        {"name": "ks", "index": "te,j", "domain": "Reals",
+         "doc": "capital stock of each sector at the start of each extended-horizon year, in billions of rupees; it is zero for both sectors in the base year"},
+        {"name": "s", "index": "t", "domain": "NonNegativeReals",
+         "doc": "gross savings in each planning year, in billions of rupees"},
+        {"name": "f", "index": "t", "domain": "Reals",
+         "doc": "net capital inflow, that is foreign aid, in each planning year, in billions of rupees"},
+        {"name": "fb", "index": "", "domain": "Reals",
+         "doc": "the total discounted net capital inflow summed over the planning horizon, in billions of rupees"},
+        {"name": "m", "index": "t", "domain": "Reals",
+         "doc": "traditional imports in each planning year, in billions of rupees"},
+        {"name": "c", "index": "te", "domain": "Reals",
+         "doc": "consumption in each extended-horizon year, in billions of rupees; it is fixed at the base-year level in 1962"},
+        {"name": "w", "index": "", "domain": "Reals",
+         "doc": "total welfare, the discounted value of consumption net of the cost of foreign aid plus a terminal term for post-horizon growth"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "w"},
+}
+
+NARRATIVE = (
+    "This is a long-horizon economic development plan for Pakistan running from the base year 1962 "
+    "through 1985. Year by year and sector by sector, the plan chooses how much each sector produces, "
+    "how much is invested and where, how the capital stock builds up, how much the country saves, how "
+    "much it imports, how much foreign aid it takes in, and how much it consumes. The goal is to "
+    "maximize total welfare, measured as the present value of consumption over the horizon, less the "
+    "cost of the foreign aid drawn in, plus a terminal term that credits growth continuing after the "
+    "plan ends."
+)
+
+GNPD = (
+    "def gnpd_rule(model, t):\n"
+    "    return model.gnp[t] == sum(model.v[t, j] for j in model.j)\n"
+    "model.gnpd = Constraint(model.t, rule=gnpd_rule)"
+)
+INVD = (
+    "def invd_rule(model, t):\n"
+    "    return model.ti[t] == model.s[t] + model.f[t]\n"
+    "model.invd = Constraint(model.t, rule=invd_rule)"
+)
+INVT = (
+    "def invt_rule(model, te):\n"
+    "    return model.ti[te] == sum(model.i[te, j] for j in model.j)\n"
+    "model.invt = Constraint(model.te, rule=invt_rule)"
+)
+TGAP = (
+    "def tgap_rule(model, t):\n"
+    "    return model.f[t] == model.m[t] - model.e[t] - model.v[t, 'traded']\n"
+    "model.tgap = Constraint(model.t, rule=tgap_rule)"
+)
+INCD = (
+    "def incd_rule(model, t):\n"
+    "    return model.gnp[t] == model.c[t] + model.ti[t] - model.f[t]\n"
+    "model.incd = Constraint(model.t, rule=incd_rule)"
+)
+CAPB = (
+    "def capb_rule(model, t, j):\n"
+    "    return model.v[t, j] <= model.vb[j] + (1 / model.k[j]) * model.ks[t, j]\n"
+    "model.capb = Constraint(model.t, model.j, rule=capb_rule)"
+)
+KBAL = (
+    "def kbal_rule(model, te, j):\n"
+    "    te_list = list(model.te)\n"
+    "    idx = te_list.index(te)\n"
+    "    if idx < len(te_list) - 1:\n"
+    "        te_next = te_list[idx + 1]\n"
+    "        return model.ks[te_next, j] == model.ks[te, j] + model.i[te, j]\n"
+    "    return Constraint.Skip\n"
+    "model.kbal = Constraint(model.te, model.j, rule=kbal_rule)"
+)
+SAVL = (
+    "def savl_rule(model, t):\n"
+    "    return model.s[t] <= model.sb + model.alpha * (model.gnp[t] - model.gnpb)\n"
+    "model.savl = Constraint(model.t, rule=savl_rule)"
+)
+IMPL = (
+    "def impl_rule(model, t):\n"
+    "    return model.m[t] >= model.mb + model.mgnp * (model.gnp[t] - model.gnpb) + model.mi * (model.ti[t] - model.tib)\n"
+    "model.impl = Constraint(model.t, rule=impl_rule)"
+)
+INVU = (
+    "def invu_rule(model, te):\n"
+    "    te_list = list(model.te)\n"
+    "    idx = te_list.index(te)\n"
+    "    if idx < len(te_list) - 1:\n"
+    "        te_next = te_list[idx + 1]\n"
+    "        return model.ti[te_next] <= (1 + model.beta) * model.ti[te]\n"
+    "    return Constraint.Skip\n"
+    "model.invu = Constraint(model.te, rule=invu_rule)"
+)
+INVL = (
+    "def invl_rule(model, te):\n"
+    "    te_list = list(model.te)\n"
+    "    idx = te_list.index(te)\n"
+    "    if idx < len(te_list) - 1:\n"
+    "        te_next = te_list[idx + 1]\n"
+    "        return model.ti[te_next] >= model.ti[te]\n"
+    "    return Constraint.Skip\n"
+    "model.invl = Constraint(model.te, rule=invl_rule)"
+)
+CONL = (
+    "def conl_rule(model, te):\n"
+    "    te_list = list(model.te)\n"
+    "    idx = te_list.index(te)\n"
+    "    if idx < len(te_list) - 1:\n"
+    "        te_next = te_list[idx + 1]\n"
+    "        return model.c[te_next] >= (1 + model.p) * model.c[te]\n"
+    "    return Constraint.Skip\n"
+    "model.conl = Constraint(model.te, rule=conl_rule)"
+)
+FUP = (
+    "def fup_rule(model, t):\n"
+    "    return model.f[t] <= model.q * model.gnp[t]\n"
+    "model.fup = Constraint(model.t, rule=fup_rule)"
+)
+TAID = (
+    "def taid_rule(model):\n"
+    "    return model.fb == sum(model.delt[t] * model.f[t] for t in model.t)\n"
+    "model.taid = Constraint(rule=taid_rule)"
+)
+WDEF = (
+    "def wdef_rule(model):\n"
+    "    return model.w == sum(model.delt[t] * model.c[t] for t in model.t) - model.gama * model.fb + model.d * model.dis * model.gnp[1985]\n"
+    "model.wdef = Constraint(rule=wdef_rule)"
+)
+
+WHOLESET = "\n".join([GNPD, INVD, INVT, TGAP, INCD, CAPB, KBAL, SAVL, IMPL,
+                      INVU, INVL, CONL, FUP, TAID, WDEF])
+
+records = [
+    {"description": (
+        "For each planning year, the gross national product equals the combined net output "
+        "of all the sectors in that year."),
+     "expected_pyomo": GNPD},
+    {"description": (
+        "For each planning year, total investment equals gross savings plus the net capital "
+        "inflow taken in that year."),
+     "expected_pyomo": INVD},
+    {"description": (
+        "For each extended-horizon year, total investment equals the sum of the investment "
+        "placed in each sector that year."),
+     "expected_pyomo": INVT},
+    {"description": (
+        "For each planning year, the net capital inflow equals traditional imports minus exports "
+        "minus the net output of the traded sector."),
+     "expected_pyomo": TGAP},
+    {"description": (
+        "For each planning year, gross national product equals consumption plus total investment "
+        "minus the net capital inflow."),
+     "expected_pyomo": INCD},
+    {"description": (
+        "For each sector in each planning year, net output cannot exceed the base-year capacity "
+        "of that sector plus the additional capacity created by its capital stock, where each unit "
+        "of capital stock yields output in proportion to one over that sector's capital-output ratio."),
+     "expected_pyomo": CAPB},
+    {"description": (
+        "Capital stock accumulates over time. For each sector, the capital stock at the start of the "
+        "next year equals the capital stock at the start of the current year plus the investment placed "
+        "in that sector during the current year. This applies for every year that has a following year."),
+     "expected_pyomo": KBAL},
+    {"description": (
+        "For each planning year, gross savings cannot exceed base-year savings plus the marginal savings "
+        "rate times the increase in gross national product over its base-year level."),
+     "expected_pyomo": SAVL},
+    {"description": (
+        "For each planning year, traditional imports must be at least the base-year import level plus the "
+        "marginal import requirement on the increase in gross national product over the base year plus the "
+        "marginal import requirement on the increase in total investment over the base year."),
+     "expected_pyomo": IMPL},
+    {"description": (
+        "Total investment cannot grow too fast from one year to the next. For each year that has a "
+        "following year, total investment in the next year cannot exceed the current year's total "
+        "investment scaled up by one plus the maximum allowed growth rate."),
+     "expected_pyomo": INVU},
+    {"description": (
+        "Total investment cannot fall from one year to the next. For each year that has a following year, "
+        "total investment in the next year must be at least the current year's total investment."),
+     "expected_pyomo": INVL},
+    {"description": (
+        "Consumption must keep growing at least with the population. For each year that has a following "
+        "year, consumption in the next year must be at least the current year's consumption scaled up by "
+        "one plus the population growth rate."),
+     "expected_pyomo": CONL},
+    {"description": (
+        "For each planning year, the net capital inflow cannot exceed the aid ratio times that year's "
+        "gross national product."),
+     "expected_pyomo": FUP},
+    {"description": (
+        "The total discounted net capital inflow equals the sum over all planning years of that year's "
+        "net capital inflow weighted by its present-value discount factor."),
+     "expected_pyomo": TAID},
+    {"description": (
+        "Welfare equals the discounted sum of consumption over all planning years, minus the cost of "
+        "foreign capital times the total discounted net capital inflow, plus a terminal term that credits "
+        "post-horizon growth as a fixed weight times the discounting factor for post-horizon consumption "
+        "times the gross national product in the final year 1985."),
+     "expected_pyomo": WDEF},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "pak_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

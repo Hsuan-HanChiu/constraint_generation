@@ -1,0 +1,270 @@
+#!/usr/bin/env python
+"""Builder for the prodsch_mip (motor production scheduling) constraint-generation dataset.
+
+All 13 constraints are LINEAR (polynomial degree 1): every product is param x var
+or param(binary) x var. The discount factor delt uses ** on a parameter only
+(a constant), and several definitions divide by the literal 1000, so nothing is
+nonlinear. No constraints excluded.
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "prodsch_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "q", "members": ["summer", "fall", "winter", "spring"],
+         "doc": "the production seasons of the planning horizon, in chronological order; the first member is the opening season and each later member directly follows the one before it"},
+        {"name": "s", "members": ["first", "second"],
+         "doc": "the work shifts that can be run within a season"},
+        {"name": "l", "members": [1, 2, 3, 4],
+         "doc": "the ordered breakpoints of a piecewise-linear production curve, numbered from the lowest level upward; consecutive breakpoints bracket the operating segments of the curve"},
+        {"name": "prp", "members": ["labor", "motor"],
+         "doc": "the two production-relationship rows: the labor row gives employees required at each breakpoint and the motor row gives motors produced at each breakpoint"},
+        {"name": "scp", "members": ["fixed", "labor"],
+         "doc": "the two shift-cost rows: the fixed row gives the cost of opening a shift and the labor row gives the per-employee cost of staffing a shift"},
+    ],
+    "params": [
+        {"name": "d", "index": "q", "kind": "demand",
+         "doc": "the demand for motors in each season, in motors; zero in seasons with no demand"},
+        {"name": "lc", "index": "q", "kind": "cost",
+         "doc": "the leasing cost charged in each season when the lease-rent option is taken, in dollars per season; zero in seasons with no leasing charge"},
+        {"name": "ei", "index": "q", "kind": "employment",
+         "doc": "an externally given change in employment that occurs at the start of each season, in employees; zero in seasons with no external change"},
+        {"name": "mc", "index": "", "kind": "cost",
+         "doc": "the material cost incurred per motor produced, in dollars per motor"},
+        {"name": "sr", "index": "", "kind": "cost",
+         "doc": "the space-rental rate charged per motor of inventory held, in dollars per motor"},
+        {"name": "hc", "index": "", "kind": "cost",
+         "doc": "the hiring cost incurred per employee hired, in dollars per employee"},
+        {"name": "fc", "index": "", "kind": "cost",
+         "doc": "the firing cost incurred per employee fired, in dollars per employee"},
+        {"name": "delt", "index": "q", "kind": "discount",
+         "doc": "the discount factor applied to each season's costs to bring them to present value; equals 1 in the first season and shrinks geometrically in later seasons"},
+        {"name": "invmax", "index": "", "kind": "capacity",
+         "doc": "an upper bound on inventory, in motors, equal to the total demand summed over all seasons"},
+        {"name": "pr", "index": "prp,l", "kind": "production-relationship",
+         "doc": "the production-relationship table: pr['motor', l] is the number of motors produced at breakpoint l and pr['labor', l] is the number of employees required at breakpoint l"},
+        {"name": "sc", "index": "scp,s", "kind": "cost",
+         "doc": "the shift-cost table: sc['fixed', s] is the fixed cost of opening shift s and sc['labor', s] is the cost per employee of staffing shift s, in dollars"},
+    ],
+    "vars": [
+        {"name": "cost", "index": "", "domain": "Reals",
+         "doc": "the total discounted cost over the whole horizon, in thousands of dollars"},
+        {"name": "dpc", "index": "q", "domain": "Reals",
+         "doc": "the direct production cost in each season, in thousands of dollars per season"},
+        {"name": "isc", "index": "q", "domain": "Reals",
+         "doc": "the inventory storage cost in each season, in thousands of dollars per season"},
+        {"name": "wfc", "index": "q", "domain": "Reals",
+         "doc": "the workforce fluctuation cost in each season, in thousands of dollars per season"},
+        {"name": "src", "index": "q", "domain": "NonNegativeReals",
+         "doc": "the space-rental cost in each season, in dollars per season"},
+        {"name": "p", "index": "q", "domain": "NonNegativeReals",
+         "doc": "the number of motors produced in each season"},
+        {"name": "ss", "index": "l,q,s", "domain": "NonNegativeReals",
+         "doc": "the piecewise-linear production segment weights, indexed by breakpoint, season and shift; these are the SOS2-type convex weights that place a shift's operating point along the production curve"},
+        {"name": "ssb", "index": "l,q,s", "domain": "Binary",
+         "doc": "the 0/1 selector variables that accompany the segment weights, indexed by breakpoint, season and shift; used to enforce the SOS2 adjacency of the active segment weights"},
+        {"name": "inv", "index": "q", "domain": "NonNegativeReals",
+         "doc": "the inventory of motors carried at the end of each season"},
+        {"name": "lease", "index": "", "domain": "Binary",
+         "doc": "the single lease-rent option indicator; equals 1 if the rental option is taken and 0 otherwise"},
+        {"name": "e", "index": "q", "domain": "Reals",
+         "doc": "the total employment in each season, in employees"},
+        {"name": "se", "index": "q,s", "domain": "Reals",
+         "doc": "the employment on each shift of each season, in employees per shift"},
+        {"name": "shift", "index": "q,s", "domain": "Binary",
+         "doc": "the shift-use indicator; equals 1 if the shift is opened in that season and 0 otherwise"},
+        {"name": "h", "index": "q", "domain": "NonNegativeReals",
+         "doc": "the number of employees hired at the start of each season"},
+        {"name": "f", "index": "q", "domain": "NonNegativeReals",
+         "doc": "the number of employees fired at the start of each season"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "cost"},
+}
+
+NARRATIVE = (
+    "We plan motor production across a sequence of seasons. In each season we decide how many "
+    "motors to make, how to place each shift's operating point along a piecewise-linear "
+    "production curve, which shifts to open, how many employees to staff on each shift, how "
+    "many people to hire or fire, how much inventory to carry, and whether to take a lease-rent "
+    "option for storage. Production draws on material and shift costs, carrying inventory and "
+    "leasing add storage costs, and hiring and firing add workforce-change costs, all brought to "
+    "present value by a per-season discount factor. The objective is to minimize the total "
+    "discounted cost over the whole horizon."
+)
+
+# --- per-constraint ground truth (native names) ---
+
+DDPC = (
+    "def ddpc_rule(model, q):\n"
+    "    return model.dpc[q] == (model.mc*model.p[q] + sum(model.sc['fixed', s]*model.shift[q, s] + model.sc['labor', s]*model.se[q, s] for s in model.s))/1000\n"
+    "model.ddpc = Constraint(model.q, rule=ddpc_rule)"
+)
+SBP = (
+    "def sbp_rule(model, q):\n"
+    "    return model.p[q] == sum(model.pr['motor', l]*model.ss[l, q, s] for l in model.l for s in model.s)\n"
+    "model.sbp = Constraint(model.q, rule=sbp_rule)"
+)
+SBSE = (
+    "def sbse_rule(model, q, s):\n"
+    "    return model.se[q, s] == sum(model.pr['labor', l]*model.ss[l, q, s] for l in model.l)\n"
+    "model.sbse = Constraint(model.q, model.s, rule=sbse_rule)"
+)
+SCC = (
+    "def scc_rule(model, q, s):\n"
+    "    return sum(model.ss[l, q, s] for l in model.l) == model.shift[q, s]\n"
+    "model.scc = Constraint(model.q, model.s, rule=scc_rule)"
+)
+INVB = (
+    "def invb_rule(model, q):\n"
+    "    key_list = list(model.q)\n"
+    "    q_idx = key_list.index(q)\n"
+    "    if q_idx > 0:\n"
+    "        return model.inv[q] == model.inv[model.q.prev(q)] + model.p[q] - model.d[q]\n"
+    "    else:\n"
+    "        return model.inv[q] == model.p[q] - model.d[q]\n"
+    "model.invb = Constraint(model.q, rule=invb_rule)"
+)
+DISC = (
+    "def disc_rule(model, q):\n"
+    "    return model.isc[q] == (model.lc[q]*model.lease + model.src[q])/1000\n"
+    "model.disc = Constraint(model.q, rule=disc_rule)"
+)
+DSRC = (
+    "def dsrc_rule(model, q):\n"
+    "    return model.src[q] >= model.sr*(model.inv[q] - model.invmax*model.lease)\n"
+    "model.dsrc = Constraint(model.q, rule=dsrc_rule)"
+)
+DWFC = (
+    "def dwfc_rule(model, q):\n"
+    "    return model.wfc[q] == (model.hc*model.h[q] + model.fc*model.f[q])/1000\n"
+    "model.dwfc = Constraint(model.q, rule=dwfc_rule)"
+)
+ED = (
+    "def ed_rule(model, q):\n"
+    "    return model.e[q] == sum(model.se[q, s] for s in model.s)\n"
+    "model.ed = Constraint(model.q, rule=ed_rule)"
+)
+EB1 = (
+    "def eb1_rule(model, q):\n"
+    "    key_list = list(model.q)\n"
+    "    q_idx = key_list.index(q)\n"
+    "    if q_idx > 0:\n"
+    "        return model.e[q] == model.e[model.q.prev(q)] + model.h[q] - model.f[q] + model.ei[q]\n"
+    "    else:\n"
+    "        return model.e[q] == model.h[q] - model.f[q] + model.ei[q]\n"
+    "model.eb1 = Constraint(model.q, rule=eb1_rule)"
+)
+MESSB = (
+    "def messb_rule(model, q, s):\n"
+    "    return sum(model.ssb[l, q, s] for l in model.l) == 1\n"
+    "model.messb = Constraint(model.q, model.s, rule=messb_rule)"
+)
+LSSB = (
+    "def lssb_rule(model, l, q, s):\n"
+    "    if l > 2:\n"
+    "        return model.ss[l-1, q, s] + model.ss[l, q, s] <= model.ssb[l-2, q, s] + model.ssb[l-1, q, s] + model.ssb[l, q, s]\n"
+    "    elif l == 2:\n"
+    "        return model.ss[l-1, q, s] + model.ss[l, q, s] <= model.ssb[l-1, q, s] + model.ssb[l, q, s]\n"
+    "    else:\n"
+    "        return model.ss[l, q, s] <= model.ssb[l, q, s]\n"
+    "model.lssb = Constraint(model.l, model.q, model.s, rule=lssb_rule)"
+)
+PUP = (
+    "model.pup = Constraint(expr=model.p['spring'] <= 0.8*len(model.s)*max(model.pr['motor', l] for l in model.l))"
+)
+
+WHOLESET = "\n".join([DDPC, SBP, SBSE, SCC, INVB, DISC, DSRC, DWFC, ED, EB1, MESSB, LSSB, PUP])
+
+records = [
+    {"description": (
+        "The direct production cost of each season is the cost of the motors made plus the cost "
+        "of running the shifts. For each season, take the material cost of every motor produced, "
+        "add the fixed cost of each shift that is opened and the staffing cost for the employees "
+        "working that shift, and set the season's direct production cost equal to that total "
+        "expressed in thousands of dollars."),
+     "expected_pyomo": DDPC},
+    {"description": (
+        "Production in each season is built up from the piecewise-linear segment weights chosen "
+        "for the shifts. For each season, the number of motors produced equals the motor output "
+        "associated with each breakpoint weighted by the corresponding segment weight, summed "
+        "over all breakpoints and all shifts."),
+     "expected_pyomo": SBP},
+    {"description": (
+        "The employees staffed on a shift follow from the segment weights chosen for that shift. "
+        "For each season and shift, the shift employment equals the labor requirement at each "
+        "breakpoint weighted by that breakpoint's segment weight, summed over all breakpoints."),
+     "expected_pyomo": SBSE},
+    {"description": (
+        "The segment weights on a shift are active only when that shift is opened. For each "
+        "season and shift, the segment weights summed over all breakpoints must equal the shift's "
+        "open indicator, so the weights add up to one when the shift runs and to zero when it does not."),
+     "expected_pyomo": SCC},
+    {"description": (
+        "Inventory carries over from one season to the next as production meets demand. For each "
+        "season, the ending inventory equals the inventory left from the immediately preceding "
+        "season plus the motors produced that season minus the demand that season. In the very "
+        "first season there is no preceding season, so nothing carries in."),
+     "expected_pyomo": INVB},
+    {"description": (
+        "The inventory storage cost of each season combines the leasing charge and the space "
+        "rental. For each season, take the leasing cost that applies when the lease option is "
+        "taken, add the space-rental cost incurred that season, and set the season's inventory "
+        "storage cost equal to that total expressed in thousands of dollars."),
+     "expected_pyomo": DISC},
+    {"description": (
+        "The space-rental cost in each season pays for inventory held beyond what the lease "
+        "option covers. For each season, the space-rental cost must be at least the rental rate "
+        "applied to the inventory held that season after allowing for the inventory the lease "
+        "option absorbs when it is taken."),
+     "expected_pyomo": DSRC},
+    {"description": (
+        "The workforce fluctuation cost of each season pays for the hiring and firing done that "
+        "season. For each season, take the hiring cost for every employee hired and the firing "
+        "cost for every employee fired, and set the season's workforce fluctuation cost equal to "
+        "that total expressed in thousands of dollars."),
+     "expected_pyomo": DWFC},
+    {"description": (
+        "Total employment in a season is the sum of the people working across its shifts. For "
+        "each season, the total employment equals the shift employment summed over all shifts."),
+     "expected_pyomo": ED},
+    {"description": (
+        "Employment evolves from one season to the next through hiring, firing and external "
+        "changes. For each season, the total employment equals the employment carried from the "
+        "immediately preceding season plus the people hired, minus the people fired, plus the "
+        "external employment change for that season. In the very first season there is no "
+        "preceding season, so none carries in."),
+     "expected_pyomo": EB1},
+    {"description": (
+        "Exactly one breakpoint selector is chosen on each shift. For each season and shift, the "
+        "selectors summed over all breakpoints must equal one."),
+     "expected_pyomo": MESSB},
+    {"description": (
+        "The segment weights are tied to the chosen breakpoint selectors so that only weights "
+        "adjacent to the selected breakpoint can be active. For the lowest breakpoint, that "
+        "breakpoint's weight cannot exceed its own selector. For the second breakpoint, the "
+        "weights at that breakpoint and the one just below it together cannot exceed the "
+        "selectors at those two breakpoints. For every higher breakpoint, the weights at that "
+        "breakpoint and the one just below it together cannot exceed the selectors at that "
+        "breakpoint and the two just below it. This is applied for every breakpoint, season and shift."),
+     "expected_pyomo": LSSB},
+    {"description": (
+        "Production in spring is capped at a fraction of the maximum the shifts could deliver. "
+        "The motors produced in spring must not exceed eighty percent of the number of shifts "
+        "times the largest motor output across all breakpoints."),
+     "expected_pyomo": PUP},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "prodsch_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

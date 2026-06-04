@@ -1,0 +1,47 @@
+{
+  "sets": {
+    "nh": ["Seniority", "Qualification", "Pay rate"],
+    "sh": ["Start time", "End time", "Minimum requirement", "Maximum requirement"],
+    "nurse": ["n1", "n2", "n3"],
+    "shift": ["sh1", "sh2", "sh3", "sh4"],
+    "department": ["Emergency", "Geriatrics"],
+    "skill": ["Oncology", "Pediatrics", "Cardiac_Care"],
+    "day": ["monday", "tuesday"],
+    "nurseSkills": [
+      ["n1", "Cardiac_Care"],
+      ["n2", "Oncology"],
+      ["n2", "Pediatrics"],
+      ["n3", "Cardiac_Care"]
+    ],
+    "vacation": [
+      ["n3", "tuesday"]
+    ],
+    "nurseAssoc": [
+      ["n1", "n2"]
+    ],
+    "nurseIncompat": [
+      ["n2", "n3"]
+    ]
+  },
+  "indexed_params": {
+    "nurseData": {
+      "n1|Seniority": 6, "n1|Qualification": 3, "n1|Pay rate": 24,
+      "n2|Seniority": 2, "n2|Qualification": 2, "n2|Pay rate": 18,
+      "n3|Seniority": 9, "n3|Qualification": 5, "n3|Pay rate": 33
+    },
+    "shiftData": {
+      "sh1|Emergency|monday|Start time": 8, "sh1|Emergency|monday|End time": 14, "sh1|Emergency|monday|Minimum requirement": 2, "sh1|Emergency|monday|Maximum requirement": 3,
+      "sh2|Emergency|monday|Start time": 10, "sh2|Emergency|monday|End time": 16, "sh2|Emergency|monday|Minimum requirement": 1, "sh2|Emergency|monday|Maximum requirement": 2,
+      "sh3|Geriatrics|monday|Start time": 8, "sh3|Geriatrics|monday|End time": 12, "sh3|Geriatrics|monday|Minimum requirement": 2, "sh3|Geriatrics|monday|Maximum requirement": 3,
+      "sh4|Emergency|tuesday|Start time": 8, "sh4|Emergency|tuesday|End time": 14, "sh4|Emergency|tuesday|Minimum requirement": 1, "sh4|Emergency|tuesday|Maximum requirement": 2
+    },
+    "skillRequirements": {
+      "Emergency|Cardiac_Care": 1
+    }
+  },
+  "scalar_params": {
+    "maxWorkTime": 40,
+    "fairnessWeight": 100,
+    "assignmentWeight": 10
+  }
+}

@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+"""Builder for the vietman_vietmip_mip (ammonia/fertilizer location-distribution MIP) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "vietman_vietmip_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": [0, 1, 2, 3, 4, 5],
+         "doc": "all sources of ammonia; member 0 is an external import source and members 1 through 5 are the domestic plants"},
+        {"name": "id", "members": [1, 2, 3, 4, 5],
+         "doc": "the domestic plant sites; these are the sources that can be built and that produce ammonia and fertilizer, and they are exactly the non-import members of the full source set"},
+        {"name": "k", "members": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+         "doc": "the demand centers that must receive fertilizer"},
+        {"name": "product", "members": ["ammonia", "fertilizer"],
+         "doc": "the two products handled in the network"},
+        {"name": "j", "members": [0, 1, 2, 3, 4, 5],
+         "doc": "an alias of the full source set i, used as the origin index for fertilizer shipments"},
+        {"name": "jd", "members": [1, 2, 3, 4, 5],
+         "doc": "an alias of the domestic plant set id, used as the plant index for ammonia received and fertilizer produced"},
+    ],
+    "params": [
+        {"name": "fc", "index": "i, product", "kind": "cost",
+         "doc": "the fixed cost of erecting a plant, given per source and per product, in cost units"},
+        {"name": "c", "index": "i, j", "kind": "cost",
+         "doc": "the combined production and shipping cost per unit of ammonia moved from a source to a domestic plant, in cost units per unit"},
+        {"name": "d", "index": "j, k", "kind": "cost",
+         "doc": "the combined production and shipping cost per unit of fertilizer moved from an origin to a demand center, in cost units per unit"},
+        {"name": "r", "index": "k", "kind": "demand",
+         "doc": "the fertilizer demand required at each demand center, in units"},
+        {"name": "bigm", "index": "", "kind": "constant",
+         "doc": "a large upper-bound constant equal to the total fertilizer demand summed over all demand centers, used to switch flows on or off with the build indicators"},
+    ],
+    "vars": [
+        {"name": "x", "index": "i, jd", "domain": "NonNegativeReals",
+         "doc": "the quantity of ammonia shipped from a source to a domestic plant, in units"},
+        {"name": "y", "index": "j, k", "domain": "NonNegativeReals",
+         "doc": "the quantity of fertilizer shipped from an origin to a demand center, in units"},
+        {"name": "u", "index": "i, j, k", "domain": "NonNegativeReals",
+         "doc": "tagged product shipment quantity by source, plant, and demand center, in units"},
+        {"name": "z", "index": "jd", "domain": "Binary",
+         "doc": "the build indicator for fertilizer at each domestic plant, one if the plant is opened for fertilizer and zero otherwise"},
+        {"name": "w", "index": "id", "domain": "Binary",
+         "doc": "the build indicator for ammonia at each domestic plant, one if the plant is opened for ammonia and zero otherwise"},
+        {"name": "tc", "index": "", "domain": "Reals",
+         "doc": "the total cost accumulated across the whole network"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "tc"},
+}
+
+NARRATIVE = (
+    "We plan an ammonia and fertilizer supply network. We decide which domestic plants to open for ammonia "
+    "and which to open for fertilizer, how much ammonia to ship from each source into each plant, and how much "
+    "fertilizer to ship from each origin out to each demand center. Sources include the domestic plants and an "
+    "external import source. The objective is to minimize the total cost, which combines the fixed costs of "
+    "building plants with the per-unit production and shipping costs of all the ammonia and fertilizer moved."
+)
+
+AB = (
+    "def ab_rule(model, jd):\n"
+    "    return sum(model.x[i, jd] for i in model.i) >= sum(model.y[jd, k] for k in model.k)\n"
+    "model.ab = Constraint(model.jd, rule=ab_rule)"
+)
+FD = (
+    "def fd_rule(model, k):\n"
+    "    return sum(model.y[j, k] for j in model.j) >= model.r[k]\n"
+    "model.fd = Constraint(model.k, rule=fd_rule)"
+)
+IA = (
+    "def ia_rule(model, id):\n"
+    "    return model.bigm * model.w[id] >= sum(model.x[id, jd] for jd in model.jd)\n"
+    "model.ia = Constraint(model.id, rule=ia_rule)"
+)
+IFU = (
+    "def ifu_rule(model, jd):\n"
+    "    return model.bigm * model.z[jd] >= sum(model.y[jd, k] for k in model.k)\n"
+    "model.ifu = Constraint(model.jd, rule=ifu_rule)"
+)
+TA = (
+    "def ta_rule(model):\n"
+    "    sum1 = sum(model.fc[id, 'ammonia'] * model.w[id] for id in model.id) + sum(model.fc[jd, 'fertilizer'] * model.z[jd] for jd in model.jd)\n"
+    "    sum2 = sum(model.c[i, jd] * model.x[i, jd] for i in model.i for jd in model.jd) + sum(model.d[j, k] * model.y[j, k] for j in model.j for k in model.k)\n"
+    "    return model.tc == sum1 + sum2\n"
+    "model.ta = Constraint(rule=ta_rule)"
+)
+WHOLESET = "\n".join([AB, FD, IA, IFU, TA])
+
+records = [
+    {"description": (
+        "Each domestic plant cannot send out more fertilizer than the ammonia it takes in. For every "
+        "domestic plant, the total ammonia received at that plant from all sources must be at least the "
+        "total fertilizer shipped out of that plant to all demand centers."),
+     "expected_pyomo": AB},
+    {"description": (
+        "Every demand center must be fully supplied with fertilizer. For each demand center, the total "
+        "fertilizer shipped into it from all origins must be at least its required demand."),
+     "expected_pyomo": FD},
+    {"description": (
+        "Ammonia can only be received at a domestic plant if that plant has been opened for ammonia. For "
+        "each domestic plant, when the plant is not opened for ammonia no ammonia may be shipped into it, "
+        "and when it is opened the incoming ammonia is capped by the large bounding constant. The total "
+        "ammonia shipped into the plant from the domestic plants must stay within that gated limit."),
+     "expected_pyomo": IA},
+    {"description": (
+        "Fertilizer can only be produced and shipped from a domestic plant if that plant has been opened "
+        "for fertilizer. For each domestic plant, when the plant is not opened for fertilizer no fertilizer "
+        "may leave it, and when it is opened the outgoing fertilizer is capped by the large bounding "
+        "constant. The total fertilizer shipped out of the plant to all demand centers must stay within "
+        "that gated limit."),
+     "expected_pyomo": IFU},
+    {"description": (
+        "The total cost accounts for both building plants and moving product. Add up the fixed building "
+        "cost for every plant opened for ammonia and every plant opened for fertilizer, then add the "
+        "per-unit production and shipping cost of all ammonia moved from sources into plants and of all "
+        "fertilizer moved from origins out to demand centers. Set the total cost equal to that combined sum."),
+     "expected_pyomo": TA},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "vietman_vietmip_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+"""Builder for the jobt_lp (job training / production-planning LP) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "jobt_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "t", "members": [1, 2, 3, 4, 5], "doc": "the consecutive time periods (weeks), in chronological order"},
+    ],
+    "params": [
+        {"name": "rho", "index": "", "kind": "productivity",
+         "doc": "worker productivity, in units of goods one worker can produce per period"},
+        {"name": "alpha", "index": "", "kind": "capability",
+         "doc": "trainer capability, the number of new workers a single experienced worker can train per period"},
+        {"name": "wage", "index": "", "kind": "wage",
+         "doc": "the wage paid per worker per period, in dollars"},
+        {"name": "si", "index": "t", "kind": "initial-stock",
+         "doc": "an exogenous addition to stored goods that arrives at the start of a period, in units; zero in periods with no such addition"},
+        {"name": "wi", "index": "t", "kind": "initial-workers",
+         "doc": "an exogenous addition to the workforce that arrives at the start of a period, in workers; zero in periods with no such addition"},
+        {"name": "sf", "index": "t", "kind": "severance",
+         "doc": "an extra per-worker cost charged in a period on top of the regular wage, in dollars per worker"},
+        {"name": "d", "index": "t", "kind": "demand", "doc": "the demand for goods in each period, in units"},
+    ],
+    "vars": [
+        {"name": "p", "index": "t", "domain": "NonNegativeReals", "doc": "the amount of goods produced in a period, in units"},
+        {"name": "s", "index": "t", "domain": "NonNegativeReals", "doc": "the amount of goods held in storage at the end of a period, in units"},
+        {"name": "u", "index": "t", "domain": "NonNegativeReals", "doc": "the amount of demand left unmet in a period, in units"},
+        {"name": "w", "index": "t", "domain": "NonNegativeReals", "doc": "the total number of productive workers available in a period, in workers"},
+        {"name": "h", "index": "t", "domain": "NonNegativeReals", "doc": "the number of workers hired in a period, in workers"},
+        {"name": "f", "index": "t", "domain": "NonNegativeReals", "doc": "the number of workers fired in a period, in workers"},
+        {"name": "phi", "index": "", "domain": "Reals", "doc": "the total cost over the whole horizon, in dollars"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "phi"},
+}
+
+NARRATIVE = (
+    "We plan production and staffing over a sequence of weeks. Each week we decide how much "
+    "to produce, how much to keep in storage, how much demand to leave unmet, how many workers "
+    "to hire, how many to fire, and how large the resulting workforce is. Holding goods in "
+    "storage costs money, leaving demand unmet is penalized, and keeping workers on the payroll "
+    "costs wages plus any extra firing-related charge. The objective is to make the total cost "
+    "over the whole horizon as small as possible."
+)
+
+CB = (
+    "def commodity_balance_rule(model, t):\n"
+    "    t_prev = model.t.prev(t) if t != model.t.first() else None\n"
+    "    s_prev = model.s[t_prev] if t_prev else 0\n"
+    "    u_prev = model.u[t_prev] if t_prev else 0\n"
+    "    return model.s[t] == s_prev + model.p[t] - model.d[t] - u_prev + model.u[t] + model.si[t]\n"
+    "model.cb = Constraint(model.t, rule=commodity_balance_rule)"
+)
+WB = (
+    "def worker_balance_rule(model, t):\n"
+    "    t_prev = model.t.prev(t) if t != model.t.first() else None\n"
+    "    w_prev = model.w[t_prev] if t_prev else 0\n"
+    "    return model.w[t] == w_prev - model.f[t] + model.h[t] + model.wi[t]\n"
+    "model.wb = Constraint(model.t, rule=worker_balance_rule)"
+)
+WD = (
+    "def worker_differentiation_rule(model, t):\n"
+    "    return model.w[t] >= model.p[t] / model.rho + (1 + 1 / model.alpha) * model.h[t]\n"
+    "model.wd = Constraint(model.t, rule=worker_differentiation_rule)"
+)
+COST_DEF = (
+    "def cost_definition_rule(model):\n"
+    "    return model.phi == sum(10 * model.s[t] + 30 * model.u[t] + (model.wage + model.sf[t]) * model.w[t] for t in model.t)\n"
+    "model.cost_def = Constraint(rule=cost_definition_rule)"
+)
+WHOLESET = "\n".join([CB, WB, WD, COST_DEF])
+
+records = [
+    {"description": (
+        "Goods in storage carry over from week to week. For each week, the goods left in "
+        "storage at the end of the week equal whatever was in storage at the end of the previous "
+        "week, plus what was produced this week, plus any exogenous goods arriving this week, "
+        "minus this week's demand. Any demand that went unmet in the previous week still has to "
+        "be made up, so add back the previous week's unmet demand as something that must now be "
+        "satisfied, while this week's own unmet demand reduces what storage has to absorb. In "
+        "the first week there is no previous week, so treat the prior storage and prior unmet "
+        "demand as zero."),
+     "expected_pyomo": CB},
+    {"description": (
+        "The workforce evolves from week to week. For each week, the number of productive "
+        "workers available equals the number available at the end of the previous week, minus "
+        "the workers fired this week, plus the workers hired this week, plus any workers who "
+        "arrive exogenously this week. In the first week there is no previous week, so treat the "
+        "prior workforce as zero."),
+     "expected_pyomo": WB},
+    {"description": (
+        "Each week there must be enough workers to cover both production and training. For every "
+        "week, the available workforce has to be at least the number of workers needed to produce "
+        "that week's output, given how much one worker can make, plus the workers consumed by "
+        "hiring, where each newly hired worker takes up one slot of capacity and additionally ties "
+        "up a fraction of an experienced worker to train them according to how many trainees one "
+        "worker can handle."),
+     "expected_pyomo": WD},
+    {"description": (
+        "The total cost adds up everything spent across all weeks. For each week it counts a "
+        "holding charge for the goods kept in storage, a penalty for the demand left unmet, and a "
+        "staffing charge for every worker on the payroll that combines the regular wage with any "
+        "extra firing-related cost that applies that week. Set the total cost variable equal to "
+        "the sum of these over all weeks."),
+     "expected_pyomo": COST_DEF},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as fh:
+    for r in records:
+        fh.write(json.dumps({
+            "problem_id": "jobt_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

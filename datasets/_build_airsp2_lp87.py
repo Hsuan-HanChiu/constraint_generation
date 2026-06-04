@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+"""Builder for the airsp2_lp87 (airline fleet assignment) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "airsp2_lp87_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": ["a", "b", "c", "d"],
+         "doc": "the available aircraft types in the fleet"},
+        {"name": "j", "members": ["route-1", "route-2", "route-3", "route-4", "route-5"],
+         "doc": "the routes that must be served"},
+    ],
+    "params": [
+        {"name": "c", "index": "i,j", "kind": "cost",
+         "doc": "the operating cost of one aircraft of a given type flown on a given route, in thousands of dollars"},
+        {"name": "pcap", "index": "i,j", "kind": "capacity",
+         "doc": "the passenger-carrying capacity of one aircraft of a given type on a given route, measured in hundreds of passengers"},
+        {"name": "aircraft", "index": "i", "kind": "availability",
+         "doc": "the number of aircraft of each type that are available to be assigned"},
+        {"name": "fixeddemand", "index": "j", "kind": "demand",
+         "doc": "the passenger demand that must be served on each route, measured in hundreds of passengers"},
+        {"name": "costbumped", "index": "j", "kind": "cost",
+         "doc": "the penalty cost incurred per unit of passenger demand that is bumped on a route rather than carried, in thousands of dollars per hundred passengers"},
+    ],
+    "vars": [
+        {"name": "x", "index": "i,j", "domain": "NonNegativeReals",
+         "doc": "the number of aircraft of each type assigned to each route"},
+        {"name": "bumped", "index": "j", "domain": "NonNegativeReals",
+         "doc": "the amount of passenger demand bumped on each route, measured in hundreds of passengers"},
+        {"name": "z", "index": "", "domain": "NonNegativeReals",
+         "doc": "the objective variable holding total cost"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "z"},
+}
+
+NARRATIVE = (
+    "We run an airline that must serve passenger demand on a set of routes using a fleet "
+    "made up of several aircraft types. For each combination of aircraft type and route we "
+    "decide how many aircraft of that type to fly on that route, and for each route we decide "
+    "how much passenger demand to leave unserved by bumping it. Flying an aircraft on a route "
+    "costs money that depends on the type and the route, and bumping passengers on a route "
+    "carries a per-passenger penalty. The objective is to minimize the total of the flying "
+    "costs and the bumping penalties across all routes."
+)
+
+AVAIL = (
+    "def avail_rule(model, i):\n"
+    "    return sum(model.x[i, j] for j in model.j) <= model.aircraft[i]\n"
+    "model.avail = Constraint(model.i, rule=avail_rule)"
+)
+DEMAND = (
+    "def demand_rule(model, j):\n"
+    "    return sum(model.pcap[i, j] * model.x[i, j] for i in model.i) + model.bumped[j] >= model.fixeddemand[j]\n"
+    "model.demand = Constraint(model.j, rule=demand_rule)"
+)
+WHOLESET = "\n".join([AVAIL, DEMAND])
+
+records = [
+    {"description": (
+        "Each aircraft type has only so many aircraft available to fly. For each aircraft type, "
+        "the total number of aircraft of that type assigned across all the routes cannot exceed "
+        "the number of aircraft of that type that are available."),
+     "expected_pyomo": AVAIL},
+    {"description": (
+        "Every route has a passenger demand that has to be accounted for. For each route, the "
+        "passengers that can be carried by the aircraft assigned to that route, together with the "
+        "passengers that are bumped on that route, must be at least the demand on that route."),
+     "expected_pyomo": DEMAND},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "airsp2_lp87",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

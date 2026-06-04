@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+"""Builder for the chance_lp (chance-constrained feed-mix LP) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "chance_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "f", "members": ["barley", "oats", "sesame", "grnd-meal"],
+         "doc": "the feeds available to blend into the mix"},
+        {"name": "n", "members": ["protein", "fats"],
+         "doc": "the nutrients whose levels in the mix are regulated"},
+    ],
+    "params": [
+        {"name": "price", "index": "f", "kind": "cost",
+         "doc": "price of each feed, in fgld per ton"},
+        {"name": "req", "index": "n", "kind": "requirement",
+         "doc": "minimum required level of each nutrient in the mix, as a percent"},
+        {"name": "char_mean", "index": "n,f", "kind": "characteristic",
+         "doc": "mean level of a nutrient contributed by a feed, as a percent"},
+        {"name": "char_variance", "index": "n,f", "kind": "characteristic",
+         "doc": "variance of the nutrient level contributed by a feed, as a percent; provided for protein only and not used by any linear requirement"},
+    ],
+    "vars": [
+        {"name": "cost", "index": "", "domain": "NonNegativeReals",
+         "doc": "total cost of the mix per ton, in fgld"},
+        {"name": "x", "index": "f", "domain": "NonNegativeReals",
+         "doc": "fraction of each feed in the mix, expressed as a share of the whole mix"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "cost"},
+}
+
+NARRATIVE = (
+    "We blend several feeds into a single feed mix. Each feed has a known price per ton "
+    "and contributes known nutrient levels to the mix. We decide what fraction of the "
+    "mix comes from each feed. The objective is to make the total cost of the mix per "
+    "ton as small as possible."
+)
+
+CDEF = (
+    "def cost_definition_rule(model):\n"
+    "    return model.cost == sum(model.price[f] * model.x[f] for f in model.f)\n"
+    "model.cdef = Constraint(rule=cost_definition_rule)"
+)
+MC = (
+    "def mix_constraint_rule(model):\n"
+    "    return sum(model.x[f] for f in model.f) == 1\n"
+    "model.mc = Constraint(rule=mix_constraint_rule)"
+)
+NBAL = (
+    "def nutrient_balance_rule(model, n):\n"
+    "    return sum(model.char_mean[n, f] * model.x[f] for f in model.f) >= model.req[n]\n"
+    "model.nbal = Constraint(model.n, rule=nutrient_balance_rule)"
+)
+WHOLESET = "\n".join([CDEF, MC, NBAL])
+
+records = [
+    {"description": (
+        "The total cost of the mix is the price of each feed multiplied by the fraction "
+        "of the mix that comes from that feed, summed over every feed. Set the cost "
+        "variable equal to that total."),
+     "expected_pyomo": CDEF},
+    {"description": (
+        "The fractions of the feeds must form a complete mix. The fractions taken across "
+        "all feeds must add up to one."),
+     "expected_pyomo": MC},
+    {"description": (
+        "Each nutrient must reach its required level in the mix. For every nutrient, the "
+        "level it gets from each feed weighted by that feed's fraction, summed over all "
+        "feeds, must be at least the required level for that nutrient."),
+     "expected_pyomo": NBAL},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "chance_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

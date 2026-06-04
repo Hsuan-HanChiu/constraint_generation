@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+"""Builder for the blend_lp57 (alloy blending LP) constraint-generation dataset.
+Run with plain python (no special deps) to (re)generate the JSONL."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "blend_lp57_constraint_gen.jsonl"
+
+# ---- shared model vocabulary (same components block in every record) ----
+COMPONENTS = {
+    "sets": [
+        {"name": "alloy", "members": ["a", "b", "c", "d", "e", "f", "g", "h", "i"],
+         "doc": "the candidate alloys that can be bought and mixed into the blend"},
+        {"name": "elem", "members": ["lead", "zinc", "tin"],
+         "doc": "the chemical elements whose content in the final blend is controlled"},
+    ],
+    "params": [
+        {"name": "compdat", "index": "elem and 'price', alloy", "kind": "composition and price",
+         "doc": "for each alloy, the percentage of each element it contains and, under the extra label 'price', its purchase price in dollars per pound. The element rows give the percent by weight of that element in the alloy"},
+        {"name": "rb", "index": "elem", "kind": "requirement",
+         "doc": "the required content of each element in the final blend, expressed on the same percent-by-weight basis as the alloy compositions"},
+    ],
+    "vars": [
+        {"name": "v", "index": "alloy", "domain": "NonNegativeReals",
+         "doc": "the amount of each alloy purchased, in pounds, as a fraction of one pound of finished blend"},
+        {"name": "phi", "index": "", "domain": "NonNegativeReals",
+         "doc": "total cost of the alloys bought, in dollars"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "phi"},
+}
+
+NARRATIVE = (
+    "We are making one pound of a metal blend by buying and mixing several candidate "
+    "alloys. Each alloy has a known composition telling how much of each element it "
+    "contributes, and a known price per pound. We decide how much of each alloy to buy. "
+    "The objective is to make the total purchase cost as small as possible."
+)
+
+# ---- ground-truth Pyomo for each constraint (self-contained over model.* only) ----
+PC = (
+    "def pc_rule(model, elem):\n"
+    "    return sum(model.compdat[elem, alloy] * model.v[alloy] for alloy in model.alloy) == model.rb[elem]\n"
+    "model.pc = Constraint(model.elem, rule=pc_rule)"
+)
+
+MB = (
+    "model.mb = Constraint(expr=sum(model.v[alloy] for alloy in model.alloy) == 1)"
+)
+
+AC = (
+    "model.ac = Constraint(expr=model.phi == sum(model.compdat['price', alloy] * model.v[alloy] for alloy in model.alloy))"
+)
+
+WHOLESET = "\n".join([PC, MB, AC])
+
+records = [
+    {
+        "description": (
+            "For each element, the blend has to hit its required content. Add up the "
+            "contribution of that element from every alloy, weighting each alloy by how "
+            "much of it is bought, and that total must equal the amount of the element "
+            "the blend is required to have."
+        ),
+        "expected_pyomo": PC,
+    },
+    {
+        "description": (
+            "The amounts of all the alloys bought must together make exactly one pound "
+            "of finished blend, so the total quantity purchased across every alloy adds "
+            "up to one."
+        ),
+        "expected_pyomo": MB,
+    },
+    {
+        "description": (
+            "The total cost is the price of each alloy multiplied by how much of it is "
+            "bought, summed over all the alloys. Set the total cost equal to that amount."
+        ),
+        "expected_pyomo": AC,
+    },
+    {
+        "description": "Generate the complete constraint set for this model.",
+        "expected_pyomo": WHOLESET,
+    },
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        rec = {
+            "problem_id": "blend_lp57",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+print(f"wrote {OUT} ({len(records)} records)")

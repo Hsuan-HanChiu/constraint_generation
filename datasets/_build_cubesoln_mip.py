@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+"""Builder for the cubesoln_mip constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "cubesoln_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "I", "members": [1, 2, 3],
+         "doc": "the three coordinate positions along one axis of a three by three by three cube; a cell of the cube is identified by a triple of these positions, one per axis"},
+        {"name": "S", "members": ["a", "b", "c", "incr", "decr"],
+         "doc": "the labels available for a line description along one axis; a, b, and c are the three fixed positions, while incr and decr are the two ordering directions"},
+        {"name": "B", "members": ["low", "high"],
+         "doc": "the two bound sides used to sandwich each line value from below and from above"},
+        {"name": "X", "members": ["a", "b", "c"],
+         "doc": "the subset of labels that name a single fixed position rather than a direction"},
+        {"name": "D", "members": ["incr", "decr"],
+         "doc": "the subset of labels that name an ordering direction rather than a fixed position"},
+        {"name": "LD", "members": "49 admissible label triples (s, sp, spp) over S, each describing one line of the cube; only triples that contain at least one incr direction are admissible",
+         "doc": "the set of valid line descriptions, each a triple of labels for the three axes; membership is restricted so that every admissible description involves at least one increasing direction, which keeps the line descriptions oriented consistently"},
+    ],
+    "params": [
+        {"name": "ls", "index": "B", "kind": "coefficient",
+         "doc": "the sign multiplier applied to a count of selected cells on each bound side; low uses one and high uses minus one, so the two sides bracket the count from below and above"},
+        {"name": "lr", "index": "B", "kind": "bound",
+         "doc": "the constant slack added on the right side for each bound side, in the same units as a line value; low uses two and high uses minus one"},
+        {"name": "df", "index": "I,S", "kind": "offset",
+         "doc": "the position offset that a label contributes at a given coordinate position; for the fixed labels a, b, c it is the signed distance from that label's position to the current position, for incr it is zero, and for decr it is a downward stepping offset; offsets are used to walk from a coordinate position to the cube cell that lies on the described line"},
+    ],
+    "vars": [
+        {"name": "core", "index": "I,I,I", "domain": "Binary",
+         "doc": "one if the cube cell at the given triple of coordinate positions is selected, zero otherwise"},
+        {"name": "line", "index": "LD", "domain": "NonNegativeReals",
+         "doc": "the line value assigned to each admissible line description, large enough to dominate the selected cells lying on that line"},
+        {"name": "num", "index": "", "domain": "NonNegativeReals",
+         "doc": "the total of all line values across every admissible line description"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "num"},
+}
+
+NARRATIVE = (
+    "We are choosing which cells of a three by three by three cube to mark as selected, and we "
+    "assign a numeric line value to each admissible line through the cube. Each cell is either "
+    "selected or not. Each line value is a nonnegative quantity attached to one line description. "
+    "We also track a single overall total that aggregates all of the line values. The goal is to "
+    "make that overall total as small as possible."
+)
+
+NBB = (
+    "def nbb_rule(model):\n"
+    "    return sum(model.core[i, j, k] for i in model.I for j in model.I for k in model.I) == 13\n"
+    "model.nbb = Constraint(rule=nbb_rule)"
+)
+
+LDEF = (
+    "def ldef_rule(model, s, sp, spp, b):\n"
+    "    terms = []\n"
+    "    for i in model.I:\n"
+    "        df1 = int(value(model.df[i, s]))\n"
+    "        df2 = int(value(model.df[i, sp]))\n"
+    "        df3 = int(value(model.df[i, spp]))\n"
+    "        i1 = i + df1\n"
+    "        i2 = i + df2\n"
+    "        i3 = i + df3\n"
+    "        if 1 <= i1 <= 3 and 1 <= i2 <= 3 and 1 <= i3 <= 3:\n"
+    "            terms.append(model.core[i1, i2, i3])\n"
+    "    if not terms:\n"
+    "        return Constraint.Skip\n"
+    "    return model.ls[b] * sum(terms) <= model.line[s, sp, spp] + model.lr[b]\n"
+    "model.ldef = Constraint(model.LD, model.B, rule=ldef_rule)"
+)
+
+NDEF = (
+    "def ndef_rule(model):\n"
+    "    return model.num == sum(model.line[s, sp, spp] for (s, sp, spp) in model.LD)\n"
+    "model.ndef = Constraint(rule=ndef_rule)"
+)
+
+WHOLESET = "\n".join([NBB, LDEF, NDEF])
+
+records = [
+    {"description": (
+        "Exactly thirteen of the cube cells must be selected. Add up the selection indicators over "
+        "every cell of the cube and require that total to equal thirteen."),
+     "expected_pyomo": NBB},
+    {"description": (
+        "For each admissible line description and for each of the two bound sides, the line value must "
+        "be large enough to bracket the cells that the description picks out along that line. Walk each "
+        "coordinate position along the line by applying the offset that each of the three labels "
+        "contributes at that position, keep only the cube cells whose stepped coordinates stay inside "
+        "the cube, and add up the selection indicators of those cells. On a given bound side, multiply "
+        "that count by the side's sign multiplier and require the result to be at most the line value "
+        "for the description plus the side's constant slack. If no cell on the line stays inside the "
+        "cube, the requirement does not apply for that description."),
+     "expected_pyomo": LDEF},
+    {"description": (
+        "The overall total must equal the sum of the line values. Add up the line value across every "
+        "admissible line description and set the overall total equal to that sum."),
+     "expected_pyomo": NDEF},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "cubesoln_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

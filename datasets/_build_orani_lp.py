@@ -1,0 +1,479 @@
+#!/usr/bin/env python
+"""Builder for the orani_lp (ORANI computable general equilibrium / input-output) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "orani_lp_constraint_gen.jsonl"
+
+# ---- shared model vocabulary (same components block in every record) ----
+# NOTE: this is a linearized (percentage-change) CGE model. Every variable is a
+# RATE OF CHANGE (percent change from the base period) unless its doc says otherwise,
+# and every equation is an economic identity written in those percentage-change terms.
+COMPONENTS = {
+    "sets": [
+        {"name": "c", "members": ["food", "clothing"],
+         "doc": "the commodities in the economy, each of which can be produced at home or imported"},
+        {"name": "ca", "members": ["food"],
+         "doc": "the commodities that are agricultural goods"},
+        {"name": "cm", "members": ["clothing"],
+         "doc": "the commodities that are manufactured goods"},
+        {"name": "f", "members": ["labor", "capital"],
+         "doc": "the primary factors of production, namely labor and capital"},
+        {"name": "h", "members": ["families"],
+         "doc": "the household groups that consume goods"},
+        {"name": "i", "members": ["agric", "manuf"],
+         "doc": "the producing industries, one farming and one manufacturing"},
+        {"name": "s", "members": ["domestic", "imported"],
+         "doc": "the two sources a commodity can come from, produced domestically or imported from abroad"},
+        {"name": "ce", "members": [["food", "food"], ["food", "clothing"], ["clothing", "food"], ["clothing", "clothing"]],
+         "doc": "the full set of ordered commodity pairs, used when a commodity's behaviour depends on the price of every other commodity"},
+        {"name": "cp", "members": ["food", "clothing"],
+         "doc": "a copy of the commodity set used as a second index when summing over all commodities"},
+        {"name": "sp", "members": ["domestic", "imported"],
+         "doc": "a copy of the source set used as a second index when summing over all sources"},
+        {"name": "ip", "members": ["agric", "manuf"],
+         "doc": "a copy of the industry set used as a second index when summing over all industries"},
+    ],
+    "params": [
+        {"name": "theta", "index": "", "kind": "policy",
+         "doc": "how strongly wages are indexed to consumer prices, where a value of one means wages move one for one with the cost of living"},
+        {"name": "elevel", "index": "", "kind": "scale",
+         "doc": "the base period value of total exports, used to scale the trade balance"},
+        {"name": "mlevel", "index": "", "kind": "scale",
+         "doc": "the base period value of total imports, used to scale the trade balance"},
+        {"name": "amc", "index": "c,s,*", "kind": "table",
+         "doc": "the social accounting entries for commodities by source, recording base period flows such as use by households, by each industry, exports, totals and duties"},
+        {"name": "amf", "index": "f,i", "kind": "table",
+         "doc": "the base period payments by each industry to each primary factor"},
+        {"name": "amq", "index": "c,i", "kind": "table",
+         "doc": "the base period output of each commodity by each industry"},
+        {"name": "epsilon", "index": "c,s", "kind": "elasticity",
+         "doc": "the income elasticity of household demand for a commodity from a source, how strongly demand for it responds to household income"},
+        {"name": "amt", "index": "i", "kind": "table",
+         "doc": "the base period column totals of the accounting matrix for each industry"},
+        {"name": "gamma", "index": "c", "kind": "elasticity",
+         "doc": "the slope of the foreign export demand curve for a commodity, how much its world price must fall for foreigners to buy more"},
+        {"name": "wl", "index": "i", "kind": "share",
+         "doc": "each industry's share of total employment"},
+        {"name": "alpha", "index": "c,s,i", "kind": "share",
+         "doc": "the share of an industry's spending on a commodity that goes to a particular source, how it splits its purchases between domestic and imported supply"},
+        {"name": "alphak", "index": "i", "kind": "share",
+         "doc": "the share of an industry's primary factor cost that is paid to capital"},
+        {"name": "alphal", "index": "i", "kind": "share",
+         "doc": "the share of an industry's primary factor cost that is paid to labor"},
+        {"name": "alphae", "index": "c,s", "kind": "share",
+         "doc": "the share of a particular source within total household spending on a commodity"},
+        {"name": "etabar", "index": "c,s,cp,sp", "kind": "elasticity",
+         "doc": "the compensated cross price elasticities of household demand, the substitution response holding real income fixed"},
+        {"name": "sb", "index": "c,s", "kind": "share",
+         "doc": "the share of a commodity from a source in the total household budget"},
+        {"name": "eta", "index": "c,s,cp,sp", "kind": "elasticity",
+         "doc": "the uncompensated cross price elasticities of household demand, how demand for a commodity from a source responds to the price of every commodity and source"},
+        {"name": "m", "index": "c,i", "kind": "share",
+         "doc": "each industry's share of total domestic output of a commodity"},
+        {"name": "mu", "index": "c,s", "kind": "weight",
+         "doc": "the weight of a commodity from a source in the consumer price index"},
+        {"name": "nm", "index": "c", "kind": "share",
+         "doc": "a commodity's share in the total value of imports"},
+        {"name": "nx", "index": "c", "kind": "share",
+         "doc": "a commodity's share in the total value of exports"},
+        {"name": "r", "index": "c,i", "kind": "share",
+         "doc": "the revenue share of a commodity in an industry's output, how much of the industry's sales come from that commodity"},
+        {"name": "sc", "index": "c,s,i", "kind": "share",
+         "doc": "the cost share of a commodity from a source in an industry's total costs"},
+        {"name": "sk", "index": "i", "kind": "share",
+         "doc": "the share of capital cost in an industry's total costs"},
+        {"name": "sl", "index": "i", "kind": "share",
+         "doc": "the share of labor cost in an industry's total costs"},
+        {"name": "wc", "index": "c,s", "kind": "share",
+         "doc": "the share of household consumption in the total demand for a commodity from a source"},
+        {"name": "we", "index": "c", "kind": "share",
+         "doc": "the share of exports in the total demand for a commodity"},
+        {"name": "wi", "index": "c,s,i", "kind": "share",
+         "doc": "the share of an industry's intermediate use in the total demand for a commodity from a source"},
+    ],
+    "vars": [
+        {"name": "b", "index": "", "domain": "Reals", "doc": "the change in the balance of trade"},
+        {"name": "cn", "index": "c,s", "domain": "Reals",
+         "doc": "the percentage change in nominal household consumption of a commodity from a source"},
+        {"name": "cr", "index": "", "domain": "Reals", "doc": "the percentage change in real household consumption"},
+        {"name": "df", "index": "c", "domain": "Reals",
+         "doc": "the percentage shift in foreign demand for a commodity, an exogenous shock held fixed at its base level"},
+        {"name": "e", "index": "c", "domain": "Reals", "doc": "the percentage change in exports of a commodity"},
+        {"name": "et", "index": "", "domain": "Reals", "doc": "the percentage change in total exports"},
+        {"name": "k", "index": "i", "domain": "Reals", "doc": "the percentage change in capital demanded by an industry"},
+        {"name": "kappa", "index": "i", "domain": "Reals",
+         "doc": "the percentage change in an industry's available capital stock, fixed exogenously"},
+        {"name": "l", "index": "", "domain": "Reals", "doc": "the percentage change in total employment"},
+        {"name": "li", "index": "i", "domain": "Reals", "doc": "the percentage change in labor demanded by an industry"},
+        {"name": "mt", "index": "", "domain": "Reals", "doc": "the percentage change in total imports"},
+        {"name": "p", "index": "c,s", "domain": "Reals",
+         "doc": "the percentage change in the domestic currency price of a commodity from a source"},
+        {"name": "pc", "index": "", "domain": "Reals", "doc": "the percentage change in the consumer price index"},
+        {"name": "phi", "index": "", "domain": "Reals",
+         "doc": "the percentage change in the exchange rate, fixed exogenously as the numeraire"},
+        {"name": "pk", "index": "i", "domain": "Reals", "doc": "the percentage change in the price of capital for an industry"},
+        {"name": "px", "index": "c", "domain": "Reals",
+         "doc": "the percentage change in the foreign currency export price of a commodity"},
+        {"name": "pm", "index": "c", "domain": "Reals",
+         "doc": "the percentage change in the foreign currency import price of a commodity, fixed exogenously"},
+        {"name": "q", "index": "c,i", "domain": "Reals",
+         "doc": "the percentage change in output of a commodity by an industry"},
+        {"name": "t", "index": "c", "domain": "Reals",
+         "doc": "the change in the import duty on a commodity, fixed exogenously"},
+        {"name": "v", "index": "c", "domain": "Reals", "doc": "the change in the export subsidy on a commodity"},
+        {"name": "w", "index": "", "domain": "Reals", "doc": "the percentage change in the wage rate"},
+        {"name": "ws", "index": "", "domain": "Reals", "doc": "the wage shift term, an exogenous wage shock held fixed"},
+        {"name": "x", "index": "c,s,i", "domain": "Reals",
+         "doc": "the percentage change in an industry's intermediate demand for a commodity from a source"},
+        {"name": "ye", "index": "", "domain": "Reals",
+         "doc": "the percentage change in total household expenditure, fixed exogenously"},
+        {"name": "z", "index": "i", "domain": "Reals", "doc": "the percentage change in an industry's activity level"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "pc"},
+}
+
+NARRATIVE = (
+    "This is a small economy wide model of an economy with a farming sector and a manufacturing sector, "
+    "written so that every quantity is a percentage change away from a starting balanced state. The model "
+    "solves for how all the prices, outputs, factor uses, household consumption and trade flows move together "
+    "once a shock hits. We decide the changes in commodity prices, in industry outputs and activity levels, in "
+    "the labor and capital each industry uses, in household consumption, in exports and imports and the trade "
+    "balance, and in the wage rate and the consumer price index. The objective is to make the change in the "
+    "consumer price index as small as possible."
+)
+
+# ---- ground-truth Pyomo for each constraint (self-contained over model.* only) ----
+CON = (
+    "def con_rule(model, c, s):\n"
+    "    return model.cn[c, s] == (model.epsilon[c, s] * model.ye +\n"
+    "            sum(model.eta[c, s, cp_idx, sp_idx] * model.p[cp_idx, sp_idx]\n"
+    "                for cp_idx in model.cp for sp_idx in model.sp))\n"
+    "model.con = Constraint(model.c, model.s, rule=con_rule)"
+)
+
+EXPD = (
+    "def expd_rule(model, c):\n"
+    "    return model.px[c] == -model.gamma[c] * model.e[c] + model.df[c]\n"
+    "model.expd = Constraint(model.c, rule=expd_rule)"
+)
+
+SUPPLY = (
+    "def supply_rule(model, c, i):\n"
+    "    return model.q[c, i] == (model.z[i] +\n"
+    "            (model.p[c, 'domestic'] - sum(model.r[cp_idx, i] * model.p[cp_idx, 'domestic']\n"
+    "                                          for cp_idx in model.cp)))\n"
+    "model.supply = Constraint(model.c, model.i, rule=supply_rule)"
+)
+
+INDC = (
+    "def indc_rule(model, c, s, i):\n"
+    "    return model.x[c, s, i] == (model.z[i] -\n"
+    "            (model.p[c, s] - sum(model.alpha[c, sp_idx, i] * model.p[c, sp_idx]\n"
+    "                                 for sp_idx in model.sp)))\n"
+    "model.indc = Constraint(model.c, model.s, model.i, rule=indc_rule)"
+)
+
+INDCAP = (
+    "def indcap_rule(model, i):\n"
+    "    return model.k[i] == model.z[i] - (model.pk[i] - model.alphal[i] * model.w -\n"
+    "                                        model.alphak[i] * model.pk[i])\n"
+    "model.indcap = Constraint(model.i, rule=indcap_rule)"
+)
+
+INDLAB = (
+    "def indlab_rule(model, i):\n"
+    "    return model.li[i] == model.z[i] - (model.w - model.alphal[i] * model.w -\n"
+    "                                         model.alphak[i] * model.pk[i])\n"
+    "model.indlab = Constraint(model.i, rule=indlab_rule)"
+)
+
+PRIC = (
+    "def pric_rule(model, i):\n"
+    "    return (sum(model.r[c_idx, i] * model.p[c_idx, 'domestic'] for c_idx in model.c) ==\n"
+    "            sum(model.sc[c_idx, sp_idx, i] * model.p[c_idx, sp_idx]\n"
+    "                for c_idx in model.c for sp_idx in model.sp) +\n"
+    "            model.sk[i] * model.pk[i] + model.sl[i] * model.w)\n"
+    "model.pric = Constraint(model.i, rule=pric_rule)"
+)
+
+PRIEXP = (
+    "def priexp_rule(model, c):\n"
+    "    return model.p[c, 'domestic'] == model.px[c] + model.v[c] + model.phi\n"
+    "model.priexp = Constraint(model.c, rule=priexp_rule)"
+)
+
+PRIIMP = (
+    "def priimp_rule(model, c):\n"
+    "    return model.p[c, 'imported'] == model.pm[c] + model.t[c] + model.phi\n"
+    "model.priimp = Constraint(model.c, rule=priimp_rule)"
+)
+
+BALD = (
+    "def bald_rule(model, c):\n"
+    "    return (sum(model.m[c, i_idx] * model.q[c, i_idx] for i_idx in model.i) ==\n"
+    "            sum(model.wi[c, 'domestic', i_idx] * model.x[c, 'domestic', i_idx]\n"
+    "                for i_idx in model.i) +\n"
+    "            model.wc[c, 'domestic'] * model.cn[c, 'domestic'] +\n"
+    "            model.we[c] * model.e[c])\n"
+    "model.bald = Constraint(model.c, rule=bald_rule)"
+)
+
+BALLAB = (
+    "def ballab_rule(model):\n"
+    "    return sum(model.wl[i_idx] * model.li[i_idx] for i_idx in model.i) == model.l\n"
+    "model.ballab = Constraint(rule=ballab_rule)"
+)
+
+BALCAP = (
+    "def balcap_rule(model, i):\n"
+    "    return model.k[i] == model.kappa[i]\n"
+    "model.balcap = Constraint(model.i, rule=balcap_rule)"
+)
+
+IMPORTS = (
+    "def imports_rule(model):\n"
+    "    return model.mt == sum(model.nm[c_idx] * (model.pm[c_idx] +\n"
+    "            sum(model.wi[c_idx, 'imported', i_idx] * model.x[c_idx, 'imported', i_idx]\n"
+    "                for i_idx in model.i) +\n"
+    "            model.wc[c_idx, 'imported'] * model.cn[c_idx, 'imported'])\n"
+    "            for c_idx in model.c)\n"
+    "model.imports = Constraint(rule=imports_rule)"
+)
+
+EXPORTS = (
+    "def exports_rule(model):\n"
+    "    return model.et == sum(model.nx[c_idx] * model.px[c_idx] + model.nx[c_idx] * model.e[c_idx]\n"
+    "                           for c_idx in model.c)\n"
+    "model.exports = Constraint(rule=exports_rule)"
+)
+
+BALTRADE = (
+    "def baltrade_rule(model):\n"
+    "    return model.b == (model.elevel * model.et - model.mlevel * model.mt) / 100\n"
+    "model.baltrade = Constraint(rule=baltrade_rule)"
+)
+
+CPI = (
+    "def cpi_rule(model):\n"
+    "    return model.pc == sum(model.mu[c_idx, s_idx] * model.p[c_idx, s_idx]\n"
+    "                           for c_idx in model.c for s_idx in model.s)\n"
+    "model.cpi = Constraint(rule=cpi_rule)"
+)
+
+WAGE_EQ = (
+    "def wage_rule(model):\n"
+    "    return model.w == model.theta * model.pc + model.ws\n"
+    "model.wage_eq = Constraint(rule=wage_rule)"
+)
+
+REALC = (
+    "def realc_rule(model):\n"
+    "    return model.cr == model.ye - model.pc\n"
+    "model.realc = Constraint(rule=realc_rule)"
+)
+
+DUMMY = (
+    "def dummy_rule(model):\n"
+    "    return model.pc <= 100000\n"
+    "model.dummy = Constraint(rule=dummy_rule)"
+)
+
+WHOLESET = "\n".join([
+    CON, EXPD, SUPPLY, INDC, INDCAP, INDLAB, PRIC, PRIEXP, PRIIMP, BALD,
+    BALLAB, BALCAP, IMPORTS, EXPORTS, BALTRADE, CPI, WAGE_EQ, REALC, DUMMY,
+])
+
+records = [
+    {  # con
+        "description": (
+            "For every commodity and every source it can come from, household demand for it must move with "
+            "two things at once. It rises with household income, scaled by how strongly demand for that good "
+            "responds to income. And it shifts with prices across the whole economy, because the price of "
+            "every commodity from every source pulls demand for this good around through its own demand "
+            "response. Set the change in nominal household consumption of the good equal to the income driven "
+            "part plus the total of all those price driven parts."
+        ),
+        "expected_pyomo": CON,
+    },
+    {  # expd
+        "description": (
+            "For each commodity, the world price foreigners are willing to pay falls as we try to export more "
+            "of it, along the foreign demand curve, and it is also bumped by the exogenous shift in foreign "
+            "appetite for the good. Set the change in the foreign export price equal to the downward pull from "
+            "selling more plus the foreign demand shift."
+        ),
+        "expected_pyomo": EXPD,
+    },
+    {  # supply
+        "description": (
+            "For each commodity and each industry, output responds to how busy the industry is and to how "
+            "attractive this commodity's home price is relative to the industry's overall price level. Output "
+            "moves with the industry's activity, and it rises when the home price of this commodity runs ahead "
+            "of the revenue weighted average of the industry's home prices. Set the change in the industry's "
+            "output of the commodity equal to the activity part plus that relative price part."
+        ),
+        "expected_pyomo": SUPPLY,
+    },
+    {  # indc
+        "description": (
+            "For each commodity, each source and each industry, how much of that input the industry buys "
+            "responds to how busy it is and to the relative price of the source. Demand rises with the "
+            "industry's activity, and it falls when the price of the commodity from this source runs above the "
+            "spending weighted average price of the commodity across all its sources, because the industry "
+            "substitutes toward the cheaper source. Set the change in the industry's intermediate demand for "
+            "the commodity from this source equal to the activity part minus that relative price part."
+        ),
+        "expected_pyomo": INDC,
+    },
+    {  # indcap
+        "description": (
+            "For each industry, the capital it uses responds to how busy it is and to how expensive capital is "
+            "relative to its overall primary factor price. Capital demand moves with the industry's activity, "
+            "and it falls when the price of capital runs above a cost share weighted blend of the wage and the "
+            "price of capital, because the industry economizes on the dearer factor. Set the change in the "
+            "industry's capital demand equal to the activity part minus that relative factor price part."
+        ),
+        "expected_pyomo": INDCAP,
+    },
+    {  # indlab
+        "description": (
+            "For each industry, the labor it uses responds to how busy it is and to how expensive labor is "
+            "relative to its overall primary factor price. Labor demand moves with the industry's activity, and "
+            "it falls when the wage runs above a cost share weighted blend of the wage and the price of "
+            "capital, because the industry economizes on the dearer factor. Set the change in the industry's "
+            "labor demand equal to the activity part minus that relative factor price part."
+        ),
+        "expected_pyomo": INDLAB,
+    },
+    {  # pric
+        "description": (
+            "For each industry, what it earns per unit must move in step with what it costs to make, so there "
+            "are no pure profits. On the earning side, blend the home prices of the commodities the industry "
+            "sells by their revenue shares. On the cost side, blend the prices of all the inputs the industry "
+            "buys from every source by their cost shares, and add the cost of capital and the cost of labor "
+            "each weighted by its share in total costs. Require the revenue side to equal the cost side."
+        ),
+        "expected_pyomo": PRIC,
+    },
+    {  # priexp
+        "description": (
+            "For each commodity, the home price of the exported good must reconcile with its world price. The "
+            "domestic price equals the foreign export price plus the export subsidy plus the exchange rate. Set "
+            "the change in the home price equal to the sum of those three."
+        ),
+        "expected_pyomo": PRIEXP,
+    },
+    {  # priimp
+        "description": (
+            "For each commodity, the home price of the imported good must reconcile with its world price. The "
+            "domestic price of the imported source equals the foreign import price plus the import duty plus the "
+            "exchange rate. Set the change in the home price of the imported good equal to the sum of those "
+            "three."
+        ),
+        "expected_pyomo": PRIIMP,
+    },
+    {  # bald
+        "description": (
+            "For each commodity, the home produced supply must clear against everything that uses the home "
+            "produced good. On the supply side, blend the outputs of the commodity across the industries that "
+            "make it by their output shares. On the demand side, add up what industries use of the home good as "
+            "an intermediate input, what households consume of the home good, and what is exported of it, each "
+            "weighted by its share in total demand. Require home supply to equal home demand."
+        ),
+        "expected_pyomo": BALD,
+    },
+    {  # ballab
+        "description": (
+            "The labor market must clear in total. Blend the labor each industry demands by that industry's "
+            "share of total employment, and set that economy wide total equal to the change in total "
+            "employment."
+        ),
+        "expected_pyomo": BALLAB,
+    },
+    {  # balcap
+        "description": (
+            "For each industry, the capital it demands must equal the capital it actually has available, since "
+            "the capital stock is fixed in the short run. Set the change in the industry's capital demand equal "
+            "to the change in its available capital stock."
+        ),
+        "expected_pyomo": BALCAP,
+    },
+    {  # imports
+        "description": (
+            "Total imports must add up from the commodities that are imported. For each commodity, take its "
+            "import price, plus what industries import of it as an intermediate input weighted by import demand "
+            "shares, plus what households import of it weighted by the household import share. Weight each "
+            "commodity's contribution by its share in the total value of imports, sum over all commodities, and "
+            "set total imports equal to that total."
+        ),
+        "expected_pyomo": IMPORTS,
+    },
+    {  # exports
+        "description": (
+            "Total exports must add up from the individual commodities. For each commodity, combine the move in "
+            "its foreign export price with the move in its export quantity, each weighted by that commodity's "
+            "share in the total value of exports. Sum over all commodities and set total exports equal to that "
+            "total."
+        ),
+        "expected_pyomo": EXPORTS,
+    },
+    {  # baltrade
+        "description": (
+            "The trade balance reflects the gap between exports and imports valued at their base period sizes. "
+            "Scale total exports by the base period export value and total imports by the base period import "
+            "value, take the difference, and express it on the same hundredths basis the other percentage "
+            "change quantities use. Set the change in the balance of trade equal to that scaled difference."
+        ),
+        "expected_pyomo": BALTRADE,
+    },
+    {  # cpi
+        "description": (
+            "The consumer price index is a basket of all the prices households face. Blend the price of every "
+            "commodity from every source by its weight in the consumer price index, sum them up, and set the "
+            "change in the consumer price index equal to that weighted total."
+        ),
+        "expected_pyomo": CPI,
+    },
+    {  # wage_eq
+        "description": (
+            "Wages are indexed to the cost of living plus any separate wage shock. The wage moves with the "
+            "consumer price index scaled by how strongly wages are indexed to it, plus the wage shift term. Set "
+            "the change in the wage rate equal to that indexed part plus the shift."
+        ),
+        "expected_pyomo": WAGE_EQ,
+    },
+    {  # realc
+        "description": (
+            "Real consumption is what household spending can actually buy once prices are taken out. Take the "
+            "change in total household expenditure and subtract the change in the consumer price index. Set the "
+            "change in real consumption equal to that difference."
+        ),
+        "expected_pyomo": REALC,
+    },
+    {  # dummy
+        "description": (
+            "Keep the consumer price index from running away by holding its change below a very large ceiling. "
+            "This bound never binds at the solution and exists only so the model has a nonzero right hand side. "
+            "Require the change in the consumer price index to be at most that large ceiling."
+        ),
+        "expected_pyomo": DUMMY,
+    },
+    {  # whole set
+        "description": "Generate the complete constraint set for this model.",
+        "expected_pyomo": WHOLESET,
+    },
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        rec = {
+            "problem_id": "orani_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+print(f"wrote {OUT} ({len(records)} records)")

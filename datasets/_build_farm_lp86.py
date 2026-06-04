@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+"""Builder for the farm_lp86 (farmer crop-planning) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "farm_lp86_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "crop", "members": ["wheat", "corn", "sugarbeets"],
+         "doc": "the crops that can be grown on the farm; every crop in this set can be planted and produces a harvest"},
+        {"name": "cropr", "members": ["wheat", "corn"],
+         "doc": "the crops for which the farm must satisfy a minimum requirement for its own use and which may be bought in from outside; these are a subset of the grown crops, and sugarbeets are not among them"},
+        {"name": "cropx", "members": ["wheat", "corn", "beets1", "beets2"],
+         "doc": "the sales channels through which harvested crops can be sold; wheat and corn each have a single channel that shares the crop's name, while sugarbeets are sold through two separate price channels named beets1 and beets2 representing a favorable-price tier and a lower-price tier"},
+    ],
+    "params": [
+        {"name": "yield_param", "index": "crop", "kind": "yield",
+         "doc": "the harvest yield of each crop, in tons per acre planted"},
+        {"name": "plantcost", "index": "crop", "kind": "cost",
+         "doc": "the planting cost of each crop, in dollars per acre"},
+        {"name": "sellprice", "index": "cropx", "kind": "price",
+         "doc": "the selling price obtained through each sales channel, in dollars per ton"},
+        {"name": "purchprice", "index": "cropr", "kind": "price",
+         "doc": "the purchase price paid to buy in each requirement crop from outside, in dollars per ton"},
+        {"name": "minreq", "index": "cropr", "kind": "requirement",
+         "doc": "the minimum quantity of each requirement crop the farm must have available for its own use, in tons"},
+        {"name": "maxbuy", "index": "cropr", "kind": "limit",
+         "doc": "the largest quantity of each requirement crop that may be purchased from outside, in tons"},
+        {"name": "land", "index": "", "kind": "capacity",
+         "doc": "the total acreage of land available on the farm, in acres"},
+        {"name": "maxbeets1", "index": "", "kind": "limit",
+         "doc": "the largest quantity of sugarbeets that may be sold through the favorable-price channel beets1 before the lower-price channel must be used, in tons"},
+    ],
+    "vars": [
+        {"name": "x", "index": "crop", "domain": "NonNegativeReals",
+         "doc": "the acres of land devoted to each crop"},
+        {"name": "w", "index": "cropx", "domain": "NonNegativeReals",
+         "doc": "the tons sold through each sales channel"},
+        {"name": "y", "index": "cropr", "domain": "NonNegativeReals",
+         "doc": "the tons of each requirement crop purchased from outside"},
+        {"name": "yld", "index": "crop", "domain": "NonNegativeReals",
+         "doc": "the tons harvested of each crop"},
+        {"name": "profit", "index": "", "domain": "NonNegativeReals",
+         "doc": "the objective value variable for total profit"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "profit"},
+}
+
+NARRATIVE = (
+    "A farmer allocates a fixed amount of land among several crops for the coming season. "
+    "For each crop the farmer chooses how many acres to plant, and the planted acres turn "
+    "into a harvest. Harvested crops can be sold, and for some crops the farmer may also buy "
+    "additional quantities from outside to meet on-farm needs. Sugarbeets in particular can be "
+    "sold through two channels paying different prices. The goal is to maximize total profit, "
+    "which is the revenue from everything sold minus the cost of planting and the cost of buying "
+    "crops in from outside."
+)
+
+LANDUSE = (
+    "model.landuse = Constraint(expr=sum(model.x[c] for c in model.crop) <= model.land)"
+)
+YLDDEF = (
+    "def ylddef_rule(model, c):\n"
+    "    return model.yld[c] == model.yield_param[c] * model.x[c]\n"
+    "model.ylddef = Constraint(model.crop, rule=ylddef_rule)"
+)
+REQ = (
+    "def req_rule(model, r):\n"
+    "    return model.yld[r] + model.y[r] - sum(model.w[x] for x in model.cropx if x == r) >= model.minreq[r]\n"
+    "model.req = Constraint(model.cropr, rule=req_rule)"
+)
+BUY_CAP = (
+    "def buy_cap_rule(model, r):\n"
+    "    return model.y[r] <= model.maxbuy[r]\n"
+    "model.buy_cap = Constraint(model.cropr, rule=buy_cap_rule)"
+)
+BEETS = (
+    "model.beets = Constraint(expr=model.w['beets1'] + model.w['beets2'] <= model.yld['sugarbeets'])"
+)
+BEETS1_LIMIT = (
+    "model.beets1_limit = Constraint(expr=model.w['beets1'] <= model.maxbeets1)"
+)
+WHOLESET = "\n".join([LANDUSE, YLDDEF, REQ, BUY_CAP, BEETS, BEETS1_LIMIT])
+
+records = [
+    {"description": (
+        "The land the farmer plants is limited. Across all crops, the total acres devoted to "
+        "planting cannot be more than the total acreage available on the farm."),
+     "expected_pyomo": LANDUSE},
+    {"description": (
+        "Harvest follows from how much is planted. For each crop, the tons harvested equal the "
+        "crop's yield per acre multiplied by the acres planted of that crop."),
+     "expected_pyomo": YLDDEF},
+    {"description": (
+        "For each requirement crop the farm must end up with at least its minimum needed quantity "
+        "available for its own use. The quantity available is what was harvested of that crop plus "
+        "what was bought in from outside, less whatever amount of that crop was sold off through "
+        "its sales channel. That available quantity must be at least the minimum required."),
+     "expected_pyomo": REQ},
+    {"description": (
+        "There is a ceiling on outside purchasing. For each requirement crop, the tons bought in "
+        "from outside cannot exceed the purchase limit for that crop."),
+     "expected_pyomo": BUY_CAP},
+    {"description": (
+        "Sugarbeets are sold through two separate price channels, and together they cannot sell "
+        "more than was grown. The combined tons sold through the favorable channel and the lower "
+        "channel cannot exceed the tons of sugarbeets harvested."),
+     "expected_pyomo": BEETS},
+    {"description": (
+        "Sales through the favorable sugarbeet price channel are capped. The tons sold through "
+        "that favorable channel cannot exceed its allowed quantity."),
+     "expected_pyomo": BEETS1_LIMIT},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "farm_lp86",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

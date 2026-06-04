@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+"""Builder for the tsp42_match_mip (2-matching TSP relaxation) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "tsp42_match_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "I", "members": ["c1", "c2", "c3", "..."],
+         "doc": "the cities that must be visited"},
+        {"name": "E", "members": ["(c2,c1)", "(c3,c1)", "(c3,c2)", "..."],
+         "doc": "the undirected connections between cities, one member per pair of cities that can be linked; each member is an ordered pair of cities that names a single undirected link, and every link appears exactly once"},
+    ],
+    "params": [
+        {"name": "d", "index": "E", "kind": "distance",
+         "doc": "the travel distance of each link between two cities, in distance units"},
+    ],
+    "vars": [
+        {"name": "x", "index": "E", "domain": "Binary",
+         "doc": "1 if the link between the two cities is used, 0 otherwise; one such choice per undirected link"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "total distance of the used links"},
+}
+
+NARRATIVE = (
+    "We are planning travel across a set of cities connected by undirected links, each "
+    "with a known distance. For each link we decide whether or not to use it. The goal "
+    "is to choose the links so that the total distance of all the used links is as small "
+    "as possible."
+)
+
+TWOMATCH = (
+    "def twomatch_rule(model, k):\n"
+    "    return sum(model.x[i, j] for (i, j) in model.E if i == k or j == k) == 2\n"
+    "model.twomatch = Constraint(model.I, rule=twomatch_rule)"
+)
+WHOLESET = TWOMATCH
+
+records = [
+    {"description": (
+        "Every city must connect to exactly two of its links. For each city, count the used "
+        "links that touch it, and require that count to equal two."),
+     "expected_pyomo": TWOMATCH},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "tsp42_match_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

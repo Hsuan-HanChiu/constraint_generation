@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+"""Builder for the vietman_viettag_mip (tagged ammonia/fertilizer MIP) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "vietman_viettag_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": [0, 1, 2, 3, 4, 5],
+         "doc": "all sources of ammonia; member 0 is the external import source and members 1 through 5 are domestic plants"},
+        {"name": "id", "members": [1, 2, 3, 4, 5],
+         "doc": "the domestic plants only, a subset of the ammonia sources; these are the sites that can be erected to make ammonia"},
+        {"name": "k", "members": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+         "doc": "the demand centers that require fertilizer"},
+        {"name": "product", "members": ["ammonia", "fertilizer"],
+         "doc": "the two products whose plants can be built, namely ammonia and fertilizer"},
+        {"name": "jd", "members": [1, 2, 3, 4, 5],
+         "doc": "the domestic fertilizer plants, an alias of the domestic plant set used as the fertilizer-production stage"},
+    ],
+    "params": [
+        {"name": "fc", "index": "(i, product)", "kind": "cost",
+         "doc": "the fixed cost of erecting a plant, indexed by site and by product type; only the domestic plant sites carry an erection cost"},
+        {"name": "c", "index": "(i, jd)", "kind": "cost",
+         "doc": "the combined production and shipping cost for moving ammonia from an ammonia source to a domestic fertilizer plant, per unit"},
+        {"name": "d", "index": "(j, k)", "kind": "cost",
+         "doc": "the production and shipping cost for moving fertilizer from a fertilizer plant to a demand center, per unit"},
+        {"name": "r", "index": "k", "kind": "demand",
+         "doc": "the fertilizer demand required at each demand center, in units"},
+    ],
+    "vars": [
+        {"name": "u", "index": "(i, jd, k)", "domain": "NonNegativeReals",
+         "doc": "the tagged shipment quantity routed from an ammonia source through a domestic fertilizer plant to a demand center; this single flow carries the product end to end so its cost combines the ammonia leg and the fertilizer leg"},
+        {"name": "z", "index": "jd", "domain": "Binary",
+         "doc": "the build decision for each domestic fertilizer plant, equal to one if that fertilizer plant is erected and zero otherwise"},
+        {"name": "w", "index": "id", "domain": "Binary",
+         "doc": "the build decision for each domestic ammonia plant, equal to one if that ammonia plant is erected and zero otherwise"},
+        {"name": "tc", "index": "", "domain": "Reals",
+         "doc": "the total cost over the whole network, combining plant erection costs and the production-and-shipping cost of all tagged flows"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "tc"},
+}
+
+NARRATIVE = (
+    "We are planning an ammonia-and-fertilizer supply network. We decide which domestic ammonia "
+    "plants to build and which domestic fertilizer plants to build, and we decide how much product "
+    "to route along each end-to-end path that starts at an ammonia source, passes through a domestic "
+    "fertilizer plant, and ends at a demand center. Building a plant incurs a fixed erection cost, and "
+    "every unit routed incurs a combined production-and-shipping cost along its path. The objective is "
+    "to make the total cost, covering plant erection plus all routing, as small as possible."
+)
+
+FD1 = (
+    "def fd1_rule(model, k):\n"
+    "    return sum(model.u[i, jd, k] for i in model.i for jd in model.jd) >= model.r[k]\n"
+    "model.fd1 = Constraint(model.k, rule=fd1_rule)"
+)
+IA1 = (
+    "def ia1_rule(model, id, k):\n"
+    "    return model.r[k] * model.w[id] >= sum(model.u[id, jd, k] for jd in model.jd)\n"
+    "model.ia1 = Constraint(model.id, model.k, rule=ia1_rule)"
+)
+IFT = (
+    "def ift_rule(model, jd, k):\n"
+    "    return model.r[k] * model.z[jd] >= sum(model.u[i, jd, k] for i in model.i)\n"
+    "model.ift = Constraint(model.jd, model.k, rule=ift_rule)"
+)
+TA1 = (
+    "def ta1_rule(model):\n"
+    "    sum1 = (sum(model.fc[id, 'ammonia'] * model.w[id] for id in model.id)\n"
+    "            + sum(model.fc[jd, 'fertilizer'] * model.z[jd] for jd in model.jd))\n"
+    "    sum2 = sum((model.c[i, jd] + model.d[jd, k]) * model.u[i, jd, k]\n"
+    "               for i in model.i for jd in model.jd for k in model.k)\n"
+    "    return model.tc == sum1 + sum2\n"
+    "model.ta1 = Constraint(rule=ta1_rule)"
+)
+WHOLESET = "\n".join([FD1, IA1, IFT, TA1])
+
+records = [
+    {"description": (
+        "Every demand center must receive at least the fertilizer it needs. For each demand center, "
+        "add up all the tagged flow arriving there from every ammonia source through every domestic "
+        "fertilizer plant, and require that total to be at least the demand at that center."),
+     "expected_pyomo": FD1},
+    {"description": (
+        "An ammonia plant can only send out product if it has been built, and what it sends is limited "
+        "by how much is needed. For each domestic ammonia plant and each demand center, the total tagged "
+        "flow originating at that ammonia plant and bound for that demand center must not exceed the "
+        "demand at that center when the plant is built, and must be zero when it is not built."),
+     "expected_pyomo": IA1},
+    {"description": (
+        "A fertilizer plant can only handle product if it has been built, and what passes through it is "
+        "limited by how much is needed. For each domestic fertilizer plant and each demand center, the "
+        "total tagged flow passing through that fertilizer plant on its way to that demand center must "
+        "not exceed the demand at that center when the plant is built, and must be zero when it is not built."),
+     "expected_pyomo": IFT},
+    {"description": (
+        "The total cost gathers the fixed cost of building plants together with the cost of all the "
+        "routing. Charge the erection cost of each domestic ammonia plant that is built and of each "
+        "domestic fertilizer plant that is built, and charge every unit of tagged flow the combined "
+        "ammonia-leg and fertilizer-leg cost along its path. Set the total cost equal to the sum of all "
+        "these amounts."),
+     "expected_pyomo": TA1},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "vietman_viettag_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

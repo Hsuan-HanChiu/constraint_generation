@@ -1,0 +1,383 @@
+#!/usr/bin/env python
+"""Builder for the sarf_lp (farm credit / income distribution) constraint-generation dataset.
+
+All 16 native constraints are LINEAR (LP), so all are Z3-gradable. Each rule is
+rewritten to be SELF-CONTAINED (references only model.* components): the corpus
+uses module-level helper sets (TASK_LIVE, XWATER_LIVE, EQUIPP_LIVE) and the raw
+`data` dict, but those are not in the grader exec namespace. The equivalent model
+sets are model.taskset, model.xwaterset, model.equippset. For the crop-water
+balance, the corpus filters xwater on yield-nonzero (c,w); since yield-nonzero ==
+water-nonzero == xwaterset in this data, (c,w) in model.xwaterset is exact.
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "sarf_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "c", "members": ["wheat", "soy-beans", "maize-for", "alfalfa", "sugar-beet", "cotton"],
+         "doc": "the crop commodities the farm can grow"},
+        {"name": "s", "members": ["sch-1", "sch-2", "sch-3", "sch-4", "sch-5", "sch-6", "sch-7", "sch-8"],
+         "doc": "the alternative cropping schedules, meaning the calendar plans for planting and growing a crop"},
+        {"name": "w", "members": ["normal", "stress-1", "stress-2", "stress-3"],
+         "doc": "the irrigation or water-stress levels along a crop's yield-water response curve, from fully watered to increasingly water-stressed"},
+        {"name": "t", "members": ["1", "...", "24"],
+         "doc": "the time periods of the year, given as fortnights, numbered 1 through 24"},
+        {"name": "g", "members": ["plough", "disce", "harrow", "spray", "drill", "plant", "fertilize", "cultivate", "harvest-c", "transport", "..."],
+         "doc": "the agricultural field tasks, such as ploughing, spraying, drilling, harvesting and transport"},
+        {"name": "mn", "members": ["tractor-l", "tractor-s", "draft-unit", "self-prop", "manual", "drill", "combine-h", "cotton-p", "..."],
+         "doc": "every equipment item, covering both the implements that do field work and the power sources that drive them"},
+        {"name": "m", "index": "subset of mn",
+         "doc": "the implements, meaning the tools and attachments that perform a task; a subset of the equipment items"},
+        {"name": "n", "members": ["tractor-l", "tractor-s", "draft-unit", "self-prop", "manual"],
+         "doc": "the power sources that drive the implements, such as tractors and draft animals; a subset of the equipment items"},
+        {"name": "cc", "members": ["misc-input", "water", "operating", "wages", "capital"],
+         "doc": "the cost classifications the farm's total cost is broken into"},
+        {"name": "cposs", "index": "subset of c x s",
+         "doc": "the crop and schedule combinations that are agronomically feasible; only these crop-schedule pairs may be planted"},
+        {"name": "taskposs", "index": "subset of g x t",
+         "doc": "the task and time pairs at which a task is allowed to occur; only these task-time combinations are active"},
+        {"name": "equipposs", "index": "subset of mn x t",
+         "doc": "the equipment and time pairs at which an equipment item may be used; an equipment-balance requirement applies only on these pairs"},
+        {"name": "xwaterset", "index": "subset of c x w",
+         "doc": "the crop and water-stress pairs that lie on a crop's yield-water response curve; the irrigated-area variable and the yield and water coefficients are defined only on these pairs"},
+        {"name": "taskset", "index": "subset of g x t x m x n",
+         "doc": "the task, time, implement and power tuples that are structurally active, meaning the technology or operating-cost coefficient is nonzero; the task-activity variable is defined only on these tuples"},
+        {"name": "equippset", "index": "subset of mn",
+         "doc": "the equipment items that carry a capital cost or an equipment-balance requirement; the equipment-purchase variable is defined only on these items"},
+    ],
+    "params": [
+        {"name": "oc", "index": "g x mn x mn", "kind": "cost",
+         "doc": "operating cost in 1000 rials per hectare for performing a task with a given implement and power source"},
+        {"name": "avail", "index": "mn", "kind": "capacity",
+         "doc": "the availability of each equipment item, in working hours per fortnight per unit owned"},
+        {"name": "cap", "index": "mn", "kind": "cost",
+         "doc": "the amortized capital cost in 1000 rials for owning one unit of an equipment item"},
+        {"name": "pmisc", "index": "c", "kind": "cost",
+         "doc": "the cost of miscellaneous inputs, seed, fertilizer, pesticide and herbicide, in 1000 rials per hectare of a crop"},
+        {"name": "pcrop", "index": "c", "kind": "price",
+         "doc": "the selling price of a crop commodity, in 1000 rials per ton"},
+        {"name": "yield", "index": "c x w", "kind": "yield",
+         "doc": "the crop yield in metric tons per hectare at each water-stress level along the yield-water curve; the real attribute is model.yield_ because yield is a Python keyword"},
+        {"name": "water", "index": "c x w", "kind": "requirement",
+         "doc": "the water requirement in thousands of cubic meters per hectare at each water-stress level along the yield-water curve"},
+        {"name": "agrol", "index": "c", "kind": "limit",
+         "doc": "the agronomic upper limit on the area, in hectares, that may be planted to a crop"},
+        {"name": "luse", "index": "c x t x s", "kind": "indicator",
+         "doc": "a 0/1 land-use indicator that is 1 when a crop grown under a schedule occupies land during a given fortnight, and 0 otherwise"},
+        {"name": "treq", "index": "g x t x c x s", "kind": "requirement",
+         "doc": "the amount of a task required per hectare for a crop grown under a schedule in a given fortnight"},
+        {"name": "lreq", "index": "c x s x t", "kind": "requirement",
+         "doc": "the labor requirement in hours per hectare for a crop grown under a schedule in a given fortnight"},
+        {"name": "loss", "index": "c", "kind": "loss",
+         "doc": "the product loss in tons per hectare caused by mechanical picking; nonzero only for cotton"},
+        {"name": "tadj", "index": "g", "kind": "adjustment",
+         "doc": "the extra amount of a task required per hectare when cotton is picked mechanically; nonzero only for the relevant tasks"},
+        {"name": "tech", "index": "g x mn x mn", "kind": "requirement",
+         "doc": "the technology coefficient giving the hours of equipment time per hectare, or per ton for transport, to do a task with a given implement and power source"},
+        {"name": "land", "index": "", "kind": "capacity",
+         "doc": "the total farm size in hectares available in any fortnight"},
+        {"name": "lcost", "index": "", "kind": "cost",
+         "doc": "the labor cost in 1000 rials per man-day"},
+        {"name": "watercost", "index": "", "kind": "cost",
+         "doc": "the cost of water in 1000 rials per thousand cubic meters"},
+        {"name": "hrtoday", "index": "", "kind": "conversion",
+         "doc": "the number of working hours in one man-day, used to convert labor hours into man-days"},
+    ],
+    "vars": [
+        {"name": "xcrop", "index": "c x s", "domain": "NonNegativeReals",
+         "doc": "the area in hectares planted to a crop under a given schedule"},
+        {"name": "xwater", "index": "xwaterset", "domain": "NonNegativeReals",
+         "doc": "the area in hectares of a crop grown at a given water-stress level on the yield-water curve"},
+        {"name": "awater", "index": "", "domain": "NonNegativeReals",
+         "doc": "the total annual water requirement of the farm, in millions of cubic meters"},
+        {"name": "task", "index": "taskset", "domain": "NonNegativeReals",
+         "doc": "the amount of a task carried out with a given implement and power source at a given fortnight, in hectares, or in tons for transport"},
+        {"name": "sales", "index": "c", "domain": "NonNegativeReals",
+         "doc": "the quantity of a crop commodity sold, in tons; wheat sales have a lower bound of 875 tons"},
+        {"name": "equipp", "index": "equippset", "domain": "NonNegativeReals",
+         "doc": "the number of units of an equipment item purchased"},
+        {"name": "emply", "index": "t", "domain": "NonNegativeReals",
+         "doc": "the labor employed in a fortnight, measured in man-days"},
+        {"name": "revenue", "index": "", "domain": "Reals",
+         "doc": "the total revenue from crop sales, in 1000 rials"},
+        {"name": "cost", "index": "cc", "domain": "NonNegativeReals",
+         "doc": "the cost incurred in each cost classification, in 1000 rials"},
+        {"name": "profit", "index": "", "domain": "Reals",
+         "doc": "the total farm profit, in 1000 rials"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "profit"},
+}
+
+NARRATIVE = (
+    "We run a farm that chooses how to allocate its land across several crops, each of which can "
+    "be grown under different cropping schedules and at different irrigation levels. We also decide "
+    "how much of each field task to carry out with each combination of implement and power source in "
+    "each fortnight of the year, how much equipment to buy, how much labor to hire in each fortnight, "
+    "and how much of each crop to sell. The goal is to make the farm's profit as large as possible, "
+    "where profit is the revenue from crop sales minus the total of all the farm's costs."
+)
+
+# ----------------------------------------------------------------------
+# Native-constraint rules, rewritten self-contained (model.* only).
+# ----------------------------------------------------------------------
+
+CBAL = (
+    "def cbal_rule(model, c):\n"
+    "    loss_term = model.loss[c] * sum(\n"
+    "        model.task['harvest-c', t, 'cotton-p', 'self-prop']\n"
+    "        for t in model.t\n"
+    "        if ('harvest-c', t) in model.taskposs\n"
+    "        and ('harvest-c', t, 'cotton-p', 'self-prop') in model.taskset)\n"
+    "    return model.sales[c] == sum(\n"
+    "        model.yield_[c, w] * model.xwater[c, w]\n"
+    "        for w in model.w if (c, w) in model.xwaterset) - loss_term\n"
+    "model.cbal = Constraint(model.c, rule=cbal_rule)"
+)
+
+TBAL = (
+    "def tbal_rule(model, g, t):\n"
+    "    if (g, t) not in model.taskposs:\n"
+    "        return Constraint.Skip\n"
+    "    left = sum(model.treq[g, t, c, s] * model.xcrop[c, s] for (c, s) in model.cposs)\n"
+    "    right = sum(\n"
+    "        model.tech[g, m, n] * model.task[g, t, m, n]\n"
+    "        for m in model.mn for n in model.mn\n"
+    "        if (g, t, m, n) in model.taskset)\n"
+    "    adj_term = model.tadj[g] * model.task['harvest-c', t, 'cotton-p', 'self-prop'] \\\n"
+    "        if ('harvest-c', t, 'cotton-p', 'self-prop') in model.taskset else 0\n"
+    "    return left == right - adj_term\n"
+    "model.tbal = Constraint(model.g, model.t, rule=tbal_rule)"
+)
+
+CROPD = (
+    "def cropd_rule(model, c):\n"
+    "    left = sum(model.xcrop[c, s] for (cc, s) in model.cposs if cc == c)\n"
+    "    right = sum(model.xwater[c, w] for w in model.w if (c, w) in model.xwaterset)\n"
+    "    return left == right\n"
+    "model.cropd = Constraint(model.c, rule=cropd_rule)"
+)
+
+WATERD = (
+    "def waterd_rule(model):\n"
+    "    return model.awater == sum(\n"
+    "        model.water[c, w] * model.xwater[c, w]\n"
+    "        for c in model.c for w in model.w\n"
+    "        if (c, w) in model.xwaterset) / 1000.0\n"
+    "model.waterd = Constraint(rule=waterd_rule)"
+)
+
+AGROC = (
+    "def agroc_rule(model, c):\n"
+    "    return sum(model.xcrop[c, s] for (cc, s) in model.cposs if cc == c) <= model.agrol[c]\n"
+    "model.agroc = Constraint(model.c, rule=agroc_rule)"
+)
+
+LANDC = (
+    "def landc_rule(model, t):\n"
+    "    return sum(\n"
+    "        model.luse[c, t, s] * model.xcrop[c, s]\n"
+    "        for (c, s) in model.cposs) <= model.land\n"
+    "model.landc = Constraint(model.t, rule=landc_rule)"
+)
+
+LABOR = (
+    "def labor_rule(model, t):\n"
+    "    crop_labor = sum(model.lreq[c, s, t] * model.xcrop[c, s] for (c, s) in model.cposs)\n"
+    "    task_labor = sum(\n"
+    "        model.tech[g, m, n] * model.task[g, t, m, n]\n"
+    "        for (g, tt) in model.taskposs if tt == t\n"
+    "        for m in model.mn for n in model.mn\n"
+    "        if (g, t, m, n) in model.taskset)\n"
+    "    return crop_labor + task_labor <= model.hrtoday * model.emply[t]\n"
+    "model.labor = Constraint(model.t, rule=labor_rule)"
+)
+
+EQUIPB1 = (
+    "def equipb1_rule(model, m, t):\n"
+    "    if (m, t) not in model.equipposs:\n"
+    "        return Constraint.Skip\n"
+    "    return sum(\n"
+    "        model.tech[g, m, n] * model.task[g, t, m, n]\n"
+    "        for (g, tt) in model.taskposs if tt == t\n"
+    "        for n in model.n\n"
+    "        if (g, t, m, n) in model.taskset) <= model.avail[m] * model.equipp[m]\n"
+    "model.equipb1 = Constraint(model.m, model.t, rule=equipb1_rule)"
+)
+
+EQUIPB2 = (
+    "def equipb2_rule(model, n, t):\n"
+    "    if (n, t) not in model.equipposs:\n"
+    "        return Constraint.Skip\n"
+    "    return sum(\n"
+    "        model.tech[g, m, n] * model.task[g, t, m, n]\n"
+    "        for (g, tt) in model.taskposs if tt == t\n"
+    "        for m in model.m\n"
+    "        if (g, t, m, n) in model.taskset) <= model.avail[n] * model.equipp[n]\n"
+    "model.equipb2 = Constraint(model.n, model.t, rule=equipb2_rule)"
+)
+
+AREV = (
+    "def arev_rule(model):\n"
+    "    return model.revenue == sum(model.pcrop[c] * model.sales[c] for c in model.c)\n"
+    "model.arev = Constraint(rule=arev_rule)"
+)
+
+ACOST1 = (
+    "def acost1_rule(model):\n"
+    "    return model.cost['misc-input'] == sum(\n"
+    "        model.pmisc[c] * sum(model.xcrop[c, s] for (cc, s) in model.cposs if cc == c)\n"
+    "        for c in model.c)\n"
+    "model.acost1 = Constraint(rule=acost1_rule)"
+)
+
+ACOST2 = (
+    "def acost2_rule(model):\n"
+    "    return model.cost['water'] == model.watercost * model.awater\n"
+    "model.acost2 = Constraint(rule=acost2_rule)"
+)
+
+ACOST3 = (
+    "def acost3_rule(model):\n"
+    "    return model.cost['operating'] == sum(\n"
+    "        model.oc[g, m, n] * model.task[g, t, m, n]\n"
+    "        for (g, t) in model.taskposs\n"
+    "        for m in model.mn for n in model.mn\n"
+    "        if (g, t, m, n) in model.taskset)\n"
+    "model.acost3 = Constraint(rule=acost3_rule)"
+)
+
+ACOST4 = (
+    "def acost4_rule(model):\n"
+    "    return model.cost['capital'] == sum(\n"
+    "        model.cap[mn] * model.equipp[mn] for mn in model.equippset)\n"
+    "model.acost4 = Constraint(rule=acost4_rule)"
+)
+
+ACOST5 = (
+    "def acost5_rule(model):\n"
+    "    return model.cost['wages'] == model.lcost * sum(model.emply[t] for t in model.t)\n"
+    "model.acost5 = Constraint(rule=acost5_rule)"
+)
+
+OBJ_BALANCE = (
+    "def obj_balance_rule(model):\n"
+    "    return model.profit == model.revenue - sum(model.cost[cc] for cc in model.cc)\n"
+    "model.obj_balance = Constraint(rule=obj_balance_rule)"
+)
+
+WHOLESET = "\n".join([CBAL, TBAL, CROPD, WATERD, AGROC, LANDC, LABOR,
+                      EQUIPB1, EQUIPB2, AREV, ACOST1, ACOST2, ACOST3,
+                      ACOST4, ACOST5, OBJ_BALANCE])
+
+records = [
+    {"description": (
+        "For each crop, the quantity sold in tons must match what the farm actually produces of "
+        "that crop. Production is the area grown at each irrigation level multiplied by the yield "
+        "that irrigation level gives, summed over all the irrigation levels on the crop's yield-water "
+        "curve. From that production subtract any product lost to mechanical picking, where the loss "
+        "is the per-hectare loss rate times the total mechanically picked area for that crop across "
+        "all fortnights. Set the sales of the crop equal to this net production."),
+     "expected_pyomo": CBAL},
+    {"description": (
+        "For every task and fortnight where the task is allowed, the amount of work the cropping plan "
+        "demands must be exactly covered by the work actually performed. The demand is the per-hectare "
+        "task requirement of each feasible crop and schedule combination times its planted area, summed "
+        "up. The work performed is the task activity carried out with each implement and power source, "
+        "each converted to the same units by its technology coefficient. When cotton is picked "
+        "mechanically the conversion needs an extra adjustment, so reduce the work performed by the "
+        "per-hectare task adjustment times the mechanically picked cotton area in that fortnight. Require "
+        "that the demand equals the adjusted work performed."),
+     "expected_pyomo": TBAL},
+    {"description": (
+        "For each crop, the land devoted to it must be consistent whether you count it by schedule or by "
+        "irrigation level. Add up the area planted to that crop across all of its feasible schedules, and "
+        "separately add up the area of that crop grown across all the irrigation levels on its yield-water "
+        "curve. Require these two totals to be equal."),
+     "expected_pyomo": CROPD},
+    {"description": (
+        "The farm's total annual water requirement must equal the water actually used by the crops. For "
+        "each crop and irrigation level on the yield-water curve, the water used is the per-hectare water "
+        "requirement times the area grown there. Sum this over all crops and irrigation levels, convert it "
+        "to millions of cubic meters by dividing by one thousand, and set the annual water requirement equal "
+        "to that total."),
+     "expected_pyomo": WATERD},
+    {"description": (
+        "For each crop, the total area planted to it cannot exceed the agronomic land limit for that crop. "
+        "Add up the area planted to the crop across all of its feasible schedules and require that this total "
+        "stays within the crop's agronomic limit."),
+     "expected_pyomo": AGROC},
+    {"description": (
+        "In every fortnight the farm cannot have more land in use than it owns. For each fortnight, add up the "
+        "planted area of every feasible crop and schedule combination that is occupying land during that "
+        "fortnight, and require this total to stay within the total farm size."),
+     "expected_pyomo": LANDC},
+    {"description": (
+        "In every fortnight the labor needed cannot exceed the labor hired. The labor needed has two parts: the "
+        "field-work labor, which is the per-hectare labor requirement of each feasible crop and schedule times "
+        "its planted area; and the equipment-operation labor, which is the task activity carried out in that "
+        "fortnight converted to hours by its technology coefficient. Hired labor is measured in man-days, so "
+        "convert it to hours by multiplying by the hours in a man-day. Require the total labor needed to stay "
+        "within the hired labor for that fortnight."),
+     "expected_pyomo": LABOR},
+    {"description": (
+        "For each implement and fortnight where that implement may be used, the hours of work asked of it cannot "
+        "exceed the hours its owned units can provide. Add up, over every task and every power source pairing in "
+        "that fortnight, the implement hours each unit of task activity needs, given by the technology coefficient. "
+        "The hours available are the per-unit availability of the implement times the number of units owned. Require "
+        "the hours demanded to stay within the hours available."),
+     "expected_pyomo": EQUIPB1},
+    {"description": (
+        "For each power source and fortnight where that power source may be used, the hours of work asked of it "
+        "cannot exceed the hours its owned units can provide. Add up, over every task and every implement pairing in "
+        "that fortnight, the power-source hours each unit of task activity needs, given by the technology coefficient. "
+        "The hours available are the per-unit availability of the power source times the number of units owned. Require "
+        "the hours demanded to stay within the hours available."),
+     "expected_pyomo": EQUIPB2},
+    {"description": (
+        "The farm's revenue must equal the value of everything it sells. For each crop, multiply the quantity sold by "
+        "its selling price, sum this over all crops, and set the revenue equal to that total."),
+     "expected_pyomo": AREV},
+    {"description": (
+        "The miscellaneous-input cost must equal the spending on seed, fertilizer, pesticide and herbicide across the "
+        "whole farm. For each crop, multiply its per-hectare miscellaneous-input cost by the total area planted to that "
+        "crop over all of its feasible schedules, sum this over all crops, and set the miscellaneous-input cost equal to "
+        "that total."),
+     "expected_pyomo": ACOST1},
+    {"description": (
+        "The water cost must equal the price of water times the total annual water requirement of the farm. Set the water "
+        "cost equal to that product."),
+     "expected_pyomo": ACOST2},
+    {"description": (
+        "The operating cost must equal the total operating spending across all field activity. For every allowed task and "
+        "fortnight, and for each implement and power source pairing, multiply the per-hectare operating cost of that "
+        "combination by the corresponding task activity, sum these up, and set the operating cost equal to the total."),
+     "expected_pyomo": ACOST3},
+    {"description": (
+        "The capital cost must equal the total amortized cost of the equipment the farm buys. For each equipment item, "
+        "multiply its amortized per-unit capital cost by the number of units purchased, sum this over all equipment items, "
+        "and set the capital cost equal to that total."),
+     "expected_pyomo": ACOST4},
+    {"description": (
+        "The wage cost must equal the labor cost rate times the total labor hired over the whole year. Add up the labor "
+        "hired across every fortnight, multiply by the cost per man-day, and set the wage cost equal to that product."),
+     "expected_pyomo": ACOST5},
+    {"description": (
+        "Profit must be defined as revenue net of all costs. Take the total revenue and subtract the sum of the costs "
+        "across every cost classification, and set profit equal to the result."),
+     "expected_pyomo": OBJ_BALANCE},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "sarf_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

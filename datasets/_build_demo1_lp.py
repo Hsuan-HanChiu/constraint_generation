@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+"""Builder for the demo1_lp (small mixed-cropping farm planning LP) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "demo1_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "c", "members": ["wheat", "clover", "beans", "onions", "cotton", "maize", "tomato"],
+         "doc": "the crops the farm can grow"},
+        {"name": "t", "members": ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+         "doc": "the months of the planning year, given in calendar order"},
+    ],
+    "params": [
+        {"name": "landreq", "index": "t,c", "kind": "requirement",
+         "doc": "the share of a hectare that one hectare of a crop occupies in a given month, in hectares of land tied up per hectare grown; a value of zero means the crop occupies no land that month"},
+        {"name": "laborreq", "index": "t,c", "kind": "requirement",
+         "doc": "the labor needed to tend one hectare of a crop in a given month, in man-days per hectare; a value of zero means the crop needs no labor that month"},
+        {"name": "yield_param", "index": "c", "kind": "yield",
+         "doc": "the harvested output of a crop, in tons per hectare grown; stored on the attribute model.yield_param because yield is a reserved word"},
+        {"name": "price", "index": "c", "kind": "price",
+         "doc": "the selling price of a crop, in dollars per ton of output"},
+        {"name": "miscost", "index": "c", "kind": "cost",
+         "doc": "the miscellaneous cash cost of growing a crop, in dollars per hectare grown"},
+        {"name": "land", "index": "", "kind": "capacity",
+         "doc": "the total cultivable area of the farm, in hectares"},
+        {"name": "famlab", "index": "", "kind": "availability",
+         "doc": "the family labor available each month, in man-days; the same amount is available every month"},
+        {"name": "owage", "index": "", "kind": "price",
+         "doc": "the wage the family earns when it hires its labor out, in dollars per man-day"},
+        {"name": "twage", "index": "", "kind": "cost",
+         "doc": "the wage paid for temporary hired-in labor, in dollars per man-day"},
+        {"name": "dpm", "index": "", "kind": "constant",
+         "doc": "the number of working days in a month"},
+    ],
+    "vars": [
+        {"name": "xcrop", "index": "c", "domain": "NonNegativeReals",
+         "doc": "the area planted to each crop, in hectares"},
+        {"name": "yfarm", "index": "", "domain": "NonNegativeReals",
+         "doc": "the net farm income over the year, in dollars"},
+        {"name": "revenue", "index": "", "domain": "NonNegativeReals",
+         "doc": "the gross value of crop production over the year, in dollars"},
+        {"name": "mcost", "index": "", "domain": "NonNegativeReals",
+         "doc": "the total miscellaneous cash cost over the year, in dollars"},
+        {"name": "labcost", "index": "", "domain": "NonNegativeReals",
+         "doc": "the total cost of temporary hired-in labor over the year, in dollars"},
+        {"name": "labearn", "index": "", "domain": "NonNegativeReals",
+         "doc": "the total income earned by hiring family labor out over the year, in dollars"},
+        {"name": "flab", "index": "t", "domain": "NonNegativeReals",
+         "doc": "the family labor used on the farm in each month, in man-days"},
+        {"name": "fout", "index": "t", "domain": "NonNegativeReals",
+         "doc": "the family labor hired out off the farm in each month, in man-days"},
+        {"name": "tlab", "index": "t", "domain": "NonNegativeReals",
+         "doc": "the temporary labor hired in for the farm in each month, in man-days"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "yfarm"},
+}
+
+NARRATIVE = (
+    "We plan a year of mixed cropping on a small family farm. We decide how many hectares "
+    "to plant of each crop, and month by month how much of the family's labor to work on the "
+    "farm, how much to hire out for wages, and how much extra temporary labor to bring in. "
+    "Selling crops brings in revenue and hiring family labor out brings in wages, while "
+    "temporary labor and the cash costs of growing reduce what we keep. The objective is to "
+    "maximize the net farm income over the whole year."
+)
+
+LANDBAL = (
+    "def landbal_rule(model, t):\n"
+    "    return sum(model.landreq[t, c] * model.xcrop[c] for c in model.c) <= model.land\n"
+    "model.landbal = Constraint(model.t, rule=landbal_rule)"
+)
+LABORBAL = (
+    "def laborbal_rule(model, t):\n"
+    "    return sum(model.laborreq[t, c] * model.xcrop[c] for c in model.c) <= model.flab[t] + model.tlab[t]\n"
+    "model.laborbal = Constraint(model.t, rule=laborbal_rule)"
+)
+FLABOR = (
+    "def flabor_rule(model, t):\n"
+    "    return model.famlab == model.flab[t] + model.fout[t]\n"
+    "model.flabor = Constraint(model.t, rule=flabor_rule)"
+)
+AREV = (
+    "model.arev = Constraint(expr=model.revenue == "
+    "sum(model.yield_param[c] * model.price[c] * model.xcrop[c] for c in model.c))"
+)
+ACOST = (
+    "model.acost = Constraint(expr=model.mcost == "
+    "sum(model.miscost[c] * model.xcrop[c] for c in model.c))"
+)
+ALAB = (
+    "model.alab = Constraint(expr=model.labcost == "
+    "sum(model.twage * model.tlab[t] for t in model.t))"
+)
+AOUT = (
+    "model.aout = Constraint(expr=model.labearn == "
+    "sum(model.owage * model.fout[t] for t in model.t))"
+)
+INCOME = (
+    "model.income = Constraint(expr=model.yfarm == "
+    "model.revenue + model.labearn - model.labcost - model.mcost)"
+)
+WHOLESET = "\n".join([LANDBAL, LABORBAL, FLABOR, AREV, ACOST, ALAB, AOUT, INCOME])
+
+records = [
+    {"description": (
+        "The farm has a fixed area of cultivable land, and crops planted in the same month all "
+        "draw on that same land at once. For each month, the land tied up by the crops growing "
+        "that month, summed across every crop according to how much area each one occupies, must "
+        "not exceed the total area of the farm."),
+     "expected_pyomo": LANDBAL},
+    {"description": (
+        "Tending the crops takes labor, and that labor has to come from somewhere. For each "
+        "month, the labor required by the crops growing that month, summed across every crop, "
+        "must be covered by the family labor worked on the farm plus any temporary labor hired "
+        "in that month."),
+     "expected_pyomo": LABORBAL},
+    {"description": (
+        "The family has a fixed amount of labor available each month, and every bit of it is "
+        "either worked on the farm or hired out for wages. For each month, the family labor "
+        "available must equal the family labor used on the farm plus the family labor hired out "
+        "that month."),
+     "expected_pyomo": FLABOR},
+    {"description": (
+        "Crop production has a gross value that comes from selling what is harvested. Set the "
+        "gross value of production equal to the sum across every crop of the area planted to it "
+        "times its yield per hectare times its selling price."),
+     "expected_pyomo": AREV},
+    {"description": (
+        "Growing crops incurs miscellaneous cash costs that scale with how much is planted. Set "
+        "the total miscellaneous cash cost equal to the sum across every crop of the area planted "
+        "to it times its cash cost per hectare."),
+     "expected_pyomo": ACOST},
+    {"description": (
+        "Bringing in temporary labor costs money at the temporary wage rate. Set the total cost "
+        "of temporary labor equal to the temporary wage rate times the temporary labor hired in, "
+        "summed over every month."),
+     "expected_pyomo": ALAB},
+    {"description": (
+        "Hiring the family's labor out earns wages at the hire-out rate. Set the total labor "
+        "income equal to the hire-out wage rate times the family labor hired out, summed over "
+        "every month."),
+     "expected_pyomo": AOUT},
+    {"description": (
+        "Net farm income is what is left after the year's activity is tallied up. Set the net "
+        "farm income equal to the gross value of production plus the income from hiring labor out, "
+        "minus the cost of temporary labor and minus the miscellaneous cash costs of growing."),
+     "expected_pyomo": INCOME},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "demo1_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

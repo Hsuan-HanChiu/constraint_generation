@@ -1,0 +1,148 @@
+{
+  "i": ["ulsan", "yosu"],
+  "j": ["seoul", "pusan", "ulsan", "yosu"],
+  "m": ["ad", "cr"],
+  "p": ["crad", "nacr"],
+  "c": ["sa", "adga", "adna", "adfo", "crga", "pg", "rf", "et"],
+  "cr": ["sa"],
+  "ci": ["adga", "adna", "adfo", "crga"],
+  "cs": ["adna"],
+  "cb": ["adga", "adfo", "crga"],
+  "cfr": ["pg", "rf"],
+  "cfrerf": ["pg"],
+  "cfrrf": ["rf"],
+  "cfp": ["et"],
+  "cf": ["pg", "rf", "et"],
+  "q": ["oc", "va", "su"],
+  "t": ["1980-84", "1985-89"],
+  "te": ["1985-89"],
+  "is": [1, 2],
+
+  "cfcb": {
+    "pg|adga": 1,
+    "pg|crga": 1,
+    "rf|adfo": 1
+  },
+  "crcr": {
+    "sa|sa": 1
+  },
+
+  "a": {
+    "sa|sa|crad": -1.0,
+    "sa|adga|crad": 0.05,
+    "sa|adna|crad": 0.15,
+    "sa|adfo|crad": 0.50,
+    "sa|adna|nacr": -1.0,
+    "sa|crga|nacr": 0.18,
+    "sa|et|nacr": 0.30,
+    "sa|pg|crad": 0.0,
+    "sa|rf|crad": 0.0
+  },
+  "b": {
+    "ad|crad": 1.0,
+    "cr|nacr": 1.0
+  },
+  "ka": {
+    "ad|ulsan": 1200.0,
+    "ad|yosu": 900.0,
+    "cr|ulsan": 300.0,
+    "cr|yosu": 150.0
+  },
+  "rket1": {
+    "ulsan": 0.4,
+    "yosu": 0.6
+  },
+  "op": {
+    "crad": 1.55,
+    "nacr": 9.71
+  },
+  "d": {
+    "pg|seoul": 70.0,
+    "pg|pusan": 30.0,
+    "rf|seoul": 55.0,
+    "rf|pusan": 45.0,
+    "et|seoul": 40.0,
+    "et|pusan": 60.0
+  },
+  "tqcf": {
+    "pg": 335.9,
+    "rf": 1269.1,
+    "et": 184.5
+  },
+  "grfp": {
+    "pg": 0.15,
+    "rf": 0.1,
+    "et": 0.15
+  },
+  "tc": {
+    "ulsan|seoul": 3.62,
+    "ulsan|pusan": 2.59,
+    "yosu|seoul": 2.65,
+    "yosu|pusan": 1.77,
+    "ulsan|yosu": 3.72,
+    "yosu|ulsan": 3.72
+  },
+  "pr": {
+    "sa|imports": 231.7,
+    "et|imports": 908.0,
+    "et|exports": 705.0
+  },
+  "eu": 400,
+  "imu": 300,
+  "inv": {
+    "ad|size": 10000,
+    "ad|cost": 50000,
+    "ad|scale": 0.67,
+    "cr|size": 1000,
+    "cr|cost": 40000,
+    "cr|scale": 0.67
+  },
+  "life": 20,
+  "discr": 0.1,
+  "site": {
+    "ulsan": 1.0,
+    "yosu": 1.2
+  },
+  "omega": {
+    "ad|1|ulsan": 45.0,
+    "ad|2|ulsan": 60.0,
+    "ad|1|yosu": 50.0,
+    "ad|2|yosu": 66.0,
+    "cr|1|ulsan": 30.0,
+    "cr|2|ulsan": 38.0,
+    "cr|1|yosu": 33.0,
+    "cr|2|yosu": 41.0
+  },
+  "ss": {
+    "ad|1": 5000.0,
+    "ad|2": 10000.0,
+    "cr|1": 500.0,
+    "cr|2": 1000.0
+  },
+  "qll": {
+    "pg|oc": 90.0
+  },
+  "quu": {
+    "pg|va": 12.0,
+    "rf|su": 4.0
+  },
+  "at": {
+    "sa|adga|oc": 84.0,
+    "sa|adga|va": 16.0,
+    "sa|crga|oc": 115.0,
+    "sa|crga|va": 5.0,
+    "sa|adfo|su": 1.02
+  },
+  "suurf": {
+    "1980-84": 4.0,
+    "1985-89": 3.5
+  },
+  "pv": {
+    "sa": 231.7,
+    "et": 908.0
+  },
+  "pe": {
+    "et": 705.0
+  },
+  "year": 5
+}

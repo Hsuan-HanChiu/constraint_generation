@@ -1,0 +1,157 @@
+#!/usr/bin/env python
+"""Builder for the lands_stoc_lp constraint-generation dataset.
+
+A two-stage stochastic LP: electricity capacity expansion with scenario recourse.
+First stage installs generation capacity by plant type; the second stage decides,
+per scenario, how much each plant produces in each operating mode to meet a
+scenario-dependent demand. Run with plain python to (re)generate the JSONL."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "lands_stoc_lp_constraint_gen.jsonl"
+
+# ---- shared model vocabulary (same components block in every record) ----
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": ["plant-1", "plant-2", "plant-3", "plant-4"],
+         "doc": "the types of power plant whose capacity can be installed"},
+        {"name": "j", "members": ["mode-1", "mode-2", "mode-3"],
+         "doc": "the operating modes in which installed plants can run"},
+        {"name": "s", "members": ["s-1", "s-2", "s-3"],
+         "doc": "the future scenarios for second-stage operation, each with its own probability"},
+    ],
+    "params": [
+        {"name": "c", "index": "i", "kind": "cost",
+         "doc": "investment cost to install one unit of capacity of each plant type, in cost units per unit of capacity"},
+        {"name": "d", "index": "j", "kind": "demand",
+         "doc": "the baseline energy demand of each operating mode, in energy units"},
+        {"name": "f", "index": "i,j", "kind": "cost",
+         "doc": "operating cost to run a plant type in an operating mode, in cost units per unit of energy produced"},
+        {"name": "m", "index": "", "kind": "capacity",
+         "doc": "the minimum total installed capacity that must be in place across all plant types, in units of capacity"},
+        {"name": "b", "index": "", "kind": "budget",
+         "doc": "the budget limit available for capacity investment, in cost units"},
+        {"name": "dvar", "index": "s", "kind": "demand",
+         "doc": "the scenario-dependent energy demand for the first operating mode, in energy units, which differs from one scenario to the next"},
+        {"name": "prob", "index": "s", "kind": "probability",
+         "doc": "the probability of each scenario, summing to one across all scenarios"},
+        {"name": "ds", "index": "j,s", "kind": "demand",
+         "doc": "the energy demand of each operating mode under each scenario, in energy units; for the first operating mode it is the scenario-dependent demand and for every other mode it is the baseline demand of that mode"},
+    ],
+    "vars": [
+        {"name": "x", "index": "i", "domain": "NonNegativeReals",
+         "doc": "the amount of capacity installed for each plant type, a first-stage decision made before the scenario is known"},
+        {"name": "ys", "index": "i,j,s", "domain": "NonNegativeReals",
+         "doc": "the operating level of each plant type in each operating mode under each scenario, a second-stage recourse decision made after the scenario is revealed, in energy units"},
+        {"name": "cost", "index": "", "domain": "NonNegativeReals",
+         "doc": "the total cost of the plan, combining first-stage investment cost and expected second-stage operating cost"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "cost"},
+}
+
+NARRATIVE = (
+    "We plan electricity capacity expansion under uncertainty about future demand. "
+    "First we decide how much generation capacity to install for each type of power "
+    "plant, before we know which future scenario will occur. Then, once a scenario "
+    "is revealed, we decide how much each plant type produces in each operating mode "
+    "to serve that scenario's demand. We track the total cost, which combines the "
+    "upfront investment cost and the expected operating cost across the scenarios. "
+    "The objective is to make the total cost as small as possible."
+)
+
+# ---- ground-truth Pyomo for each constraint (self-contained over model.* only) ----
+MINCAP = (
+    "def mincap_rule(model):\n"
+    "    return sum(model.x[i] for i in model.i) >= model.m\n"
+    "model.mincap = Constraint(rule=mincap_rule)"
+)
+
+BBAL = (
+    "def bbal_rule(model):\n"
+    "    return sum(model.c[i] * model.x[i] for i in model.i) <= model.b\n"
+    "model.bbal = Constraint(rule=bbal_rule)"
+)
+
+DEFCOSTS = (
+    "def defcosts_rule(model):\n"
+    "    return model.cost == sum(model.c[i] * model.x[i] for i in model.i) "
+    "+ sum(model.prob[s] * model.f[i, j] * model.ys[i, j, s] "
+    "for i in model.i for j in model.j for s in model.s)\n"
+    "model.defcosts = Constraint(rule=defcosts_rule)"
+)
+
+POWBALS = (
+    "def powbals_rule(model, i, s):\n"
+    "    return sum(model.ys[i, j, s] for j in model.j) <= model.x[i]\n"
+    "model.powbals = Constraint(model.i, model.s, rule=powbals_rule)"
+)
+
+DEMBALS = (
+    "def dembals_rule(model, j, s):\n"
+    "    return sum(model.ys[i, j, s] for i in model.i) >= model.ds[j, s]\n"
+    "model.dembals = Constraint(model.j, model.s, rule=dembals_rule)"
+)
+
+WHOLESET = "\n".join([MINCAP, BBAL, DEFCOSTS, POWBALS, DEMBALS])
+
+records = [
+    {
+        "description": (
+            "The total capacity installed across all plant types must reach at least "
+            "the required minimum total capacity. Add up the capacity installed for "
+            "every plant type and make sure it is no less than that minimum."
+        ),
+        "expected_pyomo": MINCAP,
+    },
+    {
+        "description": (
+            "Investment spending cannot exceed the available budget. Add up the "
+            "investment cost of the capacity installed for every plant type and make "
+            "sure the total stays within the budget limit."
+        ),
+        "expected_pyomo": BBAL,
+    },
+    {
+        "description": (
+            "The total cost combines the upfront investment and the expected operating "
+            "cost. Add the investment cost of the capacity installed across all plant "
+            "types to the operating cost of running every plant type in every mode under "
+            "every scenario, with each scenario's operating cost weighted by how likely "
+            "that scenario is, and set the total cost equal to that sum."
+        ),
+        "expected_pyomo": DEFCOSTS,
+    },
+    {
+        "description": (
+            "No plant type can produce more than its installed capacity in any scenario. "
+            "For each plant type and each scenario, the total amount it produces across "
+            "all operating modes must not exceed the capacity installed for that plant type."
+        ),
+        "expected_pyomo": POWBALS,
+    },
+    {
+        "description": (
+            "Demand must be met in every operating mode under every scenario. For each "
+            "operating mode and each scenario, the total amount produced across all plant "
+            "types must be at least that mode's demand in that scenario."
+        ),
+        "expected_pyomo": DEMBALS,
+    },
+    {
+        "description": "Generate the complete constraint set for this model.",
+        "expected_pyomo": WHOLESET,
+    },
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        rec = {
+            "problem_id": "lands_stoc_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+print(f"wrote {OUT} ({len(records)} records)")

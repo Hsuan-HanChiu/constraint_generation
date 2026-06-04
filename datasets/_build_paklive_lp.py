@@ -1,0 +1,264 @@
+#!/usr/bin/env python
+"""Builder for the paklive_lp (Pakistan farm/livestock) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "paklive_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "C", "members": ["wheat", "basrice", "irrrice", "maize", "oilseed",
+                                   "gram", "cotton", "sugar", "berseem", "kharfodder"],
+         "doc": "the crops that can be grown on the farm"},
+        {"name": "H", "members": ["bullocks", "bufflocows", "cattlecows"],
+         "doc": "the livestock types that can be raised"},
+        {"name": "N", "members": ["tdn", "protein"],
+         "doc": "the nutrients that livestock require, total digestible nutrients and protein"},
+        {"name": "DP", "members": ["draftpower"],
+         "doc": "the draftpower input row, the single resource that bullocks supply and crops consume"},
+        {"name": "T", "members": ["kharif", "rabi"],
+         "doc": "the two cropping seasons in chronological order, the monsoon kharif season first and the winter rabi season second"},
+        {"name": "TA", "members": ["annual", "kharif", "rabi"],
+         "doc": "the time labels used to index the input-output coefficients, either a specific season or the whole year"},
+        {"name": "R", "members": ["credit", "draftpower", "irrwat", "labor", "landuse",
+                                  "protein", "tdn", "yield"],
+         "doc": "the input-output row labels naming each resource or balance row of the activity coefficient matrices"},
+    ],
+    "params": [
+        {"name": "fsize", "index": "", "kind": "capacity",
+         "doc": "the total cultivable farm size in acres, the same land available in every season"},
+        {"name": "watercost", "index": "", "kind": "cost",
+         "doc": "the cost of purchased irrigation water in rupees per inch"},
+        {"name": "laborcost", "index": "", "kind": "cost",
+         "doc": "the cost of hired labor in rupees per man-day"},
+        {"name": "maxcredit", "index": "", "kind": "capacity",
+         "doc": "the maximum annual credit the farm can draw, in rupees"},
+        {"name": "draftcost", "index": "", "kind": "cost",
+         "doc": "the cost of hired draftpower in rupees per work-day"},
+        {"name": "bullockr", "index": "C", "kind": "requirement",
+         "doc": "the bullock work-days each acre of a crop requires; zero for crops not listed"},
+        {"name": "bullocka", "index": "H", "kind": "availability",
+         "doc": "the bullock work-days each animal of a livestock type supplies; only the bullocks type supplies any"},
+        {"name": "rationcost", "index": "N", "kind": "cost",
+         "doc": "the cost of purchased ration per kilogram for each nutrient, in rupees per kg"},
+        {"name": "gmargin", "index": "H", "kind": "revenue",
+         "doc": "the gross margin earned per animal of each livestock type, in rupees"},
+        {"name": "eff", "index": "N", "kind": "efficiency",
+         "doc": "the fraction of a nutrient that survives storage when fodder is carried from one season into the next, between zero and one"},
+        {"name": "maxflab", "index": "T", "kind": "availability",
+         "doc": "the family labor available in each season in man-days, supplied free before any hiring"},
+        {"name": "cinput", "index": "(R, TA, C)", "kind": "coefficient",
+         "doc": "the crop activity coefficient matrix, the amount of each input-output row consumed or produced per acre of a crop in a given time label; positive entries are resources consumed by the crop, while negative entries are outputs the crop yields such as nutrients produced or harvested product, and missing entries are zero"},
+        {"name": "linput", "index": "(R, TA, H)", "kind": "coefficient",
+         "doc": "the livestock activity coefficient matrix, the amount of each input-output row consumed or produced per animal in a given time label; positive entries are resources the animal consumes such as labor or nutrients, while negative entries are resources the animal supplies such as draftpower, and missing entries are zero"},
+        {"name": "watavail", "index": "T", "kind": "availability",
+         "doc": "the free on-farm irrigation water available each season in inches, equal to the farm size times the free water per acre for that season"},
+        {"name": "crev", "index": "C", "kind": "revenue",
+         "doc": "the net revenue earned per acre of each crop in rupees, the harvested yield valued at the crop price"},
+    ],
+    "vars": [
+        {"name": "xcrop", "index": "C", "domain": "NonNegativeReals",
+         "doc": "the acres planted of each crop"},
+        {"name": "xlivestk", "index": "H", "domain": "NonNegativeReals",
+         "doc": "the number of animals raised of each livestock type"},
+        {"name": "wpurchase", "index": "T", "domain": "NonNegativeReals",
+         "doc": "the irrigation water purchased each season in inches"},
+        {"name": "xrations", "index": "(N, T)", "domain": "NonNegativeReals",
+         "doc": "the ration purchased of each nutrient in each season in kilograms"},
+        {"name": "xlabor", "index": "T", "domain": "NonNegativeReals",
+         "doc": "the labor hired each season in man-days"},
+        {"name": "xtransf", "index": "(N, T)", "domain": "NonNegativeReals",
+         "doc": "the fodder nutrient carried out of a season to be stored for the following season, in kilograms"},
+        {"name": "dhire", "index": "", "domain": "NonNegativeReals",
+         "doc": "the draftpower hired over the year in work-days"},
+        {"name": "rev", "index": "", "domain": "Reals",
+         "doc": "the total revenue from crops and livestock, in rupees"},
+        {"name": "lcost", "index": "", "domain": "Reals",
+         "doc": "the total labor cost, in rupees"},
+        {"name": "dcost", "index": "", "domain": "Reals",
+         "doc": "the total draftpower cost, in rupees"},
+        {"name": "wcost", "index": "", "domain": "Reals",
+         "doc": "the total water cost, in rupees"},
+        {"name": "rcost", "index": "", "domain": "Reals",
+         "doc": "the total ration cost, in rupees"},
+        {"name": "net_return", "index": "", "domain": "Reals",
+         "doc": "the net return of the farm, total revenue less labor, water, ration, and draftpower costs, in rupees"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "net_return"},
+}
+
+NARRATIVE = (
+    "We plan a mixed crop and livestock farm over a year split into two seasons. We decide "
+    "how many acres to plant of each crop, how many animals to raise of each livestock type, "
+    "how much irrigation water to buy each season, how much labor to hire each season, how much "
+    "ration to purchase for each nutrient, how much fodder to carry from one season into the next, "
+    "and how much draftpower to hire. Revenue comes from selling crop harvests and from the gross "
+    "margin on livestock, while costs accrue from labor, water, ration, and draftpower. The "
+    "objective is to maximize the net return of the farm, which is total revenue minus all of "
+    "those costs."
+)
+
+# ── per-constraint Pyomo (native names) ───────────────────────────────────────
+TOTALREV = (
+    "def totalrev_rule(model):\n"
+    "    return model.rev == sum(model.crev[c] * model.xcrop[c] for c in model.C) + sum(model.gmargin[h] * model.xlivestk[h] for h in model.H)\n"
+    "model.totalrev = Constraint(rule=totalrev_rule)"
+)
+COSTDRAFT = (
+    "def costdraft_rule(model):\n"
+    "    return model.dcost == model.draftcost * model.dhire\n"
+    "model.costdraft = Constraint(rule=costdraft_rule)"
+)
+COSTLABOR = (
+    "def costlabor_rule(model):\n"
+    "    return model.lcost == model.laborcost * sum(model.xlabor[t] for t in model.T)\n"
+    "model.costlabor = Constraint(rule=costlabor_rule)"
+)
+COSTWATER = (
+    "def costwater_rule(model):\n"
+    "    return model.wcost == model.watercost * sum(model.wpurchase[t] for t in model.T)\n"
+    "model.costwater = Constraint(rule=costwater_rule)"
+)
+COSTRAT = (
+    "def costrat_rule(model):\n"
+    "    return model.rcost == sum(model.rationcost[n] * sum(model.xrations[n, t] for t in model.T) for n in model.N)\n"
+    "model.costrat = Constraint(rule=costrat_rule)"
+)
+LAND = (
+    "def land_rule(model, t):\n"
+    "    return sum(model.cinput['landuse', t, c] * model.xcrop[c] for c in model.C) <= model.fsize\n"
+    "model.land = Constraint(model.T, rule=land_rule)"
+)
+WATER = (
+    "def water_rule(model, t):\n"
+    "    return sum(model.cinput['irrwat', t, c] * model.xcrop[c] for c in model.C) - model.wpurchase[t] <= model.watavail[t]\n"
+    "model.water = Constraint(model.T, rule=water_rule)"
+)
+LABOR = (
+    "def labor_rule(model, t):\n"
+    "    return sum(model.cinput['labor', t, c] * model.xcrop[c] for c in model.C) + sum(model.linput['labor', t, h] * model.xlivestk[h] for h in model.H) - model.xlabor[t] <= model.maxflab[t]\n"
+    "model.labor = Constraint(model.T, rule=labor_rule)"
+)
+DRAFT = (
+    "def draft_rule(model, dp, t):\n"
+    "    return sum(model.cinput[dp, t, c] * model.xcrop[c] for c in model.C) <= -sum(model.linput[dp, t, h] * model.xlivestk[h] for h in model.H)\n"
+    "model.draft = Constraint(model.DP, model.T, rule=draft_rule)"
+)
+BULLOCK = (
+    "def bullock_rule(model):\n"
+    "    return sum(model.bullockr[c] * model.xcrop[c] for c in model.C) <= sum(model.bullocka[h] * model.xlivestk[h] for h in model.H) + model.dhire\n"
+    "model.bullock = Constraint(rule=bullock_rule)"
+)
+CREDIT = (
+    "def credit_rule(model):\n"
+    "    return (sum(model.cinput['credit', 'annual', c] * model.xcrop[c] for c in model.C)\n"
+    "            + sum(model.linput['credit', 'annual', h] * model.xlivestk[h] for h in model.H)\n"
+    "            + model.rcost + model.lcost + model.wcost + model.dcost <= model.maxcredit)\n"
+    "model.credit = Constraint(rule=credit_rule)"
+)
+NUTBAL = (
+    "def nutbal_rule(model, n, t):\n"
+    "    t_list = list(model.T)\n"
+    "    idx = t_list.index(t)\n"
+    "    prev_t = t_list[idx - 1] if idx > 0 else None\n"
+    "    transf = model.eff[n] * model.xtransf[n, prev_t] if prev_t is not None else 0.0\n"
+    "    return (-sum(model.cinput[n, t, c] * model.xcrop[c] for c in model.C) + transf + model.xrations[n, t]\n"
+    "            >= sum(model.linput[n, t, h] * model.xlivestk[h] for h in model.H))\n"
+    "model.nutbal = Constraint(model.N, model.T, rule=nutbal_rule)"
+)
+OBJ_BALANCE = (
+    "def obj_balance_rule(model):\n"
+    "    return model.net_return == model.rev - model.lcost - model.wcost - model.rcost - model.dcost\n"
+    "model.obj_balance = Constraint(rule=obj_balance_rule)"
+)
+
+WHOLESET = "\n".join([TOTALREV, COSTDRAFT, COSTLABOR, COSTWATER, COSTRAT, LAND, WATER,
+                      LABOR, DRAFT, BULLOCK, CREDIT, NUTBAL, OBJ_BALANCE])
+
+records = [
+    {"description": (
+        "Define the total revenue of the farm. Total revenue is the sum across all crops of the "
+        "acres planted valued at each crop's per-acre net revenue, plus the sum across all livestock "
+        "types of the animals raised valued at each type's gross margin per animal. Set the total "
+        "revenue variable equal to that combined amount."),
+     "expected_pyomo": TOTALREV},
+    {"description": (
+        "Define the draftpower cost. Set the total draftpower cost equal to the hired draftpower "
+        "valued at the per-work-day draftpower cost."),
+     "expected_pyomo": COSTDRAFT},
+    {"description": (
+        "Define the labor cost. Set the total labor cost equal to the total labor hired across both "
+        "seasons valued at the per-man-day labor cost."),
+     "expected_pyomo": COSTLABOR},
+    {"description": (
+        "Define the water cost. Set the total water cost equal to the total irrigation water purchased "
+        "across both seasons valued at the per-inch water cost."),
+     "expected_pyomo": COSTWATER},
+    {"description": (
+        "Define the ration cost. For each nutrient, value the ration purchased of that nutrient across "
+        "both seasons at its per-kilogram ration cost, and set the total ration cost equal to the sum of "
+        "these amounts over all nutrients."),
+     "expected_pyomo": COSTRAT},
+    {"description": (
+        "The farm cannot plant more land than it owns in either season. For each season, the total land "
+        "used by all crops planted that season must not exceed the farm size."),
+     "expected_pyomo": LAND},
+    {"description": (
+        "Irrigation water used by crops in a season must be covered by the free on-farm water available "
+        "that season together with any water purchased. For each season, the water demanded by the crops "
+        "planted, after subtracting the water purchased that season, must not exceed the free on-farm water "
+        "available that season."),
+     "expected_pyomo": WATER},
+    {"description": (
+        "Labor used in a season must be covered by the free family labor available that season together "
+        "with any labor hired. For each season, the labor required by the crops planted plus the labor "
+        "required by the livestock raised, after subtracting the labor hired that season, must not exceed "
+        "the family labor available that season."),
+     "expected_pyomo": LABOR},
+    {"description": (
+        "The draftpower that crops need in a season cannot exceed the draftpower the livestock supply that "
+        "season. In the coefficient matrices the draftpower a crop consumes is recorded as a positive entry "
+        "while the draftpower an animal supplies is recorded as a negative entry. For each draftpower row and "
+        "each season, the total draftpower consumed by the crops planted must not exceed the total draftpower "
+        "supplied by the livestock raised, where the supply is the negated sum of the livestock draftpower "
+        "entries."),
+     "expected_pyomo": DRAFT},
+    {"description": (
+        "Bullock work-days needed by the crops over the year must be covered by what the livestock provide "
+        "plus what is hired. The total bullock work-days required by all crops planted must not exceed the "
+        "total bullock work-days supplied by the livestock raised plus the draftpower hired."),
+     "expected_pyomo": BULLOCK},
+    {"description": (
+        "Total annual spending must stay within the credit limit. The annual credit drawn by all crops "
+        "planted plus the annual credit drawn by all livestock raised plus the ration cost plus the labor "
+        "cost plus the water cost plus the draftpower cost must not exceed the maximum annual credit."),
+     "expected_pyomo": CREDIT},
+    {"description": (
+        "Livestock nutrient needs in each season must be met by farm-grown fodder, by ration purchases, and "
+        "by fodder carried in from the previous season. In the coefficient matrices the nutrient a crop "
+        "produces is recorded as a negative entry while the nutrient an animal consumes is recorded as a "
+        "positive entry. For each nutrient and each season, the nutrient produced by the crops planted, taken "
+        "as the negated sum of the crop entries, plus the ration purchased that season, plus in any season "
+        "after the first the surviving fodder carried over from the immediately preceding season, must be at "
+        "least the nutrient consumed by the livestock raised. The carried-over fodder survives storage only "
+        "in part, at the storage efficiency for that nutrient, and the first season has no preceding season "
+        "to carry fodder from."),
+     "expected_pyomo": NUTBAL},
+    {"description": (
+        "Define the net return of the farm. Set the net return equal to the total revenue minus the labor "
+        "cost, the water cost, the ration cost, and the draftpower cost."),
+     "expected_pyomo": OBJ_BALANCE},
+    {"description": "Generate the complete constraint set for this model.",
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "paklive_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

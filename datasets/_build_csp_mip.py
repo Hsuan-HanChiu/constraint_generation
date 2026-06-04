@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+"""Builder for the csp_mip (closest-string / consensus-string) constraint-generation dataset.
+Run with plain python (no special deps) to (re)generate the JSONL.
+
+The model is the Closest String Problem: given a set of equal-length strings over
+an alphabet, choose one consensus character at each position so that the largest
+Hamming distance from the consensus to any input string is as small as possible.
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "csp_mip_constraint_gen.jsonl"
+
+# ---- shared model vocabulary (same components block in every record) ----
+COMPONENTS = {
+    "sets": [
+        {"name": "n", "members": ["s1", "s2", "s3"],
+         "doc": "the input strings that must all be approximated by one consensus string"},
+        {"name": "m", "members": ["c1", "c2", "c3"],
+         "doc": "the character positions shared by every string; the strings all have this same length"},
+        {"name": "a", "members": ["a1", "a2", "a3", "a4"],
+         "doc": "the alphabet of characters. Each character is identified by its numeric code, so character a1 stands for the value 1, a2 for the value 2, and so on"},
+        {"name": "ma", "members": ["(c1,a1)", "(c1,a2)", "(c2,a2)", "(c2,a3)", "(c3,a1)", "(c3,a3)", "(c3,a4)"],
+         "doc": "the position and character pairs that are actually possible. A pair belongs to this set only when that character appears at that position in at least one of the input strings, so characters that never occur at a position are excluded"},
+    ],
+    "params": [
+        {"name": "x", "index": "n,m", "kind": "data",
+         "doc": "the numeric code of the character that the given input string has at the given position"},
+    ],
+    "vars": [
+        {"name": "d", "index": "", "domain": "NonNegativeReals",
+         "doc": "the largest Hamming distance from the chosen consensus string to any input string, where Hamming distance counts the positions at which two strings differ"},
+        {"name": "v", "index": "m,a", "domain": "Binary",
+         "doc": "1 if the consensus string uses the given character at the given position, 0 otherwise"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "d"},
+}
+
+NARRATIVE = (
+    "We are given several strings of the same length written over a shared alphabet. "
+    "We want to build a single consensus string of that same length by picking one "
+    "character for each position. For every input string we look at how many positions "
+    "differ from the consensus string. We decide which character to place at each "
+    "position of the consensus string. The objective is to make the worst such "
+    "difference across all the input strings as small as possible."
+)
+
+# ---- ground-truth Pyomo for each constraint (self-contained over model.* only) ----
+# NOTE on closures: the native model.py reads a Python dict `ma` and `data['x']`
+# inside the rules. Those are NOT available to a graded candidate, so here we
+# re-derive everything from model components: membership in the model.ma Set and
+# the value of the model.x Param. The alphabet code is recovered from the member
+# name with int(a[1:]) (a1 -> 1, a2 -> 2, ...), matching the native convention.
+
+E4 = (
+    "def e4_rule(model, m):\n"
+    "    return sum(model.v[m, a] for a in model.a if (m, a) in model.ma) == 1\n"
+    "model.e4 = Constraint(model.m, rule=e4_rule)"
+)
+
+E6 = (
+    "def e6_rule(model, n):\n"
+    "    card_m = len(model.m)\n"
+    "    matching = sum(\n"
+    "        model.v[m, a]\n"
+    "        for m in model.m\n"
+    "        for a in model.a\n"
+    "        if (m, a) in model.ma and int(value(model.x[n, m])) == int(a[1:])\n"
+    "    )\n"
+    "    return card_m - matching <= model.d\n"
+    "model.e6 = Constraint(model.n, rule=e6_rule)"
+)
+
+WHOLESET = "\n".join([E4, E6])
+
+records = [
+    {
+        "description": (
+            "The consensus string must use exactly one character at each position. "
+            "For every position, choose a single character among the characters that "
+            "are possible there."
+        ),
+        "expected_pyomo": E4,
+    },
+    {
+        "description": (
+            "The worst-case difference value must be at least as large as the Hamming "
+            "distance from the consensus string to each input string. For every input "
+            "string, count the positions where the character chosen for the consensus "
+            "string does not equal the character that input string has there, and "
+            "require the worst-case difference to be no smaller than that count."
+        ),
+        "expected_pyomo": E6,
+    },
+    {
+        "description": "Generate the complete constraint set for this model.",
+        "expected_pyomo": WHOLESET,
+    },
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        rec = {
+            "problem_id": "csp_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+print(f"wrote {OUT} ({len(records)} records)")
