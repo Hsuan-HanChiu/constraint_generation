@@ -41,10 +41,10 @@ MIP nonlinear-flagged (15): andean_fixed, badmip_mip, cmo_mip****, cross_mip, ic
 ## DUP-SKIP (8) — covered by an equivalent model
 - agreste_lp297 -> agreste_lp293 | awktsp_mip_cut -> awktsp_mip_assign | prodschx_1B_mip -> prodsch_eb1 | prodschx_2B_mip -> prodsch_eb2 | senstran_lp -> gussex1_lp | tgridmix_lp -> gussex1_lp | tsp4_tspcut_mip -> tsp42_tsp_mip | uimp_revenue_lp -> uimp_profit_lp
 
-## BUILD-FAIL (3) — need a code/data fix before processing (only remaining work)
-- RTN_mip: needs networkx module
-- bchoil_mip: data KeyError on Param cap idx 2
-- ccoil_mip: undefined fn _get_pair_val
+## BUILD-FAIL — status (updated 2026-06-08)
+- ccoil_mip: FIXED by Hsuan-Han (added the missing `_get_pair_val` helper). **DONE 2026-06-08** — dataset built (7 records: obj, oneout, oneoutp, bal, bigM, defb + whole-set), reduced instance `reduced_data/ccoil_mip_small.json` (4 nodes / 10 arcs / 20 binaries, k=1,2,3), selfcheck PASS, validate-instance FAITHFUL 18/18. Capacitated pipe-network design MIP (sibling of bchoil_mip). Note: oneoutp/bal records phrase guards with `in`-membership so the harness `_perturb` flips the constraint's own relop, not a guard.
+- bchoil_mip: **STILL BROKEN (degenerate), not ready.** Builds without exception but the ARC SET IS EMPTY (0 arcs / 0 binaries) → all 6 constraints (obj_constraint, oneout, oneoutp, bal, bigM, defb) are trivially empty. Same key-type-mismatch bug ccoil had pre-fix: `edgedist` is stored with string keys ("1|2") but line ~106 looks it up with tuple keys `(m,n)`, so `dist_dict` is empty. Fix = port ccoil's `_get_pair_val` helper (tries (i,j)/"i\|j"/(str,str)/(int,int)) to the edgedist lookup. Flagged to Hsuan-Han 2026-06-08; awaiting whether he fixes it (as he did ccoil) or wants me to port the fix. Then generate (ccoil's sibling, same 6 constraints).
+- RTN_mip: **DONE 2026-06-08.** Unblocked by installing `networkx` + `matplotlib` in `opti` (both imported at module top; not a code bug). Resource-Task-Network scheduling MIP. Dataset built: 6 records (5 families Balance/ResourceLB/ResourceUB/BatchLB/BatchUB + whole-set), graded on **FULL data** (30 binaries, worst grade 61 ms — no reduced instance needed), selfcheck PASS, all controls non-vacuous. Note: Balance guard rephrased `if t-theta >= 1` → `if t-theta in model.T1` so the harness `_perturb` flips the constraint's own `==`, not the guard (logically identical).
 
 ## EXCLUDED (1)
 - nemhaus_nlp — genuine NLP, not Z3-gradable.
