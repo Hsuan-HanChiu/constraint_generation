@@ -1,0 +1,566 @@
+#!/usr/bin/env python
+"""Builder for the indus_lp (Indus Basin agricultural planning LP) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "indus_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "c", "members": ["basmati", "cotton", "berseem", "gram", "irri", "sorghum", "maiz", "mustard", "sc-mill", "sc-gur", "wheat"],
+         "doc": "the crop types grown in the basin"},
+        {"name": "cf", "members": ["berseem", "sorghum"],
+         "doc": "the fodder crops, a subset of the crops"},
+        {"name": "cri", "members": ["basmati", "irri"],
+         "doc": "the rice crops, a subset of the crops"},
+        {"name": "cc", "members": ["gram", "irri", "maiz", "mustard", "sc-gur", "wheat"],
+         "doc": "the crops that are consumed on the farm, a subset of the crops"},
+        {"name": "cnf", "members": ["basmati", "cotton", "gram", "irri", "maiz", "mustard", "sc-mill", "sc-gur", "wheat"],
+         "doc": "the non-fodder crops, a subset of the crops"},
+        {"name": "g", "members": ["poly-17+19", "poly-18"],
+         "doc": "the polygons, the geographic planning units of the basin"},
+        {"name": "l", "members": ["bullock", "buffalo", "cattle"],
+         "doc": "the types of livestock; the member 'bullock' supplies draft power and the member 'cattle' is the breeding herd"},
+        {"name": "q", "members": ["buff-milk", "catl-milk", "meat"],
+         "doc": "the livestock commodities produced and traded"},
+        {"name": "sea", "members": ["kharif", "rabi"],
+         "doc": "the two cropping seasons"},
+        {"name": "m", "members": ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+         "doc": "the months of the year"},
+        {"name": "y", "members": [1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975],
+         "doc": "the historical years over which revenue deviations are measured for the risk term"},
+        {"name": "sg", "members": ["poly-18"],
+         "doc": "the polygons that have saline groundwater, a subset of the polygons; only these can drain or inject groundwater"},
+        {"name": "fsg", "members": ["poly-17+19"],
+         "doc": "the polygons that have fresh groundwater, a subset of the polygons; only these operate private tubewells"},
+        {"name": "tech", "members": "the 46 valid (crop, technology, sequence, water-stress) production activities",
+         "doc": "the set of valid production activities, each a tuple of a crop, a technology, a planting sequence, and a water-stress level; every crop-level sum and the cropping-area decision range only over these valid activities"},
+    ],
+    "params": [
+        {"name": "fc", "index": "", "kind": "conversion",
+         "doc": "the conversion factor from maunds to pounds for crop yields"},
+        {"name": "kl", "index": "", "kind": "constant",
+         "doc": "a normalizing constant scaling the risk penalty"},
+        {"name": "cdrwell", "index": "", "kind": "cost",
+         "doc": "the annualized cost of a public drainage well, in rupees per well"},
+        {"name": "drcap", "index": "", "kind": "capacity",
+         "doc": "the capacity of a public drainage well, in acre-feet per year"},
+        {"name": "trcap", "index": "", "kind": "capacity",
+         "doc": "the capacity of one unit of tractor investment, in tractor-hours per month"},
+        {"name": "twcap", "index": "", "kind": "capacity",
+         "doc": "the capacity of one unit of private tubewell investment, in acre-feet per month"},
+        {"name": "gr", "index": "", "kind": "ratio",
+         "doc": "the required proportion of total fodder that must be supplied as green fodder"},
+        {"name": "repco", "index": "", "kind": "ratio",
+         "doc": "the reproductive coefficient giving the maximum number of bullocks that can be sustained per head of cattle"},
+        {"name": "pp", "index": "", "kind": "price",
+         "doc": "the purchase price of protein concentrate, in rupees per pound"},
+        {"name": "misc_twopc", "index": "", "kind": "cost",
+         "doc": "the operating cost of a private tubewell per unit of water pumped"},
+        {"name": "misc_tropc", "index": "", "kind": "cost",
+         "doc": "the operating cost of a tractor per unit of tractor service"},
+        {"name": "misc_twinvt", "index": "", "kind": "cost",
+         "doc": "the per-unit cost of private tubewell capacity, applied to installed plus newly invested capacity"},
+        {"name": "misc_trinvt", "index": "", "kind": "cost",
+         "doc": "the per-unit cost of tractor capacity, applied to installed plus newly invested capacity"},
+        {"name": "psc", "index": "c", "kind": "price",
+         "doc": "the selling price of each crop commodity, in rupees per maund"},
+        {"name": "pbc", "index": "c", "kind": "price",
+         "doc": "the buying price of each crop commodity, in rupees per maund"},
+        {"name": "psq", "index": "q", "kind": "price",
+         "doc": "the selling price of each livestock commodity"},
+        {"name": "pbq", "index": "q", "kind": "price",
+         "doc": "the buying price of each livestock commodity"},
+        {"name": "r", "index": "g", "kind": "coefficient",
+         "doc": "the risk-aversion coefficient of each polygon"},
+        {"name": "bp", "index": "m", "kind": "capacity",
+         "doc": "the draft power supplied by one bullock pair in each month, in pair-hours"},
+        {"name": "wage", "index": "m", "kind": "cost",
+         "doc": "the wage rate for hired seasonal labor in each month, in rupees per man-hour"},
+        {"name": "dev", "index": "c,y", "kind": "coefficient",
+         "doc": "the per-acre revenue deviation of each crop in each historical year, relative to its mean revenue"},
+        {"name": "alphc", "index": "g,c", "kind": "coefficient",
+         "doc": "the autonomous (income-independent) on-farm consumption of each crop commodity in each polygon"},
+        {"name": "betac", "index": "g,c", "kind": "coefficient",
+         "doc": "the marginal propensity to consume each crop commodity out of normal farm income, by polygon"},
+        {"name": "alphq", "index": "g,q", "kind": "coefficient",
+         "doc": "the autonomous on-farm consumption of each livestock commodity in each polygon"},
+        {"name": "betaq", "index": "g,q", "kind": "coefficient",
+         "doc": "the marginal propensity to consume each livestock commodity out of normal farm income, by polygon"},
+        {"name": "yq", "index": "l,q", "kind": "yield",
+         "doc": "the yield of each livestock commodity per head of each livestock type"},
+        {"name": "lbq", "index": "l,m", "kind": "requirement",
+         "doc": "the labor required to maintain one head of each livestock type in each month, in man-hours"},
+        {"name": "cwcaptl", "index": "tech", "kind": "cost",
+         "doc": "the total working capital required per acre of each production activity, in rupees"},
+        {"name": "yc", "index": "tech", "kind": "yield",
+         "doc": "the crop yield of each production activity, in maunds per acre"},
+        {"name": "bpr", "index": "c,t,s,w,m", "kind": "requirement",
+         "doc": "the bullock draft-power requirement of each activity in each month, in pair-hours; indexed over the activity tuple plus month"},
+        {"name": "tr", "index": "c,t,s,w,m", "kind": "requirement",
+         "doc": "the tractor requirement of each activity in each month, in tractor-hours per acre"},
+        {"name": "labor", "index": "c,t,s,w,m", "kind": "requirement",
+         "doc": "the labor requirement of each activity in each month, in man-hours"},
+        {"name": "land", "index": "c,t,s,w,m", "kind": "requirement",
+         "doc": "the land occupied by each activity in each month, in acres; an activity can occupy land in several months"},
+        {"name": "tdy", "index": "c,t,s,w,sea", "kind": "yield",
+         "doc": "the total-digestible-nutrient (energy) fodder yield of each activity in each season"},
+        {"name": "dpy", "index": "c,t,s,w,sea", "kind": "yield",
+         "doc": "the digestible-protein yield of each activity in each season"},
+        {"name": "wtd", "index": "c,t,s,w,sea", "kind": "yield",
+         "doc": "the total-digestible-nutrient yield obtained from weeds of each activity in each season"},
+        {"name": "wdp", "index": "c,t,s,w,sea", "kind": "yield",
+         "doc": "the digestible-protein yield obtained from weeds of each activity in each season"},
+        {"name": "wn", "index": "g,c,t,s,w,m", "kind": "requirement",
+         "doc": "the crop water requirement of each activity in each polygon and month, net of rainfall and sub-irrigation"},
+        {"name": "gfd", "index": "g,sea", "kind": "supply",
+         "doc": "the green fodder available from grazing in each polygon and season"},
+        {"name": "gdp", "index": "g,sea", "kind": "supply",
+         "doc": "the protein available from grazing in each polygon and season"},
+        {"name": "wr", "index": "g,m", "kind": "supply",
+         "doc": "the canal water netted to the root zone in each polygon and month, in thousand acre-feet"},
+        {"name": "twdeleff", "index": "g,m", "kind": "efficiency",
+         "doc": "the delivery efficiency of private tubewell water from the well to the root zone, by polygon and month"},
+        {"name": "gtw1", "index": "g,m", "kind": "supply",
+         "doc": "the public tubewell pumping routed to the root zone in each polygon and month, in acre-feet"},
+        {"name": "gtw", "index": "g,m", "kind": "supply",
+         "doc": "the total public tubewell pumping in each polygon and month, in acre-feet"},
+        {"name": "efs", "index": "g,m", "kind": "coefficient",
+         "doc": "the effective seepage of rainfall from idle land to groundwater, in feet, by polygon and month"},
+        {"name": "ws_pg", "index": "g,m", "kind": "coefficient",
+         "doc": "the private-tubewell seepage coefficient, the share of pumped water that seeps back to groundwater"},
+        {"name": "wl_pg", "index": "g,m", "kind": "coefficient",
+         "doc": "the private-tubewell water-loss coefficient"},
+        {"name": "ws_fd", "index": "g,m", "kind": "coefficient",
+         "doc": "the field seepage coefficient applied to the non-lost fraction of pumped water"},
+        {"name": "rivseep", "index": "g,m", "kind": "supply",
+         "doc": "the river seepage to the aquifer in each polygon and month, in acre-feet"},
+        {"name": "seepcgw", "index": "g", "kind": "supply",
+         "doc": "the canal-water seepage to groundwater in each polygon, in thousand acre-feet"},
+        {"name": "seepgtw", "index": "g", "kind": "supply",
+         "doc": "the seepage from public tubewells to groundwater in each polygon, in thousand acre-feet"},
+        {"name": "qggw", "index": "g", "kind": "supply",
+         "doc": "the groundwater inflow from neighbouring polygons, in thousand acre-feet"},
+        {"name": "seeprain", "index": "g", "kind": "supply",
+         "doc": "the seepage of rain to groundwater in each polygon, in thousand acre-feet"},
+        {"name": "etgw", "index": "g", "kind": "loss",
+         "doc": "the evapotranspiration drawn from groundwater in each polygon"},
+        {"name": "delgw", "index": "g", "kind": "target",
+         "doc": "the targeted annual change in the groundwater table in each polygon, in thousand acre-feet"},
+        {"name": "ntw", "index": "g", "kind": "stock",
+         "doc": "the number of existing private tubewells already installed in each polygon"},
+        {"name": "ntr", "index": "g", "kind": "stock",
+         "doc": "the number of existing tractors already installed in each polygon"},
+        {"name": "lwcaptl", "index": "l", "kind": "cost",
+         "doc": "the miscellaneous cash requirement per head of each livestock type, in rupees"},
+        {"name": "areac_trg1", "index": "g", "kind": "capacity",
+         "doc": "the installed tractor capacity of each polygon, in tractor-hours"},
+        {"name": "areac_alg", "index": "g", "kind": "capacity",
+         "doc": "the total irrigated land available in each polygon, in acres"},
+        {"name": "areac_twg", "index": "g", "kind": "capacity",
+         "doc": "the installed private tubewell capacity of each polygon, in acre-feet"},
+        {"name": "areac_sra", "index": "g", "kind": "capacity",
+         "doc": "the area within the sugar-mill transport radius in each polygon, in acres"},
+        {"name": "livio_tn", "index": "l", "kind": "requirement",
+         "doc": "the seasonal total-digestible-nutrient (energy) requirement per head of each livestock type, in pounds per season"},
+        {"name": "livio_pr", "index": "l", "kind": "requirement",
+         "doc": "the seasonal digestible-protein requirement per head of each livestock type, in pounds per season"},
+    ],
+    "vars": [
+        {"name": "yfa", "index": "g", "domain": "Reals",
+         "doc": "the farm income of each polygon, in thousand rupees"},
+        {"name": "yva", "index": "g", "domain": "Reals",
+         "doc": "the normal farm income of each polygon, in thousand rupees; this drives consumption demand"},
+        {"name": "mad", "index": "g", "domain": "NonNegativeReals",
+         "doc": "the mean absolute revenue deviation of each polygon"},
+        {"name": "dr", "index": "g", "domain": "NonNegativeReals",
+         "doc": "the public drainage drawn from groundwater in each polygon, in thousand acre-feet"},
+        {"name": "inj", "index": "g", "domain": "NonNegativeReals",
+         "doc": "the public injection into groundwater in each polygon, in thousand acre-feet"},
+        {"name": "tw", "index": "g,m", "domain": "NonNegativeReals",
+         "doc": "the private tubewell water use in each polygon and month, in thousand acre-feet"},
+        {"name": "ts", "index": "g,m", "domain": "NonNegativeReals",
+         "doc": "the private tractor services used in each polygon and month, in thousand hours"},
+        {"name": "scc", "index": "g,c", "domain": "NonNegativeReals",
+         "doc": "the sales of each crop commodity in each polygon, in thousand pounds"},
+        {"name": "ccc", "index": "g,c", "domain": "NonNegativeReals",
+         "doc": "the on-farm consumption of each crop commodity in each polygon, in thousand pounds"},
+        {"name": "pcc", "index": "g,c", "domain": "NonNegativeReals",
+         "doc": "the farm purchases of each crop commodity in each polygon, in thousand pounds"},
+        {"name": "slc", "index": "g,q", "domain": "NonNegativeReals",
+         "doc": "the sales of each livestock commodity in each polygon"},
+        {"name": "clc", "index": "g,q", "domain": "NonNegativeReals",
+         "doc": "the on-farm consumption of each livestock commodity in each polygon"},
+        {"name": "plc", "index": "g,q", "domain": "NonNegativeReals",
+         "doc": "the farm purchases of each livestock commodity in each polygon"},
+        {"name": "acost", "index": "g", "domain": "NonNegativeReals",
+         "doc": "the total annual farm cost of each polygon, in thousand rupees"},
+        {"name": "x", "index": "g,tech", "domain": "NonNegativeReals",
+         "doc": "the area planted to each production activity in each polygon, in thousand acres; defined only over the valid activities"},
+        {"name": "xca", "index": "g,c", "domain": "NonNegativeReals",
+         "doc": "the total area planted to each crop in each polygon, aggregated over that crop's activities"},
+        {"name": "animal", "index": "g,l", "domain": "NonNegativeReals",
+         "doc": "the number of head of each livestock type kept in each polygon, in thousands"},
+        {"name": "ppc", "index": "g,sea", "domain": "NonNegativeReals",
+         "doc": "the purchases of protein concentrate in each polygon and season, in thousand pounds"},
+        {"name": "esl", "index": "g,m", "domain": "NonNegativeReals",
+         "doc": "the seasonal hired labor employed in each polygon and month, in thousand man-hours; bounded above by available hired labor"},
+        {"name": "itw", "index": "g", "domain": "NonNegativeReals",
+         "doc": "the investment in new private tubewell capacity in each polygon, in acre-feet per month"},
+        {"name": "itr", "index": "g", "domain": "NonNegativeReals",
+         "doc": "the investment in new tractor capacity in each polygon, in thousand tractor-hours per month"},
+        {"name": "efl", "index": "g,m", "domain": "NonNegativeReals",
+         "doc": "the family labor employed in each polygon and month, in thousand man-hours; bounded above by available family labor"},
+        {"name": "pdev", "index": "g,y", "domain": "NonNegativeReals",
+         "doc": "the positive part of the revenue deviation in each polygon and year, in thousand rupees"},
+        {"name": "ndev", "index": "g,y", "domain": "NonNegativeReals",
+         "doc": "the negative part of the revenue deviation in each polygon and year, in thousand rupees"},
+        {"name": "utl", "index": "", "domain": "Reals",
+         "doc": "the total utility of income across the basin, in million rupees; this is the quantity being maximized"},
+        {"name": "slkland", "index": "g,m", "domain": "NonNegativeReals",
+         "doc": "the slack (idle) land in each polygon and month, in thousand acres"},
+        {"name": "slkwater", "index": "g,m", "domain": "NonNegativeReals",
+         "doc": "the slack (unused) water in each polygon and month, in thousand acre-feet"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "utl"},
+}
+
+NARRATIVE = (
+    "We plan agricultural production across the polygons of the Indus Basin. For each "
+    "polygon we choose how much land to plant to each crop using each available technology, "
+    "how many head of each kind of livestock to keep, how much water to pump from private "
+    "tubewells, how much tractor and labor service to use, how much to invest in new "
+    "tubewell and tractor capacity, how much public groundwater drainage or injection to "
+    "carry out, and how much of each crop and livestock commodity to sell, consume on the "
+    "farm, or buy in. The goal is to maximize the total utility of farm income across the "
+    "whole basin, where income is penalized for year-to-year revenue risk and for the cost "
+    "of public groundwater management."
+)
+
+# ── per-constraint expected_pyomo (native names, model. prefix) ───────────────
+
+OBJT = (
+    "def objt_rule(model):\n"
+    "    sg = set(model.sg)\n"
+    "    ny = len(model.y)\n"
+    "    tot = 0\n"
+    "    for gg in model.g:\n"
+    "        gexpr = model.yfa[gg] - model.r[gg] * model.kl * sum(model.pdev[gg, yy] + model.ndev[gg, yy] for yy in model.y) / ny\n"
+    "        if gg in sg:\n"
+    "            gexpr -= model.cdrwell * (model.dr[gg] + model.inj[gg]) / model.drcap\n"
+    "        tot += gexpr\n"
+    "    return model.utl == tot / 1000.0\n"
+    "model.objt = Constraint(rule=objt_rule)"
+)
+
+INBL = (
+    "def inbl_rule(model, gg):\n"
+    "    cnf = set(model.cnf); cc = set(model.cc)\n"
+    "    e = sum(model.psc[c] * model.scc[gg, c] for c in model.c if c in cnf)\n"
+    "    e += sum(model.psc[c] * model.ccc[gg, c] - model.pbc[c] * model.pcc[gg, c] for c in model.c if c in cc)\n"
+    "    e += sum(model.psq[q] * model.slc[gg, q] - model.pbq[q] * model.plc[gg, q] + model.psq[q] * model.clc[gg, q] for q in model.q)\n"
+    "    e -= model.acost[gg]\n"
+    "    return model.yfa[gg] == e\n"
+    "model.inbl = Constraint(model.g, rule=inbl_rule)"
+)
+
+NFIN = (
+    "def nfin_rule(model, gg):\n"
+    "    cc = set(model.cc)\n"
+    "    e = model.yfa[gg]\n"
+    "    e -= sum((model.pbc[c] - model.psc[c]) * model.pcc[gg, c] for c in model.c if c in cc)\n"
+    "    e += sum((model.pbq[q] - model.psq[q]) * model.plc[gg, q] for q in model.q)\n"
+    "    return model.yva[gg] == e\n"
+    "model.nfin = Constraint(model.g, rule=nfin_rule)"
+)
+
+DDEV = (
+    "def ddev_rule(model, gg, yy):\n"
+    "    return sum(model.dev[c, yy] * model.xca[gg, c] for c in model.c) == model.pdev[gg, yy] - model.ndev[gg, yy]\n"
+    "model.ddev = Constraint(model.g, model.y, rule=ddev_rule)"
+)
+
+COST = (
+    "def cost_rule(model, gg):\n"
+    "    fsg = set(model.fsg)\n"
+    "    e = sum(model.cwcaptl[k] * model.x[gg, k] for k in model.tech)\n"
+    "    e += sum(model.misc_twopc * model.tw[gg, mm] + model.misc_tropc * model.ts[gg, mm] + model.wage[mm] * model.esl[gg, mm] for mm in model.m)\n"
+    "    e += sum(model.lwcaptl[ll] * model.animal[gg, ll] for ll in model.l)\n"
+    "    e += sum(model.pp * model.ppc[gg, ss] for ss in model.sea)\n"
+    "    if gg in fsg:\n"
+    "        e += model.misc_twinvt * (model.itw[gg] + model.ntw[gg])\n"
+    "    e += model.misc_trinvt * (model.itr[gg] + model.ntr[gg])\n"
+    "    return model.acost[gg] == e\n"
+    "model.cost = Constraint(model.g, rule=cost_rule)"
+)
+
+CMBC = (
+    "def cmbc_rule(model, gg, c):\n"
+    "    cnf = set(model.cnf); cc = set(model.cc)\n"
+    "    if c not in cnf:\n"
+    "        return Constraint.Skip\n"
+    "    tech_by_c = [(t, s, w) for (cx, t, s, w) in model.tech if cx in (c,)]\n"
+    "    e = sum(model.yc[(c, t, s, w)] * model.fc * model.x[gg, c, t, s, w] for (t, s, w) in tech_by_c)\n"
+    "    e -= model.scc[gg, c]\n"
+    "    if c in cc:\n"
+    "        e -= (model.ccc[gg, c] - model.pcc[gg, c])\n"
+    "    return e == 0\n"
+    "model.cmbc = Constraint(model.g, model.c, rule=cmbc_rule)"
+)
+
+CMBQ = (
+    "def cmbq_rule(model, gg, q):\n"
+    "    return sum(model.yq[ll, q] * model.animal[gg, ll] for ll in model.l) - model.slc[gg, q] - model.clc[gg, q] + model.plc[gg, q] == 0.0\n"
+    "model.cmbq = Constraint(model.g, model.q, rule=cmbq_rule)"
+)
+
+CBLC = (
+    "def cblc_rule(model, gg, c):\n"
+    "    cc = set(model.cc)\n"
+    "    if c not in cc:\n"
+    "        return Constraint.Skip\n"
+    "    return model.ccc[gg, c] >= model.alphc[gg, c] + model.betac[gg, c] * model.yva[gg]\n"
+    "model.cblc = Constraint(model.g, model.c, rule=cblc_rule)"
+)
+
+CBLQ = (
+    "def cblq_rule(model, gg, q):\n"
+    "    return model.clc[gg, q] >= model.alphq[gg, q] + model.betaq[gg, q] * model.yva[gg]\n"
+    "model.cblq = Constraint(model.g, model.q, rule=cblq_rule)"
+)
+
+FDSP = (
+    "def fdsp_rule(model, gg, ss):\n"
+    "    lhs = sum(model.livio_tn[ll] * model.animal[gg, ll] for ll in model.l)\n"
+    "    rhs = model.gfd[gg, ss] + sum((model.tdy[(c, t, s, w, ss)] + model.wtd[(c, t, s, w, ss)]) * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    return lhs <= rhs\n"
+    "model.fdsp = Constraint(model.g, model.sea, rule=fdsp_rule)"
+)
+
+SLSK = (
+    "def slsk_rule(model, gg, ss):\n"
+    "    lhs = sum(model.livio_pr[ll] * model.animal[gg, ll] for ll in model.l)\n"
+    "    rhs = model.ppc[gg, ss] + model.gdp[gg, ss] + sum((model.dpy[(c, t, s, w, ss)] + model.wdp[(c, t, s, w, ss)]) * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    return lhs <= rhs\n"
+    "model.slsk = Constraint(model.g, model.sea, rule=slsk_rule)"
+)
+
+SGFD = (
+    "def sgfd_rule(model, gg, ss):\n"
+    "    cf = set(model.cf)\n"
+    "    lhs = model.gr * sum(model.livio_tn[ll] * model.animal[gg, ll] for ll in model.l)\n"
+    "    rhs = model.gfd[gg, ss]\n"
+    "    rhs += sum(model.tdy[(c, t, s, w, ss)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech if c in cf)\n"
+    "    rhs += sum(model.wtd[(c, t, s, w, ss)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    return lhs <= rhs\n"
+    "model.sgfd = Constraint(model.g, model.sea, rule=sgfd_rule)"
+)
+
+BUPW = (
+    "def bupw_rule(model, gg, mm):\n"
+    "    lhs = sum(model.bpr[(c, t, s, w, mm)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    return lhs <= model.bp[mm] * model.animal[gg, 'bullock']\n"
+    "model.bupw = Constraint(model.g, model.m, rule=bupw_rule)"
+)
+
+BUCA = (
+    "def buca_rule(model, gg):\n"
+    "    return model.animal[gg, 'bullock'] <= model.repco * model.animal[gg, 'cattle']\n"
+    "model.buca = Constraint(model.g, rule=buca_rule)"
+)
+
+TRPW = (
+    "def trpw_rule(model, gg, mm):\n"
+    "    lhs = sum(model.tr[(c, t, s, w, mm)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    return lhs - model.ts[gg, mm] == 0.0\n"
+    "model.trpw = Constraint(model.g, model.m, rule=trpw_rule)"
+)
+
+TRCP = (
+    "def trcp_rule(model, gg, mm):\n"
+    "    return model.ts[gg, mm] <= model.areac_trg1[gg] / 1000.0 + model.trcap * model.itr[gg]\n"
+    "model.trcp = Constraint(model.g, model.m, rule=trcp_rule)"
+)
+
+LABR = (
+    "def labr_rule(model, gg, mm):\n"
+    "    lhs = sum(model.labor[(c, t, s, w, mm)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    lhs += sum(model.lbq[ll, mm] * model.animal[gg, ll] for ll in model.l)\n"
+    "    return lhs == model.efl[gg, mm] + model.esl[gg, mm]\n"
+    "model.labr = Constraint(model.g, model.m, rule=labr_rule)"
+)
+
+LANDC = (
+    "def landc_rule(model, gg, mm):\n"
+    "    lhs = sum(model.land[(c, t, s, w, mm)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    return lhs + model.slkland[gg, mm] == model.areac_alg[gg] / 1000.0\n"
+    "model.landc = Constraint(model.g, model.m, rule=landc_rule)"
+)
+
+CACR = (
+    "def cacr_rule(model, gg, c):\n"
+    "    tech_by_c = [(t, s, w) for (cx, t, s, w) in model.tech if cx in (c,)]\n"
+    "    return model.xca[gg, c] == sum(model.x[gg, c, t, s, w] for (t, s, w) in tech_by_c)\n"
+    "model.cacr = Constraint(model.g, model.c, rule=cacr_rule)"
+)
+
+WATR = (
+    "def watr_rule(model, gg, mm):\n"
+    "    fsg = set(model.fsg)\n"
+    "    lhs = sum(model.wn[(gg, c, t, s, w, mm)] * model.x[gg, c, t, s, w] for (c, t, s, w) in model.tech)\n"
+    "    lhs += model.slkwater[gg, mm]\n"
+    "    rhs = model.wr[gg, mm] + model.gtw1[gg, mm] / 1000.0\n"
+    "    if gg in fsg:\n"
+    "        rhs += model.twdeleff[gg, mm] * model.tw[gg, mm]\n"
+    "    return lhs == rhs\n"
+    "model.watr = Constraint(model.g, model.m, rule=watr_rule)"
+)
+
+TBCP = (
+    "def tbcp_rule(model, gg, mm):\n"
+    "    fsg = set(model.fsg)\n"
+    "    if gg not in fsg:\n"
+    "        return Constraint.Skip\n"
+    "    return model.tw[gg, mm] <= model.areac_twg[gg] / 1000.0 + model.twcap * model.itw[gg]\n"
+    "model.tbcp = Constraint(model.g, model.m, rule=tbcp_rule)"
+)
+
+GWBL = (
+    "def gwbl_rule(model, gg):\n"
+    "    fsg = set(model.fsg); sg = set(model.sg); cri = set(model.cri)\n"
+    "    lhs = sum(model.efs[gg, mm] * model.slkland[gg, mm] + model.rivseep[gg, mm] / 1000.0 for mm in model.m)\n"
+    "    if gg in fsg:\n"
+    "        lhs += sum((model.ws_pg[gg, mm] + (1 - model.wl_pg[gg, mm]) * model.ws_fd[gg, mm]) * model.tw[gg, mm] for mm in model.m)\n"
+    "    lhs += sum(model.xca[gg, c] for c in model.c if c in cri) * 1.5\n"
+    "    lhs += model.seepcgw[gg] + model.seepgtw[gg] + model.qggw[gg] + model.seeprain[gg]\n"
+    "    rhs = sum(model.gtw[gg, mm] / 1000.0 for mm in model.m)\n"
+    "    if gg in fsg:\n"
+    "        rhs += sum(model.tw[gg, mm] for mm in model.m)\n"
+    "    rhs += model.etgw[gg]\n"
+    "    if gg in sg:\n"
+    "        rhs += (model.dr[gg] - model.inj[gg])\n"
+    "    rhs += model.delgw[gg]\n"
+    "    return lhs == rhs\n"
+    "model.gwbl = Constraint(model.g, rule=gwbl_rule)"
+)
+
+# ── per-constraint descriptions (Tier-1, plain, silent) + intents ─────────────
+
+records = [
+    {"intent": "define the total utility of income across the basin by summing each polygon's farm income, subtracting a risk penalty proportional to that polygon's average yearly revenue deviation, and for the saline polygons subtracting the cost of public groundwater drainage and injection, then rescaling the basin total to million rupees",
+     "description": (
+        "The total utility of income across the whole basin is built up from each polygon. For every polygon take its farm income, then subtract a risk penalty that scales with the polygon's risk aversion and with the average size of its yearly revenue deviations across the historical years. For the polygons that have saline groundwater, also subtract the cost of the public drainage and injection they carry out, charged at the per-well cost spread over the well capacity. Sum these polygon contributions and rescale the basin total from thousand rupees to million rupees to obtain the total utility."),
+     "expected_pyomo": OBJT},
+    {"intent": "set each polygon's farm income equal to its sales revenue from non-fodder crops, plus the net value of consumed minus purchased farm-consumed crops, plus net livestock trading revenue including consumption, less the farm's total cost",
+     "description": (
+        "Each polygon's farm income is the net money the farm earns. For each polygon, add up the sales revenue from the non-fodder crops, then add the value of the farm-consumed crops it consumes net of what it buys of those crops, then add the net revenue from livestock commodities counting sales and on-farm consumption as income and purchases as a cost, and finally subtract the polygon's total farm cost. Set farm income equal to this total."),
+     "expected_pyomo": INBL},
+    {"intent": "define each polygon's normal farm income as its farm income adjusted to remove the trading gain or loss, by subtracting the buy-minus-sell price gap on purchased farm-consumed crops and adding the buy-minus-sell price gap on purchased livestock commodities",
+     "description": (
+        "Each polygon also has a normal farm income figure used to drive consumption demand. Start from the polygon's farm income, then remove the trading margin embedded in it. For the farm-consumed crops it purchases, subtract the gap between the buying and selling prices on those purchases, and for the livestock commodities it purchases, add the gap between the buying and selling prices on those purchases. Set normal farm income equal to the result."),
+     "expected_pyomo": NFIN},
+    {"intent": "for each polygon and historical year, split the total revenue deviation, obtained by valuing each crop's area at that crop's per-acre deviation for the year, into its positive and negative parts",
+     "description": (
+        "Year-to-year revenue risk is tracked separately for each polygon and each historical year. For a given polygon and year, value every crop's planted area at that crop's per-acre revenue deviation for that year and add these up across crops. This total deviation must equal the positive deviation part minus the negative deviation part for that polygon and year."),
+     "expected_pyomo": DDEV},
+    {"intent": "set each polygon's total farm cost equal to the working capital of all cropping activities, plus tubewell and tractor operating costs and seasonal labor wages over the months, plus livestock cash costs, plus protein concentrate purchases, plus for the fresh-groundwater polygons the cost of installed and newly invested tubewell capacity, plus the cost of installed and newly invested tractor capacity",
+     "description": (
+        "Each polygon's total farm cost gathers all the cash it must lay out. For each polygon, add the working capital tied up across all the cropping activities, then the monthly operating costs of running the private tubewells and tractors together with the wages paid to hired seasonal labor, then the cash cost of keeping the livestock, then the cost of the protein concentrate it purchases each season. For the polygons with fresh groundwater, also add the cost of their tubewell capacity counting both the wells already installed and any new investment. For every polygon add the cost of tractor capacity counting both the tractors already installed and any new investment. Set total farm cost equal to this sum."),
+     "expected_pyomo": COST},
+    {"intent": "for each polygon and each non-fodder crop, balance the crop's harvested output, obtained by converting the activity yields times planted area into pounds, against its sales and, for the farm-consumed crops, against the net of on-farm consumption and purchases",
+     "description": (
+        "Each non-fodder crop's harvest in a polygon must be accounted for. For a given polygon and non-fodder crop, take the crop's total production, found by valuing each of that crop's activities at its yield times the area planted and converting from maunds to pounds. From this production subtract the amount sold. For the crops that are also consumed on the farm, additionally subtract the on-farm consumption net of purchases. The result must balance to zero. This applies only to the non-fodder crops."),
+     "expected_pyomo": CMBC},
+    {"intent": "for each polygon and livestock commodity, balance production from the livestock herd against sales, on-farm consumption, and purchases of that commodity",
+     "description": (
+        "Each livestock commodity in a polygon must balance. For a given polygon and commodity, take the total produced by the livestock herd, valuing each livestock type at its yield of that commodity times the number of head kept. This production, less what is sold, less what is consumed on the farm, plus what is purchased, must come to zero."),
+     "expected_pyomo": CMBQ},
+    {"intent": "for each polygon and each farm-consumed crop, require on-farm consumption of that crop to be at least the autonomous consumption plus the income-induced consumption driven by normal farm income",
+     "description": (
+        "Households consume a minimum amount of each crop they keep on the farm. For each polygon and each farm-consumed crop, the on-farm consumption of that crop must be at least its autonomous consumption plus the additional amount induced by the polygon's normal farm income. This applies only to the farm-consumed crops."),
+     "expected_pyomo": CBLC},
+    {"intent": "for each polygon and livestock commodity, require on-farm consumption of that commodity to be at least the autonomous consumption plus the income-induced consumption driven by normal farm income",
+     "description": (
+        "Households also consume a minimum amount of each livestock commodity. For each polygon and each livestock commodity, the on-farm consumption of that commodity must be at least its autonomous consumption plus the additional amount induced by the polygon's normal farm income."),
+     "expected_pyomo": CBLQ},
+    {"intent": "for each polygon and season, require the total energy needed by the livestock herd not to exceed the energy available from grazing plus the energy fodder produced by the cropping activities including weeds",
+     "description": (
+        "The livestock herd's energy needs must be met each season. For each polygon and season, the total energy requirement of the herd, summed over the livestock types, must not exceed the energy available from grazing plus the energy fodder produced across all the cropping activities, counting both the crop fodder and the fodder from weeds."),
+     "expected_pyomo": FDSP},
+    {"intent": "for each polygon and season, require the total protein needed by the livestock herd not to exceed purchased protein concentrate plus grazing protein plus the protein produced by the cropping activities including weeds",
+     "description": (
+        "The livestock herd's protein needs must also be met each season. For each polygon and season, the total protein requirement of the herd, summed over the livestock types, must not exceed the protein concentrate purchased plus the protein available from grazing plus the protein produced across all the cropping activities, counting both the crop protein and the protein from weeds."),
+     "expected_pyomo": SLSK},
+    {"intent": "for each polygon and season, require a fixed minimum share of the herd's total energy need to be covered specifically by green fodder, namely the energy from the fodder crops plus the energy from weeds",
+     "description": (
+        "A fixed share of the livestock herd's energy must come from green fodder each season. For each polygon and season, take the required green-fodder proportion of the herd's total energy requirement. This required amount must not exceed the green fodder available from grazing plus the energy supplied specifically by the fodder crops plus the energy supplied by weeds across all activities."),
+     "expected_pyomo": SGFD},
+    {"intent": "for each polygon and month, require the bullock draft power demanded by all cropping activities not to exceed the draft power supplied by the polygon's bullocks that month",
+     "description": (
+        "Bullock draft power is limited each month. For each polygon and month, the bullock power demanded across all the cropping activities must not exceed the draft power that the polygon's bullocks can supply that month, which is the per-pair monthly capacity times the number of bullocks kept."),
+     "expected_pyomo": BUPW},
+    {"intent": "for each polygon, cap the number of bullocks at a reproductive multiple of the number of cattle kept",
+     "description": (
+        "The bullock herd is limited by the breeding herd. For each polygon, the number of bullocks kept must not exceed the reproductive coefficient times the number of cattle kept."),
+     "expected_pyomo": BUCA},
+    {"intent": "for each polygon and month, set the tractor services used equal to the tractor demand of all cropping activities that month",
+     "description": (
+        "Tractor service use is tied to cropping demand each month. For each polygon and month, the tractor services used must equal the total tractor requirement of all the cropping activities that month."),
+     "expected_pyomo": TRPW},
+    {"intent": "for each polygon and month, require the tractor services used not to exceed the polygon's installed tractor capacity plus the capacity from new tractor investment",
+     "description": (
+        "Tractor service is limited by available tractor capacity each month. For each polygon and month, the tractor services used must not exceed the polygon's installed tractor capacity plus the additional capacity provided by new tractor investment."),
+     "expected_pyomo": TRCP},
+    {"intent": "for each polygon and month, require the total labor demanded by the cropping activities and the livestock herd to equal the family labor plus the hired seasonal labor employed that month",
+     "description": (
+        "Labor supply must match labor demand each month. For each polygon and month, the total labor demanded by all the cropping activities plus the labor needed to maintain the livestock herd must equal the family labor employed plus the hired seasonal labor employed that month."),
+     "expected_pyomo": LABR},
+    {"intent": "for each polygon and month, require the land used by the cropping activities plus idle slack land to equal the polygon's total irrigated land available",
+     "description": (
+        "All of a polygon's land is allocated each month. For each polygon and month, the land occupied by all the cropping activities plus the slack idle land must equal the total irrigated land available in the polygon."),
+     "expected_pyomo": LANDC},
+    {"intent": "for each polygon and crop, define the crop's total planted area as the sum of the planted areas of that crop's production activities",
+     "description": (
+        "Each crop's total area aggregates its activities. For each polygon and crop, the total area planted to that crop must equal the sum of the areas planted to all of that crop's production activities."),
+     "expected_pyomo": CACR},
+    {"intent": "for each polygon and month, require the crop water demand of all activities plus slack water to equal canal water plus routed public tubewell water plus, for the fresh-groundwater polygons, the privately pumped tubewell water net of delivery losses",
+     "description": (
+        "Water supply must match water demand each month. For each polygon and month, the crop water requirement of all the cropping activities plus the unused slack water must equal the canal water netted to the root zone plus the public tubewell water routed to the root zone. For the polygons with fresh groundwater, also add the private tubewell water they pump, after applying its delivery efficiency to the root zone."),
+     "expected_pyomo": WATR},
+    {"intent": "for each fresh-groundwater polygon and month, require the private tubewell water pumped not to exceed the installed tubewell capacity plus the capacity from new tubewell investment",
+     "description": (
+        "Private tubewell pumping is limited by tubewell capacity each month, and applies only to the polygons that have fresh groundwater. For each such polygon and month, the private tubewell water pumped must not exceed the installed tubewell capacity plus the additional capacity provided by new tubewell investment."),
+     "expected_pyomo": TBCP},
+    {"intent": "for each polygon, balance annual recharge to the aquifer, from idle-land and river seepage, tubewell return flows in the fresh-groundwater polygons, rice percolation, and assorted seepage inflows, against annual discharge, from public and private pumping, evapotranspiration, net public drainage in the saline polygons, and the targeted change in the groundwater table",
+     "description": (
+        "The aquifer under each polygon must balance over the year. On the recharge side, add the seepage from idle land and from the river across the months, and for the fresh-groundwater polygons the return flow from private tubewell pumping, plus the deep percolation from the rice crops, plus the assorted seepage inflows from canals, public tubewells, neighbouring polygons, and rainfall. On the discharge side, add the public tubewell pumping across the months, and for the fresh-groundwater polygons the private tubewell pumping, plus evapotranspiration drawn from groundwater, and for the saline polygons the net public drainage less injection, plus the targeted annual change in the groundwater table. Require total recharge to equal total discharge."),
+     "expected_pyomo": GWBL},
+]
+
+# ── whole-set ordinal narrative ───────────────────────────────────────────────
+intents = [r["intent"] for r in records]
+ordinals = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh",
+            "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth", "Thirteenth",
+            "Fourteenth", "Fifteenth", "Sixteenth", "Seventeenth", "Eighteenth",
+            "Nineteenth", "Twentieth", "Twenty-first"]
+parts = ["To build the complete model, enforce the following relationships in order."]
+for i, intent in enumerate(intents):
+    word = ordinals[i] if i < len(ordinals) else f"Then ({i+1})"
+    if i == len(intents) - 1:
+        word = "Finally"
+    parts.append(f"{word}, {intent}.")
+WHOLESET_DESC = " ".join(parts)
+WHOLESET_PYOMO = "\n".join(r["expected_pyomo"] for r in records)
+
+records.append({"description": WHOLESET_DESC, "expected_pyomo": WHOLESET_PYOMO})
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "indus_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

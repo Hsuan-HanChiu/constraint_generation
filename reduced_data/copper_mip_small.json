@@ -1,0 +1,423 @@
+{
+  "sets": {
+    "i": [
+      "western-us",
+      "canada",
+      "peru"
+    ],
+    "j": [
+      "canada",
+      "mex+cam"
+    ],
+    "c": [
+      "ore",
+      "scrap-s",
+      "blister",
+      "scrap-r",
+      "refined-cu",
+      "scrap-sps",
+      "sheets+p+s",
+      "wire",
+      "scrap-t",
+      "tubes+rods"
+    ],
+    "cm": [
+      "ore",
+      "scrap-s",
+      "blister",
+      "scrap-r",
+      "refined-cu"
+    ],
+    "cs": [
+      "refined-cu",
+      "scrap-sps",
+      "sheets+p+s",
+      "wire",
+      "scrap-t",
+      "tubes+rods"
+    ],
+    "cf": [
+      "refined-cu",
+      "sheets+p+s",
+      "wire",
+      "tubes+rods"
+    ],
+    "cfr": [
+      "refined-cu"
+    ],
+    "cfs": [
+      "sheets+p+s",
+      "wire",
+      "tubes+rods"
+    ],
+    "cim": [
+      "ore",
+      "blister"
+    ],
+    "cil": [
+      "scrap-s",
+      "scrap-r",
+      "scrap-sps",
+      "scrap-t"
+    ],
+    "p": [
+      "high-grade",
+      "med-grade",
+      "smelting-o",
+      "smelting-s",
+      "refining-b",
+      "refining-s",
+      "wire-ref-c",
+      "tube-ref-c",
+      "tube-scrap",
+      "s-ref-c",
+      "s-scrap"
+    ],
+    "pm": [
+      "high-grade",
+      "med-grade",
+      "smelting-o",
+      "smelting-s",
+      "refining-b",
+      "refining-s"
+    ],
+    "pmm": [
+      "high-grade",
+      "med-grade"
+    ],
+    "pmh": [
+      "high-grade",
+      "med-grade"
+    ],
+    "ps": [
+      "smelting-o",
+      "smelting-s"
+    ],
+    "pr": [
+      "refining-b",
+      "refining-s"
+    ],
+    "psm": [
+      "wire-ref-c",
+      "tube-ref-c",
+      "tube-scrap",
+      "s-ref-c",
+      "s-scrap"
+    ],
+    "pw": [
+      "wire-ref-c"
+    ],
+    "ptr": [
+      "tube-ref-c",
+      "tube-scrap"
+    ],
+    "psh": [
+      "s-ref-c",
+      "s-scrap"
+    ],
+    "m": [
+      "open-pit",
+      "smelter",
+      "refinery",
+      "wire",
+      "tubes+rods",
+      "sheets+p+s"
+    ],
+    "mm": [
+      "open-pit",
+      "smelter",
+      "refinery"
+    ],
+    "ms": [
+      "wire",
+      "tubes+rods",
+      "sheets+p+s"
+    ]
+  },
+  "scalar_params": {
+    "sigma": 0.117459624772546,
+    "rph": 20.0
+  },
+  "indexed_params": {
+    "a": {
+      "ore|high-grade": 1.0,
+      "ore|med-grade": 1.0,
+      "ore|smelting-o": -1.03,
+      "scrap-s|smelting-s": -1.03,
+      "blister|smelting-o": 1.0,
+      "blister|smelting-s": 1.0,
+      "blister|refining-b": -1.03,
+      "scrap-r|refining-s": -1.03,
+      "refined-cu|refining-b": 1.0,
+      "refined-cu|refining-s": 1.0,
+      "refined-cu|wire-ref-c": -1.007,
+      "refined-cu|tube-ref-c": -0.718,
+      "refined-cu|s-ref-c": -0.772,
+      "scrap-sps|s-scrap": -0.772,
+      "sheets+p+s|s-ref-c": 1.0,
+      "sheets+p+s|s-scrap": 1.0,
+      "wire|wire-ref-c": 1.0,
+      "scrap-t|tube-scrap": -0.718,
+      "tubes+rods|tube-ref-c": 1.0,
+      "tubes+rods|tube-scrap": 1.0
+    },
+    "b": {
+      "sheets+p+s|s-ref-c": 1.0,
+      "sheets+p+s|s-scrap": 1.0,
+      "wire|wire-ref-c": 1.0,
+      "tubes+rods|tube-ref-c": 1.0,
+      "tubes+rods|tube-scrap": 1.0,
+      "open-pit|high-grade": 1.0,
+      "open-pit|med-grade": 1.6,
+      "smelter|smelting-o": 1.0,
+      "smelter|smelting-s": 0.32,
+      "refinery|refining-b": 1.0,
+      "refinery|refining-s": 1.0
+    },
+    "mapic": {
+      "peru|ore": 1.0,
+      "peru|blister": 1.0,
+      "peru|refined-cu": 1.0,
+      "western-us|ore": 1.0,
+      "western-us|scrap-s": 1.0,
+      "western-us|blister": 1.0,
+      "western-us|scrap-r": 1.0,
+      "western-us|refined-cu": 1.0,
+      "canada|ore": 1.0,
+      "canada|blister": 1.0,
+      "canada|scrap-r": 1.0,
+      "canada|refined-cu": 1.0
+    },
+    "mapip": {
+      "peru|high-grade": 1.0,
+      "peru|med-grade": 1.0,
+      "peru|smelting-o": 1.0,
+      "peru|refining-b": 1.0,
+      "western-us|high-grade": 1.0,
+      "western-us|med-grade": 1.0,
+      "western-us|smelting-o": 1.0,
+      "western-us|smelting-s": 1.0,
+      "western-us|refining-b": 1.0,
+      "western-us|refining-s": 1.0,
+      "canada|high-grade": 1.0,
+      "canada|med-grade": 1.0,
+      "canada|smelting-o": 1.0,
+      "canada|refining-b": 1.0,
+      "canada|refining-s": 1.0
+    },
+    "capm": {
+      "peru|open-pit": 590.0,
+      "peru|smelter": 350.0,
+      "peru|refinery": 230.0,
+      "western-us|open-pit": 1675.0,
+      "western-us|smelter": 1510.0,
+      "western-us|refinery": 480.0,
+      "canada|open-pit": 1254.0,
+      "canada|smelter": 610.0,
+      "canada|refinery": 610.0
+    },
+    "hhatm": {
+      "peru|open-pit": 4000.0,
+      "peru|smelter": 6000.0,
+      "peru|refinery": 6000.0,
+      "western-us|open-pit": 3000.0,
+      "western-us|smelter": 6000.0,
+      "western-us|refinery": 6000.0,
+      "canada|open-pit": 3000.0,
+      "canada|smelter": 6000.0,
+      "canada|refinery": 6000.0
+    },
+    "hbarm": {
+      "peru|open-pit": 100.0,
+      "peru|smelter": 150.0,
+      "peru|refinery": 150.0,
+      "western-us|open-pit": 75.0,
+      "western-us|smelter": 150.0,
+      "western-us|refinery": 150.0,
+      "canada|open-pit": 75.0,
+      "canada|smelter": 150.0,
+      "canada|refinery": 150.0
+    },
+    "omegam": {
+      "peru|open-pit": 0.4,
+      "peru|smelter": 0.333333333333333,
+      "peru|refinery": 0.0334666666666667,
+      "western-us|open-pit": 0.533333333333333,
+      "western-us|smelter": 0.266666666666667,
+      "western-us|refinery": 0.0268,
+      "canada|open-pit": 0.533333333333333,
+      "canada|smelter": 0.266666666666667,
+      "canada|refinery": 0.0268
+    },
+    "num": {
+      "peru|open-pit": 6.0,
+      "peru|smelter": 2.49933333333333,
+      "peru|refinery": 0.751466666666667,
+      "western-us|open-pit": 5.59333333333333,
+      "western-us|smelter": 2.09866666666667,
+      "western-us|refinery": 0.6008,
+      "canada|open-pit": 5.59333333333333,
+      "canada|smelter": 2.09866666666667,
+      "canada|refinery": 0.6008
+    },
+    "opm": {
+      "peru|high-grade": 840.0,
+      "peru|med-grade": 1344.0,
+      "peru|smelting-o": 250.0,
+      "peru|refining-b": 150.0,
+      "western-us|high-grade": 771.0,
+      "western-us|med-grade": 1233.6,
+      "western-us|smelting-o": 300.0,
+      "western-us|smelting-s": 491.52,
+      "western-us|refining-b": 170.0,
+      "western-us|refining-s": 1921.0,
+      "canada|high-grade": 914.0,
+      "canada|med-grade": 1462.4,
+      "canada|smelting-o": 300.0,
+      "canada|refining-b": 170.0,
+      "canada|refining-s": 1921.0
+    },
+    "reserves": {
+      "peru|high-grade": 1.67,
+      "peru|med-grade": 18.8,
+      "western-us|high-grade": 19.38,
+      "western-us|med-grade": 25.87,
+      "canada|high-grade": 8.33,
+      "canada|med-grade": 9.6
+    },
+    "mapjc": {
+      "mex+cam|refined-cu": 1.0,
+      "mex+cam|sheets+p+s": 1.0,
+      "mex+cam|wire": 1.0,
+      "mex+cam|tubes+rods": 1.0,
+      "canada|refined-cu": 1.0,
+      "canada|scrap-sps": 1.0,
+      "canada|sheets+p+s": 1.0,
+      "canada|wire": 1.0,
+      "canada|scrap-t": 1.0,
+      "canada|tubes+rods": 1.0
+    },
+    "mapjp": {
+      "mex+cam|wire-ref-c": 1.0,
+      "mex+cam|tube-ref-c": 1.0,
+      "mex+cam|s-ref-c": 1.0,
+      "canada|wire-ref-c": 1.0,
+      "canada|tube-ref-c": 1.0,
+      "canada|tube-scrap": 1.0,
+      "canada|s-ref-c": 1.0,
+      "canada|s-scrap": 1.0
+    },
+    "demand": {
+      "mex+cam|refined-cu": 8.72243654339585,
+      "mex+cam|sheets+p+s": 65.4182740754689,
+      "mex+cam|wire": 174.448730867917,
+      "mex+cam|tubes+rods": 87.2243654339585,
+      "canada|refined-cu": 7.61231201156181,
+      "canada|sheets+p+s": 76.1231201156181,
+      "canada|wire": 190.307800289045,
+      "canada|tubes+rods": 91.3477441387417
+    },
+    "caps": {
+      "mex+cam|sheets+p+s": 15.0,
+      "mex+cam|wire": 105.0,
+      "mex+cam|tubes+rods": 40.0,
+      "canada|sheets+p+s": 60.0,
+      "canada|wire": 200.0,
+      "canada|tubes+rods": 50.0
+    },
+    "hhats": {
+      "mex+cam|sheets+p+s": 1200.0,
+      "mex+cam|wire": 800.0,
+      "mex+cam|tubes+rods": 1200.0,
+      "canada|sheets+p+s": 1200.0,
+      "canada|wire": 800.0,
+      "canada|tubes+rods": 1200.0
+    },
+    "hbars": {
+      "mex+cam|sheets+p+s": 30.0,
+      "mex+cam|wire": 20.0,
+      "mex+cam|tubes+rods": 30.0,
+      "canada|sheets+p+s": 30.0,
+      "canada|wire": 20.0,
+      "canada|tubes+rods": 30.0
+    },
+    "omegas": {
+      "mex+cam|sheets+p+s": 0.306666666666667,
+      "mex+cam|wire": 0.18,
+      "mex+cam|tubes+rods": 0.2,
+      "canada|sheets+p+s": 0.288,
+      "canada|wire": 0.169,
+      "canada|tubes+rods": 0.188
+    },
+    "nus": {
+      "mex+cam|sheets+p+s": 1.74666666666667,
+      "mex+cam|wire": 2.02,
+      "mex+cam|tubes+rods": 1.2,
+      "canada|sheets+p+s": 1.628,
+      "canada|wire": 1.889,
+      "canada|tubes+rods": 1.128
+    },
+    "ops": {
+      "mex+cam|wire-ref-c": 1.33,
+      "mex+cam|tube-ref-c": 1.507,
+      "mex+cam|tube-scrap": 2.7994,
+      "mex+cam|s-ref-c": 2.09,
+      "mex+cam|s-scrap": 3.4796,
+      "canada|wire-ref-c": 1.87,
+      "canada|tube-ref-c": 1.687,
+      "canada|tube-scrap": 2.9794,
+      "canada|s-ref-c": 2.36,
+      "canada|s-scrap": 3.7496
+    },
+    "mur": {
+      "peru|western-us|ore": 35.277,
+      "peru|western-us|blister": 50.11,
+      "peru|canada|ore": 26.576,
+      "peru|canada|blister": 37.68,
+      "western-us|peru|ore": 35.277,
+      "western-us|peru|blister": 50.11,
+      "western-us|canada|ore": 44.209,
+      "western-us|canada|blister": 62.87,
+      "canada|peru|ore": 26.576,
+      "canada|peru|blister": 37.68,
+      "canada|western-us|ore": 44.209,
+      "canada|western-us|blister": 62.87
+    },
+    "mufs": {
+      "mex+cam|canada": 48.46,
+      "canada|mex+cam": 48.46
+    },
+    "mui": {
+      "peru|mex+cam": 32.13,
+      "peru|canada": 37.68,
+      "western-us|mex+cam": 57.32,
+      "western-us|canada": 62.87,
+      "canada|mex+cam": 24.23
+    },
+    "tariffr": {
+      "peru|mex+cam": 300.0,
+      "western-us|mex+cam": 300.0,
+      "canada|mex+cam": 300.0
+    },
+    "tariffs": {
+      "mex+cam|canada": 132.0,
+      "canada|mex+cam": 330.0
+    },
+    "resc": {
+      "peru|high-grade": 83.5,
+      "peru|med-grade": 940.0,
+      "western-us|high-grade": 969.0,
+      "western-us|med-grade": 1293.5,
+      "canada|high-grade": 416.5,
+      "canada|med-grade": 480.0
+    },
+    "scrapi": {
+      "western-us|scrap-s": 105.173910865604,
+      "western-us|scrap-r": 424.20144049127,
+      "canada|scrap-r": 87.6449257213368
+    },
+    "scrapj_scrap": {
+      "canada": 17.9080997711926
+    }
+  }
+}

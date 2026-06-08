@@ -1,0 +1,235 @@
+#!/usr/bin/env python
+"""Builder for the food_mip (food manufacturing / oil blending) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "food_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "m", "members": ["m1", "m2", "m3", "m4", "m5", "m6"],
+         "doc": "the planning periods given as months in chronological order; the first member is the opening month and each later member follows the one before it, and the sequence is treated as a cycle so the month before the first month is the last month"},
+        {"name": "p", "members": ["v1", "v2", "o1", "o2", "o3"],
+         "doc": "the raw oils available for refining and blending"},
+        {"name": "pv", "members": ["v1", "v2"],
+         "doc": "the subset of raw oils that are vegetable oils"},
+        {"name": "pnv", "members": ["o1", "o2", "o3"],
+         "doc": "the subset of raw oils that are non-vegetable oils; the member o3 is the non-vegetable oil that vegetable oils depend on"},
+    ],
+    "params": [
+        {"name": "maxstore", "index": "", "kind": "capacity",
+         "doc": "the maximum amount of any single raw oil that can be held in storage at the end of a month, in tons"},
+        {"name": "maxusepv", "index": "", "kind": "capacity",
+         "doc": "the maximum total amount of vegetable oils that can be refined in a single month, in tons"},
+        {"name": "maxusepnv", "index": "", "kind": "capacity",
+         "doc": "the maximum total amount of non-vegetable oils that can be refined in a single month, in tons"},
+        {"name": "minusep", "index": "", "kind": "threshold",
+         "doc": "the minimum amount of a raw oil that must be used in a month if that oil is used at all in that month, in tons"},
+        {"name": "maxnusep", "index": "", "kind": "count",
+         "doc": "the maximum number of distinct raw oils that may be used together in a single month's blend"},
+        {"name": "sp", "index": "", "kind": "price",
+         "doc": "the sales price of the final refined and blended oil, in dollars per ton"},
+        {"name": "sc", "index": "", "kind": "cost",
+         "doc": "the storage cost charged for each ton of raw oil held in storage for one month, in dollars per ton per month"},
+        {"name": "hmin", "index": "", "kind": "quality",
+         "doc": "the minimum allowed hardness of the final refined product, in hardness units"},
+        {"name": "hmax", "index": "", "kind": "quality",
+         "doc": "the maximum allowed hardness of the final refined product, in hardness units"},
+        {"name": "stock", "index": "p", "kind": "stock",
+         "doc": "the required storage level of each raw oil at the end of the final month, in tons; this also represents the starting stock held before the horizon"},
+        {"name": "h", "index": "p", "kind": "quality",
+         "doc": "the hardness of each raw oil, in hardness units; hardness blends linearly by the amount of each oil used"},
+        {"name": "cost", "index": "m,p", "kind": "cost",
+         "doc": "the purchase cost of each raw oil in each month, in dollars per ton"},
+    ],
+    "vars": [
+        {"name": "produce", "index": "m", "domain": "NonNegativeReals",
+         "doc": "the amount of final refined and blended oil produced in each month, in tons"},
+        {"name": "use", "index": "m,p", "domain": "NonNegativeReals",
+         "doc": "the amount of each raw oil refined into the blend in each month, in tons"},
+        {"name": "induse", "index": "m,p", "domain": "Binary",
+         "doc": "indicator that equals 1 if a raw oil is used in a month's blend and 0 otherwise"},
+        {"name": "buy", "index": "m,p", "domain": "NonNegativeReals",
+         "doc": "the amount of each raw oil purchased in each month, in tons"},
+        {"name": "store", "index": "m,p", "domain": "NonNegativeReals",
+         "doc": "the amount of each raw oil held in storage at the end of each month, in tons; bounded above by the storage capacity, and fixed in the final month to the required end stock"},
+        {"name": "profit", "index": "", "domain": "Reals",
+         "doc": "the total net profit over the whole horizon, in dollars"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "profit"},
+}
+
+NARRATIVE = (
+    "We run a food manufacturing operation that refines and blends raw oils into a final "
+    "product over a sequence of months. The raw oils come in two kinds, vegetable and "
+    "non-vegetable. Each month we decide how much of each raw oil to buy, how much to refine "
+    "into the blend, how much to keep in storage, and which oils to include in that month's "
+    "blend. Buying raw oils costs money at prices that vary by oil and by month, holding oil "
+    "in storage incurs a per-ton monthly charge, and the finished product sells at a fixed "
+    "price per ton. The objective is to maximize the total net profit over the whole horizon."
+)
+
+DEFOBJ = (
+    "def defobj_rule(model):\n"
+    "    return model.profit == (\n"
+    "        sum(model.sp * model.produce[mm] for mm in model.m)\n"
+    "        - sum(model.cost[mm, pp] * model.buy[mm, pp] for mm in model.m for pp in model.p)\n"
+    "        - sum(model.sc * model.store[mm, pp] for mm in model.m for pp in model.p)\n"
+    "    )\n"
+    "model.defobj = Constraint(rule=defobj_rule)"
+)
+DEFUSEPV = (
+    "def defusepv_rule(model, mm):\n"
+    "    return sum(model.use[mm, pp] for pp in model.pv) <= model.maxusepv\n"
+    "model.defusepv = Constraint(model.m, rule=defusepv_rule)"
+)
+DEFUSEPNV = (
+    "def defusepnv_rule(model, mm):\n"
+    "    return sum(model.use[mm, pp] for pp in model.pnv) <= model.maxusepnv\n"
+    "model.defusepnv = Constraint(model.m, rule=defusepnv_rule)"
+)
+DEFPRODUCE = (
+    "def defproduce_rule(model, mm):\n"
+    "    return model.produce[mm] == sum(model.use[mm, pp] for pp in model.p)\n"
+    "model.defproduce = Constraint(model.m, rule=defproduce_rule)"
+)
+DEFHMIN = (
+    "def defhmin_rule(model, mm):\n"
+    "    return sum(model.h[pp] * model.use[mm, pp] for pp in model.p) >= model.hmin * model.produce[mm]\n"
+    "model.defhmin = Constraint(model.m, rule=defhmin_rule)"
+)
+DEFHMAX = (
+    "def defhmax_rule(model, mm):\n"
+    "    return sum(model.h[pp] * model.use[mm, pp] for pp in model.p) <= model.hmax * model.produce[mm]\n"
+    "model.defhmax = Constraint(model.m, rule=defhmax_rule)"
+)
+STOCKBAL = (
+    "def stockbal_rule(model, mm, pp):\n"
+    "    m_list = list(model.m)\n"
+    "    idx = m_list.index(mm)\n"
+    "    prev = m_list[idx - 1]\n"
+    "    return model.store[prev, pp] + model.buy[mm, pp] == model.use[mm, pp] + model.store[mm, pp]\n"
+    "model.stockbal = Constraint(model.m, model.p, rule=stockbal_rule)"
+)
+MINUSE = (
+    "def minuse_rule(model, mm, pp):\n"
+    "    return model.use[mm, pp] >= model.minusep * model.induse[mm, pp]\n"
+    "model.minuse = Constraint(model.m, model.p, rule=minuse_rule)"
+)
+MAXUSE = (
+    "def maxuse_rule(model, mm, pp):\n"
+    "    cap = (model.maxusepv if pp in model.pv else model.maxusepnv)\n"
+    "    return model.use[mm, pp] <= cap * model.induse[mm, pp]\n"
+    "model.maxuse = Constraint(model.m, model.p, rule=maxuse_rule)"
+)
+MAXNUSE = (
+    "def maxnuse_rule(model, mm):\n"
+    "    return sum(model.induse[mm, pp] for pp in model.p) <= model.maxnusep\n"
+    "model.maxnuse = Constraint(model.m, rule=maxnuse_rule)"
+)
+DEFLOGIC1 = (
+    "def deflogic1_rule(model, mm):\n"
+    "    return sum(model.induse[mm, pp] for pp in model.pv) <= model.induse[mm, 'o3'] * len(model.pv)\n"
+    "model.deflogic1 = Constraint(model.m, rule=deflogic1_rule)"
+)
+
+WHOLESET = "\n".join([DEFOBJ, DEFUSEPV, DEFUSEPNV, DEFPRODUCE, DEFHMIN, DEFHMAX,
+                      STOCKBAL, MINUSE, MAXUSE, MAXNUSE, DEFLOGIC1])
+
+records = [
+    {"description": (
+        "Total profit over the whole horizon must equal the revenue from selling all the "
+        "finished product, minus the cost of buying raw oils, minus the cost of storing raw "
+        "oils. Value the product made each month at its sales price, subtract the cost of every "
+        "raw oil bought in each month at that month's purchase price, and subtract the storage "
+        "charge applied to every raw oil held in storage at the end of each month. Set the "
+        "total profit equal to this net amount."),
+     "expected_pyomo": DEFOBJ},
+    {"description": (
+        "In each month the amount of vegetable oils refined into the blend is limited. For each "
+        "month, the total vegetable oil used cannot exceed the monthly limit on vegetable oil "
+        "refining."),
+     "expected_pyomo": DEFUSEPV},
+    {"description": (
+        "In each month the amount of non-vegetable oils refined into the blend is limited. For "
+        "each month, the total non-vegetable oil used cannot exceed the monthly limit on "
+        "non-vegetable oil refining."),
+     "expected_pyomo": DEFUSEPNV},
+    {"description": (
+        "The amount of finished product made each month is exactly the total of all raw oils "
+        "refined that month. For each month, set the production equal to the sum of every raw "
+        "oil used."),
+     "expected_pyomo": DEFPRODUCE},
+    {"description": (
+        "The finished product each month must be at least as hard as the minimum allowed "
+        "hardness. For each month, the hardness contributed by the raw oils used, where each "
+        "oil contributes its own hardness scaled by how much of it is used, must be at least "
+        "the minimum hardness times the amount produced that month."),
+     "expected_pyomo": DEFHMIN},
+    {"description": (
+        "The finished product each month must be no harder than the maximum allowed hardness. "
+        "For each month, the hardness contributed by the raw oils used, where each oil "
+        "contributes its own hardness scaled by how much of it is used, cannot exceed the "
+        "maximum hardness times the amount produced that month."),
+     "expected_pyomo": DEFHMAX},
+    {"description": (
+        "Stored quantities of each raw oil must carry over consistently from month to month. "
+        "For each raw oil and each month, the amount carried in from the end of the previous "
+        "month plus the amount bought that month must equal the amount used that month plus the "
+        "amount left in storage at the end of that month. The horizon wraps around, so the "
+        "stock carried into the first month is the stock left at the end of the last month."),
+     "expected_pyomo": STOCKBAL},
+    {"description": (
+        "If a raw oil is included in a month's blend, then at least a minimum amount of it must "
+        "be used. For each raw oil and each month, the amount used must be at least the minimum "
+        "usage whenever that oil is marked as used, and may be zero when it is not used."),
+     "expected_pyomo": MINUSE},
+    {"description": (
+        "A raw oil can only be used in a month if it is marked as used that month, and when it "
+        "is used its amount is capped by the relevant refining limit. For each raw oil and each "
+        "month, the amount used must be zero unless the oil is marked as used, and when used it "
+        "cannot exceed the monthly refining limit for that kind of oil, which is the vegetable "
+        "limit for vegetable oils and the non-vegetable limit for non-vegetable oils."),
+     "expected_pyomo": MAXUSE},
+    {"description": (
+        "The blend in any month may draw on only a limited number of distinct raw oils. For "
+        "each month, the count of raw oils marked as used cannot exceed the allowed maximum "
+        "number of oils in a blend."),
+     "expected_pyomo": MAXNUSE},
+    {"description": (
+        "Whenever any vegetable oil is used in a month, a particular non-vegetable oil that the "
+        "vegetable oils depend on must also be used that month. For each month, the number of "
+        "vegetable oils marked as used cannot exceed that dependency oil's used indicator scaled "
+        "by the total number of vegetable oils, so if the dependency oil is not used then no "
+        "vegetable oil may be used."),
+     "expected_pyomo": DEFLOGIC1},
+    {"description": (
+        "To build the complete model, enforce the following relationships in order. First, set "
+        "total profit equal to product sales revenue minus raw oil purchase cost minus raw oil "
+        "storage cost across the whole horizon. Second, cap the total vegetable oil refined each "
+        "month at the vegetable refining limit. Third, cap the total non-vegetable oil refined "
+        "each month at the non-vegetable refining limit. Fourth, set each month's production "
+        "equal to the total of all raw oils refined that month. Fifth, require the blended "
+        "hardness each month to be at least the minimum hardness times what is produced. Sixth, "
+        "require the blended hardness each month to be no more than the maximum hardness times "
+        "what is produced. Seventh, balance the stored quantity of each raw oil across months, "
+        "where prior storage plus purchases equals usage plus new storage, with the horizon "
+        "wrapping so the first month draws on the last month's ending stock. Eighth, require "
+        "that any raw oil included in a month's blend is used in at least the minimum amount. "
+        "Ninth, force a raw oil's usage to zero unless it is marked as used, and otherwise cap "
+        "it at the refining limit for its kind. Tenth, limit the number of distinct raw oils in "
+        "each month's blend to the allowed maximum. Finally, require that whenever any "
+        "vegetable oil is used in a month, the non-vegetable oil it depends on is used as well."),
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "food_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

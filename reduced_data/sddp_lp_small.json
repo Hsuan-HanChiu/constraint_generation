@@ -1,0 +1,35 @@
+{
+  "sets": {
+    "w": ["w1", "w2", "w3"],
+    "t": ["t1", "t2", "t3", "t4", "t5", "t6"],
+    "ft": ["Hydro", "HardCoal", "Nuclear"],
+    "pc": ["CO2", "HardCoal"]
+  },
+  "scalar_params": {
+    "hpw": 2.0,
+    "gencost_nuclear": 15.0,
+    "gencost_co2_factor": 2.361,
+    "gencost_denom": 2.7222,
+    "resmax_normal": 900.0,
+    "resmax_last": 700.0,
+    "resmin_normal": 100.0,
+    "resmin_last": 600.0,
+    "gap_penalty": 1000.0,
+    "slack_penalty": 50000.0
+  },
+  "indexed_params": {
+    "demand": {"t1": 460.0, "t2": 440.0, "t3": 520.0, "t4": 500.0, "t5": 480.0, "t6": 510.0},
+    "exchange": {"t1": 30.0, "t2": 20.0, "t3": 40.0, "t4": 25.0, "t5": 35.0, "t6": 15.0},
+    "wInflow": {"w1": 1400.0, "w2": 1600.0, "w3": 1100.0},
+    "wCapacity": {
+      "w1|Hydro": 400.0, "w1|HardCoal": 190.0, "w1|Nuclear": 116.0,
+      "w2|Hydro": 380.0, "w2|HardCoal": 210.0, "w2|Nuclear": 120.0,
+      "w3|Hydro": 420.0, "w3|HardCoal": 175.0, "w3|Nuclear": 110.0
+    },
+    "wPrices": {
+      "w1|CO2": 20.0, "w1|HardCoal": 87.0,
+      "w2|CO2": 23.0, "w2|HardCoal": 91.0,
+      "w3|CO2": 19.0, "w3|HardCoal": 83.0
+    }
+  }
+}

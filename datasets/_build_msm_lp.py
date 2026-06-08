@@ -1,0 +1,264 @@
+#!/usr/bin/env python
+"""Builder for the msm_lp (Morocco fertilizer distribution / transport mode
+selection) constraint-generation dataset.
+
+Pure LP. Network transshipment over a rail/road graph: for each source
+(bagging center) a flow is routed to every market, choosing transport mode and
+paying for loading, unloading, mode switching, and per-km travel.
+
+The model's adjacency (which arcs exist, which modes are available at a node)
+is entirely encoded in the directed-distance parameter: an arc (n, np, m) is
+usable exactly when its distance is nonzero, and a mode m is available at a node
+n exactly when n appears on some nonzero arc in mode m. The ground-truth rules
+below recompute that adjacency from the distance parameter so each expected
+constraint is self-contained.
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "msm_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "n", "members": "66 network nodes (cities)",
+         "doc": "all nodes of the rail and road network, including bagging centers, market centers, and intermediate junctions"},
+        {"name": "m", "members": ["rail", "road"],
+         "doc": "the available transport modes"},
+        {"name": "s", "members": ["oued-zem", "safi", "sidi-slim", "sou-e-arba", "tanger", "taza"],
+         "doc": "the source nodes, that is the bagging centers from which product originates; flows are tracked separately for each source"},
+        {"name": "d", "members": "32 market centers",
+         "doc": "the destination nodes, that is the market centers that must each receive product"},
+    ],
+    "params": [
+        {"name": "darcs", "index": "n, n, m", "kind": "distance",
+         "doc": "the directed arc length in kilometers from one node to another in a given mode; an entry of zero means there is no usable arc between those two nodes in that mode, so a positive value is what marks an arc as existing. A node has a mode available exactly when it appears on at least one arc of positive length in that mode."},
+        {"name": "mrate", "index": "m", "kind": "rate",
+         "doc": "the travel cost in dollars per kilometer per ton for each mode"},
+        {"name": "lrate", "index": "m", "kind": "rate",
+         "doc": "the loading cost in dollars per ton for each mode"},
+        {"name": "urate", "index": "m", "kind": "rate",
+         "doc": "the unloading cost in dollars per ton for each mode"},
+        {"name": "srate", "index": "m, m", "kind": "rate",
+         "doc": "the cost in dollars per ton of switching from the first mode to the second mode at a node; switching to the same mode is free"},
+    ],
+    "vars": [
+        {"name": "x", "index": "s, n, n, m", "domain": "NonNegativeReals",
+         "doc": "the flow originating at a given source that travels along a directed arc from one node to another in a given mode"},
+        {"name": "y", "index": "s, m", "domain": "NonNegativeReals",
+         "doc": "the amount loaded at a source in a given mode; loading injects product into the network at the source node"},
+        {"name": "z", "index": "s, n, m", "domain": "NonNegativeReals",
+         "doc": "the amount originating at a given source that is unloaded at a node in a given mode; unloading removes product from the network at a market center"},
+        {"name": "w", "index": "s, n, m, m", "domain": "NonNegativeReals",
+         "doc": "the amount originating at a given source that switches from the first mode to the second mode at a node"},
+        {"name": "phi", "index": "", "domain": "Reals",
+         "doc": "the total transport cost per ton"},
+        {"name": "phil", "index": "", "domain": "Reals",
+         "doc": "the total loading cost per ton"},
+        {"name": "phiu", "index": "", "domain": "Reals",
+         "doc": "the total unloading cost per ton"},
+        {"name": "phis", "index": "", "domain": "Reals",
+         "doc": "the total mode-switching cost per ton"},
+        {"name": "phim", "index": "", "domain": "Reals",
+         "doc": "the total per-kilometer travel cost per ton"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "phi"},
+}
+
+NARRATIVE = (
+    "We distribute bagged fertilizer across Morocco from a set of bagging centers to "
+    "every market center, over a network of cities connected by rail and road. For each "
+    "bagging center we decide how to route its product through the network: how much to "
+    "load onto the network at the center, which arcs to send flow along and in which mode, "
+    "where and how much to switch transport mode along the way, and how much to unload at "
+    "the markets. Loading, unloading, switching modes, and traveling each kilometer all "
+    "carry a per-ton cost that depends on the mode. The objective is to minimize the total "
+    "transport cost per ton."
+)
+
+# ── Self-contained ground-truth rules ────────────────────────────────────────
+# Each rule recomputes the network adjacency from the distance parameter so it
+# does not depend on any external precomputation.
+
+NB = (
+    "def nb_rule(model, s, n, mm):\n"
+    "    from pyomo.environ import value, Constraint\n"
+    "    arcs = [k for k in model.darcs if value(model.darcs[k]) != 0]\n"
+    "    nm_set = set()\n"
+    "    inbound = {}\n"
+    "    outbound = {}\n"
+    "    for (a, b, md) in arcs:\n"
+    "        nm_set.add((a, md)); nm_set.add((b, md))\n"
+    "        outbound.setdefault((a, md), []).append(b)\n"
+    "        inbound.setdefault((b, md), []).append(a)\n"
+    "    modes_at = {}\n"
+    "    for (nd, md) in nm_set:\n"
+    "        modes_at.setdefault(nd, []).append(md)\n"
+    "    if (n, mm) not in nm_set:\n"
+    "        return Constraint.Skip\n"
+    "    inflow = sum(model.x[s, np, n, mm] for np in inbound.get((n, mm), []))\n"
+    "    inflow += sum(model.w[s, n, mm, mp] for mp in modes_at.get(n, []))\n"
+    "    if n == s:\n"
+    "        inflow += model.y[s, mm]\n"
+    "    outflow = sum(model.x[s, n, np, mm] for np in outbound.get((n, mm), []))\n"
+    "    if n in model.d:\n"
+    "        outflow += model.z[s, n, mm]\n"
+    "    outflow += sum(model.w[s, n, mp, mm] for mp in modes_at.get(n, []))\n"
+    "    return inflow >= outflow\n"
+    "model.nb = Constraint(model.s, model.n, model.m, rule=nb_rule)"
+)
+
+DB = (
+    "def db_rule(model, s, dd):\n"
+    "    from pyomo.environ import value\n"
+    "    modes_at = {}\n"
+    "    for k in model.darcs:\n"
+    "        if value(model.darcs[k]) != 0:\n"
+    "            a, b, md = k\n"
+    "            modes_at.setdefault(a, set()).add(md)\n"
+    "            modes_at.setdefault(b, set()).add(md)\n"
+    "    return sum(model.z[s, dd, mm] for mm in modes_at.get(dd, [])) >= 1\n"
+    "model.db = Constraint(model.s, model.d, rule=db_rule)"
+)
+
+AL = (
+    "def al_rule(model):\n"
+    "    from pyomo.environ import value\n"
+    "    modes_at = {}\n"
+    "    for k in model.darcs:\n"
+    "        if value(model.darcs[k]) != 0:\n"
+    "            a, b, md = k\n"
+    "            modes_at.setdefault(a, set()).add(md)\n"
+    "            modes_at.setdefault(b, set()).add(md)\n"
+    "    return model.phil == sum(model.lrate[mm] * model.y[s, mm]\n"
+    "                             for s in model.s for mm in modes_at.get(s, []))\n"
+    "model.al = Constraint(rule=al_rule)"
+)
+
+AU = (
+    "def au_rule(model):\n"
+    "    from pyomo.environ import value\n"
+    "    modes_at = {}\n"
+    "    for k in model.darcs:\n"
+    "        if value(model.darcs[k]) != 0:\n"
+    "            a, b, md = k\n"
+    "            modes_at.setdefault(a, set()).add(md)\n"
+    "            modes_at.setdefault(b, set()).add(md)\n"
+    "    return model.phiu == sum(model.urate[mm] * model.z[s, dd, mm]\n"
+    "                             for s in model.s for dd in model.d for mm in modes_at.get(dd, []))\n"
+    "model.au = Constraint(rule=au_rule)"
+)
+
+AS = (
+    "def as_rule(model):\n"
+    "    from pyomo.environ import value\n"
+    "    modes_at = {}\n"
+    "    for k in model.darcs:\n"
+    "        if value(model.darcs[k]) != 0:\n"
+    "            a, b, md = k\n"
+    "            modes_at.setdefault(a, set()).add(md)\n"
+    "            modes_at.setdefault(b, set()).add(md)\n"
+    "    return model.phis == sum(\n"
+    "        model.srate[mm, mp] * model.w[s, n, mm, mp]\n"
+    "        for s in model.s for n in model.n\n"
+    "        for mm in modes_at.get(n, []) for mp in modes_at.get(n, []))\n"
+    "model.as_ = Constraint(rule=as_rule)"
+)
+
+AM = (
+    "def am_rule(model):\n"
+    "    from pyomo.environ import value\n"
+    "    return model.phim == sum(\n"
+    "        model.mrate[mm] * model.darcs[n, np, mm] * model.x[s, n, np, mm]\n"
+    "        for s in model.s for (n, np, mm) in model.darcs if value(model.darcs[n, np, mm]) != 0)\n"
+    "model.am = Constraint(rule=am_rule)"
+)
+
+CD = (
+    "def cd_rule(model):\n"
+    "    return model.phi == model.phil + model.phiu + model.phis + model.phim\n"
+    "model.cd = Constraint(rule=cd_rule)"
+)
+
+WHOLESET = "\n".join([NB, DB, AL, AU, AS, AM, CD])
+
+WHOLESET_DESC = (
+    "To build the complete model, enforce the following relationships in order. "
+    "First, at every node that lies on the network in a given mode, conserve flow for "
+    "each source: the product arriving at the node, whether it comes in along an arc, "
+    "switches in from another mode at that node, or is loaded onto the network there when "
+    "the node is that source itself, must be at least as much as the product leaving the "
+    "node, whether it departs along an arc, switches out to another mode there, or is "
+    "unloaded there when the node is a market. "
+    "Second, make sure every market center receives its product from each source, by "
+    "requiring the total unloaded at that market across the modes available there to be at "
+    "least one unit. "
+    "Third, account for the loading cost by setting it equal to the total amount loaded at "
+    "each source, priced at that mode's loading rate. "
+    "Fourth, account for the unloading cost by setting it equal to the total amount unloaded "
+    "at the markets, priced at that mode's unloading rate. "
+    "Fifth, account for the switching cost by setting it equal to the total amount switched "
+    "between modes at every node, priced at the rate for that pair of modes. "
+    "Sixth, account for the travel cost by setting it equal to the flow on each usable arc "
+    "multiplied by its distance and its mode's per-kilometer rate, summed over all arcs and "
+    "sources. "
+    "Finally, set the total transport cost equal to the sum of the loading, unloading, "
+    "switching, and travel costs."
+)
+
+records = [
+    {"description": (
+        "At every node that the network actually reaches in a given mode, flow must be "
+        "conserved separately for each source. For each source and for each such node and "
+        "mode, the product arriving at the node must be at least as much as the product "
+        "leaving it. Product arrives at the node by flowing in along the arcs that lead "
+        "into it, by switching into this mode from another mode at the node, and, when the "
+        "node is the source itself, by being loaded onto the network there. Product leaves "
+        "the node by flowing out along the arcs that lead away from it, by switching out of "
+        "this mode to another mode at the node, and, when the node is a market center, by "
+        "being unloaded there. Only consider nodes and modes that the network actually "
+        "reaches."),
+     "expected_pyomo": NB},
+    {"description": (
+        "Every market center must receive product from each source. For each source and "
+        "each market center, the total amount unloaded at that market across the transport "
+        "modes available there must be at least one unit."),
+     "expected_pyomo": DB},
+    {"description": (
+        "Define the total loading cost. Set the loading cost equal to the amount loaded at "
+        "each source in each mode available at that source, priced at that mode's loading "
+        "rate, summed over all sources and modes."),
+     "expected_pyomo": AL},
+    {"description": (
+        "Define the total unloading cost. Set the unloading cost equal to the amount "
+        "unloaded at each market center in each mode available there, priced at that mode's "
+        "unloading rate, summed over all sources and markets."),
+     "expected_pyomo": AU},
+    {"description": (
+        "Define the total mode-switching cost. Set the switching cost equal to the amount "
+        "switched from one mode to another at each node, priced at the switching rate for "
+        "that ordered pair of modes, summed over all sources, all nodes, and every ordered "
+        "pair of modes available at the node."),
+     "expected_pyomo": AS},
+    {"description": (
+        "Define the total travel cost. Set the travel cost equal to the flow sent along "
+        "each usable arc in its mode, multiplied by the arc's distance and by that mode's "
+        "per-kilometer travel rate, summed over all sources and all usable arcs."),
+     "expected_pyomo": AM},
+    {"description": (
+        "Define the total transport cost. Set the total cost equal to the sum of the "
+        "loading cost, the unloading cost, the switching cost, and the travel cost."),
+     "expected_pyomo": CD},
+    {"description": WHOLESET_DESC,
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "msm_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

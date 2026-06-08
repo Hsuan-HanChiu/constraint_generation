@@ -1,0 +1,41 @@
+{
+ "sets": {
+  "tu": [
+   "tu1",
+   "tu2"
+  ],
+  "c": [
+   "First",
+   "Second"
+  ],
+  "s": [
+   "A",
+   "B"
+  ]
+ },
+ "scalar_params": {
+  "maxcars": 6.0
+ },
+ "indexed_params": {
+  "trainunitdata": {
+   "tu1|First": 10.0,
+   "tu1|Second": 40.0,
+   "tu1|NumberCars": 2.0,
+   "tu1|Cost": 3.0,
+   "tu2|First": 18.0,
+   "tu2|Second": 55.0,
+   "tu2|NumberCars": 3.0,
+   "tu2|Cost": 5.0
+  },
+  "demand_data": {
+   "A|0800|B|0900|First": 20.0,
+   "A|0800|B|0900|Second": 80.0,
+   "B|0930|A|1030|First": 30.0,
+   "B|0930|A|1030|Second": 100.0,
+   "A|1100|B|1200|First": 25.0,
+   "A|1100|B|1200|Second": 90.0,
+   "B|1230|A|1330|First": 15.0,
+   "B|1230|A|1330|Second": 60.0
+  }
+ }
+}

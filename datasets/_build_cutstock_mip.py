@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+"""Builder for the cutstock_mip (Gilmore-Gomory cutting-stock pattern-selection) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "cutstock_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "i", "members": ["w1", "w2", "w3", "w4"],
+         "doc": "the set of finished widths that must be produced; each member is one ordered product width"},
+        {"name": "p", "members": ["p1", "p2", "p3", "p4", "p5", "p6"],
+         "doc": "the set of available cutting patterns; each pattern is a fixed recipe describing how one raw roll is sliced into finished pieces"},
+    ],
+    "params": [
+        {"name": "r", "index": "", "kind": "width",
+         "doc": "the width of a single raw roll of stock material, in width units; a scalar equal to 100"},
+        {"name": "w", "index": "i", "kind": "width",
+         "doc": "the width of each finished product, in width units"},
+        {"name": "d", "index": "i", "kind": "demand",
+         "doc": "the number of finished rolls of each width that must be delivered to satisfy demand"},
+        {"name": "aip", "index": "i,p", "kind": "yield",
+         "doc": "the number of finished pieces of a given width obtained from one application of a given pattern; zero when a pattern produces none of that width"},
+    ],
+    "vars": [
+        {"name": "xp", "index": "p", "domain": "NonNegativeIntegers",
+         "doc": "the number of raw rolls cut according to each pattern; a whole-number count bounded below by zero and above by total demand"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "obj"},
+}
+
+NARRATIVE = (
+    "We run a cutting operation that slices wide raw rolls of stock into narrower finished rolls of "
+    "various widths to meet customer orders. A fixed collection of cutting patterns is available, where "
+    "each pattern is one recipe for how a single raw roll gets divided into finished pieces. For each "
+    "pattern we decide how many raw rolls to cut using that pattern, and these counts must be whole "
+    "numbers. The objective is to minimize the total number of raw rolls used across all patterns."
+)
+
+DEMAND = (
+    "def demand_rule(model, i):\n"
+    "    return sum(model.aip[i, p] * model.xp[p] for p in model.p) >= model.d[i]\n"
+    "model.demand = Constraint(model.i, rule=demand_rule)"
+)
+WHOLESET = DEMAND
+
+records = [
+    {"description": (
+        "Production must cover every order. For each finished width, the total number of finished pieces "
+        "of that width produced across all the patterns we run must be at least the number of rolls of "
+        "that width that customers demand. The pieces of a given width produced by a pattern depend on how "
+        "many raw rolls we cut with that pattern and on how many pieces of that width the pattern yields "
+        "per roll."),
+     "expected_pyomo": DEMAND},
+    {"description": (
+        "To build the complete model, enforce the following relationships in order. First, for each finished "
+        "width, ensure that the total number of finished pieces of that width produced across all patterns we "
+        "run is at least the demanded number of rolls of that width, where each pattern's contribution to a "
+        "width comes from how many raw rolls are cut with that pattern and how many pieces of that width the "
+        "pattern yields per roll."),
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "cutstock_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

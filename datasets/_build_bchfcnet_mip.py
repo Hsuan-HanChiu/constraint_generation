@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+"""Builder for the bchfcnet_mip (fixed-charge network flow) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "bchfcnet_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "n", "members": ["n1", "n2", "n3", "n4"],
+         "doc": "the network nodes; one distinguished node acts as the single source that supplies the commodity and the others are demand nodes that consume it"},
+        {"name": "s", "index": "", "members": ["a1"],
+         "doc": "the sub-arc label distinguishing parallel arcs between the same ordered pair of nodes; here there is a single label so at most one arc runs in each direction between any two nodes"},
+        {"name": "arc", "members": [["n1", "n2", "a1"], ["n1", "n3", "a1"], ["n1", "n4", "a1"]],
+         "doc": "the existing directed arcs over which flow may be routed, each identified by an origin node, a destination node, and a sub-arc label; this is a sparse three-dimensional set listing only the arcs that physically exist"},
+    ],
+    "params": [
+        {"name": "vcost", "index": "", "kind": "cost",
+         "doc": "the variable cost charged per unit of flow sent over an arc, a single scalar that applies uniformly to every arc"},
+        {"name": "fcost", "index": "arc", "kind": "cost",
+         "doc": "the one-time fixed cost incurred for opening an arc, charged in full whenever the arc carries any flow, regardless of how much"},
+        {"name": "xupp", "index": "arc", "kind": "capacity",
+         "doc": "the maximum amount of flow an arc may carry, equal to the total supply available at the source so that a single arc could in principle carry the entire commodity"},
+        {"name": "demand", "index": "n", "kind": "demand",
+         "doc": "the net demand of each node, defined as consumption minus production; it is positive at demand nodes, negative at the single source node where the magnitude equals the total supply, and zero at pure transshipment nodes"},
+    ],
+    "vars": [
+        {"name": "x", "index": "arc", "domain": "NonNegativeReals",
+         "doc": "the amount of flow routed over each arc, a continuous nonnegative quantity"},
+        {"name": "y", "index": "arc", "domain": "Binary",
+         "doc": "the open/closed decision for each arc, equal to 1 when the arc is opened and incurs its fixed cost and 0 when it stays closed"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "obj"},
+}
+
+NARRATIVE = (
+    "We route a single commodity through a directed network from one source node to a set of "
+    "demand nodes over a fixed set of existing arcs. For each arc we decide how much flow to send "
+    "across it and whether to open the arc at all. Sending flow incurs a variable cost per unit "
+    "carried, and opening an arc incurs a separate one-time fixed cost that is charged whenever the "
+    "arc is used. The objective is to minimize the total cost, combining the variable flow cost "
+    "over all arcs with the fixed opening cost of every arc that is opened."
+)
+
+BAL = (
+    "def bal_rule(model, j):\n"
+    "    inflow = sum(model.x[m, n, sa] for (m, n, sa) in model.arc if n == j)\n"
+    "    outflow = sum(model.x[m, n, sa] for (m, n, sa) in model.arc if m == j)\n"
+    "    return inflow - outflow == model.demand[j]\n"
+    "model.bal = Constraint(model.n, rule=bal_rule)"
+)
+BF = (
+    "def bf_rule(model, m, n, sa):\n"
+    "    return model.x[m, n, sa] <= model.xupp[m, n, sa] * model.y[m, n, sa]\n"
+    "model.bf = Constraint(model.arc, rule=bf_rule)"
+)
+WHOLESET = "\n".join([BAL, BF])
+
+records = [
+    {"description": (
+        "At every node the flow must balance so that the total amount arriving minus the total "
+        "amount leaving equals that node's net demand. For each node, add up the flow on all arcs "
+        "coming into it, subtract the flow on all arcs going out of it, and require the result to "
+        "match the net demand of that node, which draws flow toward the demand nodes and out of the "
+        "source."),
+     "expected_pyomo": BAL},
+    {"description": (
+        "No flow may travel over an arc unless that arc has been opened, and even an opened arc "
+        "cannot carry more than its capacity. For each arc, the flow on it must stay at or below "
+        "its capacity when the arc is open, and must be forced to zero whenever the arc is closed."),
+     "expected_pyomo": BF},
+    {"description": (
+        "To build the complete model, enforce the following relationships in order. First, at every "
+        "node require that the flow arriving minus the flow leaving equals that node's net demand, "
+        "balancing supply and consumption across the network. Finally, for every arc require that "
+        "the flow it carries stays within its capacity when the arc is open and is held at zero "
+        "whenever the arc is closed, so that flow is only possible on arcs that have been opened."),
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "bchfcnet_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

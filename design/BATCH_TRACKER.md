@@ -1,6 +1,8 @@
 # feas_model -> training data: MODEL CHECKLIST — COMPLETE
 
-**Total: 122 models | DONE: 110 | TODO: 0 gradable | dedup-skip: 8 | build-fail: 3 | excluded NLP: 1**
+**ORIGINAL 122 models: DONE 110 | dedup-skip 8 | build-fail 3 | excluded NLP 1.**
+**+ 2026-06-05 EXPANSION (feas_model grew to 199): +71 new datasets built, 6 dedup-skip, 1 skip. See `NEW_MODELS_CHECKLIST.md`.**
+**GRAND TOTAL: 181 datasets | 1347 records | 32 reduced instances.**
 
 The full sweep is COMPLETE. Every gradable feas_model is now training data: **110 datasets, 850 records**, all selfcheck PASS (self-grade EQUIVALENT, relation-flip controls caught). The only models not turned into data are the 8 duplicates, the 3 build-failures, and the 1 genuine NLP — see the bottom sections.
 

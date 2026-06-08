@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+"""Builder for the prodplan_mip (uncapacitated lot-sizing) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "prodplan_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "t", "members": ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"],
+         "doc": "the planning periods in chronological order; the first member is the opening period and each later member follows the one before it, and the last member is the final period of the horizon"},
+    ],
+    "params": [
+        {"name": "setupcost", "index": "", "kind": "cost",
+         "doc": "the fixed cost incurred in any period in which production is set up, in dollars per period; a scalar"},
+        {"name": "prodcost", "index": "", "kind": "cost",
+         "doc": "the variable cost of producing one unit, in dollars per unit; a scalar"},
+        {"name": "invcost", "index": "", "kind": "cost",
+         "doc": "the base cost of holding one unit in inventory for one period, in dollars per unit per period; a scalar"},
+        {"name": "stockini", "index": "", "kind": "stock",
+         "doc": "the inventory on hand at the very start of the horizon, before the first period, in units; a scalar"},
+        {"name": "demand", "index": "t", "kind": "demand",
+         "doc": "the demand that must be met in each period, in units"},
+        {"name": "bigM", "index": "t", "kind": "big-M",
+         "doc": "a per-period upper bound on how much can be produced in that period; used as the large constant that links production to the setup decision, in units"},
+        {"name": "invcoef", "index": "t", "kind": "cost",
+         "doc": "the per-period inventory holding cost coefficient applied to ending inventory; equal to the base holding cost in every period except the final period of the horizon, where it is half the base holding cost, in dollars per unit per period"},
+    ],
+    "vars": [
+        {"name": "s", "index": "t", "domain": "NonNegativeReals",
+         "doc": "the inventory held at the end of each period, in units"},
+        {"name": "x", "index": "t", "domain": "NonNegativeReals",
+         "doc": "the quantity produced in each period, in units"},
+        {"name": "y", "index": "t", "domain": "Binary",
+         "doc": "the setup indicator for each period; equals 1 if production is set up in that period and 0 otherwise"},
+        {"name": "cost", "index": "", "domain": "Reals",
+         "doc": "the total cost over the whole horizon, in dollars; a scalar"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "cost"},
+}
+
+NARRATIVE = (
+    "We plan production over a sequence of periods to meet a known demand in each period. For "
+    "each period we decide how much to produce, whether to set up production that period, and how "
+    "much inventory to carry over to the next period. Setting up production in a period incurs a "
+    "fixed setup cost, producing units incurs a per-unit production cost, and carrying inventory "
+    "incurs a per-unit holding cost each period. The objective is to minimize the total cost over "
+    "the whole horizon."
+)
+
+PRODUCTION = (
+    "def production_rule(model, t):\n"
+    "    return model.x[t] <= model.bigM[t] * model.y[t]\n"
+    "model.production = Constraint(model.t, rule=production_rule)"
+)
+BALANCE = (
+    "def balance_rule(model, t):\n"
+    "    t_list = list(model.t)\n"
+    "    is_first = (t_list.index(t) < 1)\n"
+    "    prev = 0 if is_first else model.s[model.t.prev(t)]\n"
+    "    ini = model.stockini if is_first else 0\n"
+    "    return ini + prev + model.x[t] == model.demand[t] + model.s[t]\n"
+    "model.balance = Constraint(model.t, rule=balance_rule)"
+)
+MINCOST = (
+    "def mincost_rule(model):\n"
+    "    return model.cost == (\n"
+    "        sum(model.invcoef[t] * model.s[t] for t in model.t)\n"
+    "        + sum(model.setupcost * model.y[t] + model.prodcost * model.x[t] for t in model.t)\n"
+    "    )\n"
+    "model.mincost = Constraint(rule=mincost_rule)"
+)
+WHOLESET = "\n".join([PRODUCTION, BALANCE, MINCOST])
+
+records = [
+    {"description": (
+        "Production can only happen in a period when that period has been set up for production. "
+        "For each period the amount produced must not exceed that period's production upper bound "
+        "when the period is set up, and must be zero when the period is not set up."),
+     "expected_pyomo": PRODUCTION},
+    {"description": (
+        "Inventory must be conserved from one period to the next. For each period, the stock carried "
+        "in from the previous period together with what is produced that period must cover that "
+        "period's demand and leave the ending inventory for that period. In the very first period "
+        "there is no previous period, so the starting inventory on hand at the beginning of the "
+        "horizon plays that role instead."),
+     "expected_pyomo": BALANCE},
+    {"description": (
+        "The total cost gathers the holding, setup, and production charges across the whole horizon. "
+        "For every period, charge the holding cost on that period's ending inventory, charge the "
+        "fixed setup cost whenever that period is set up for production, and charge the per-unit "
+        "production cost on what is produced that period. Set the total cost equal to the sum of all "
+        "these amounts over every period."),
+     "expected_pyomo": MINCOST},
+    {"description": (
+        "To build the complete model, enforce the following relationships in order. First, allow "
+        "production in a period only when that period is set up, keeping production within that "
+        "period's upper bound when set up and at zero otherwise. Second, conserve inventory across "
+        "periods so that incoming stock from the prior period plus current production meets demand "
+        "and leaves the ending inventory, with the initial on-hand stock standing in for the prior "
+        "period at the start of the horizon. Finally, set the total cost equal to the sum over all "
+        "periods of the holding charge on ending inventory, the fixed setup charge in set-up periods, "
+        "and the per-unit production charge."),
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "prodplan_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

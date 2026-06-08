@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+"""Builder for the rotdk_mip (robust capacity expansion) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "rotdk_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "j", "members": ["C001", "C002", "C003"],
+         "doc": "the set of available expansion components, each a discrete capacity module that can be installed"},
+        {"name": "t", "members": ["t1", "t2", "t3"],
+         "doc": "the planning time periods in chronological order; the first member is the opening period and each later member immediately follows the one before it"},
+        {"name": "s", "members": [1, 2, 3],
+         "doc": "the set of demand scenarios, each a possible realization of future demand used to make the plan robust"},
+    ],
+    "params": [
+        {"name": "c", "index": "j", "kind": "capacity",
+         "doc": "the capacity that one unit of each component contributes once installed, in capacity units per unit installed"},
+        {"name": "p", "index": "j", "kind": "cost",
+         "doc": "the purchase cost of one unit of each component, in dollars per unit installed"},
+        {"name": "dis", "index": "t", "kind": "discount",
+         "doc": "the discount factor applied to costs incurred in each period, a multiplier between zero and one that shrinks for later periods"},
+        {"name": "D", "index": "t,s", "kind": "demand",
+         "doc": "the demand that must be met in each period under each scenario, in capacity units"},
+        {"name": "w", "index": "", "kind": "penalty",
+         "doc": "the shortage penalty charged per unit of unmet demand, a scalar in dollars per capacity unit"},
+    ],
+    "vars": [
+        {"name": "x", "index": "j,t", "domain": "NonNegativeIntegers",
+         "doc": "the whole number of units of each component installed in each period; installations are permanent and add to capacity from that period onward"},
+        {"name": "z", "index": "s", "domain": "NonNegativeReals",
+         "doc": "the worst capacity shortfall experienced under each scenario across the horizon, in capacity units"},
+        {"name": "cap", "index": "t", "domain": "Reals",
+         "doc": "the total installed capacity available in each period"},
+        {"name": "obj_var", "index": "", "domain": "Reals",
+         "doc": "the total discounted installation cost plus the expected shortage penalty, in dollars"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "obj_var"},
+}
+
+NARRATIVE = (
+    "We plan the capacity expansion of a single facility over a sequence of time periods, "
+    "facing uncertain future demand described by a collection of scenarios. In each period "
+    "we decide how many units of each available component to install, where every installation "
+    "is a whole number of modules that permanently raise the facility's capacity. We also track "
+    "the installed capacity reached in each period and the worst capacity shortfall that occurs "
+    "under each demand scenario. Installation costs are discounted to reflect when they are "
+    "incurred, and any capacity shortfall is charged a penalty. The objective is to minimize the "
+    "total discounted installation cost plus the expected shortage penalty across the scenarios."
+)
+
+CAPBAL = (
+    "def capbal_rule(model, t):\n"
+    "    prev = model.t.prev(t) if t != model.t.first() else None\n"
+    "    cap_prev = model.cap[prev] if prev is not None else 0\n"
+    "    return model.cap[t] == cap_prev + sum(model.c[j] * model.x[j, t] for j in model.j)\n"
+    "model.capbal = Constraint(model.t, rule=capbal_rule)"
+)
+DEMBAL = (
+    "def dembal_rule(model, t, s):\n"
+    "    return model.cap[t] + model.z[s] >= model.D[t, s]\n"
+    "model.dembal = Constraint(model.t, model.s, rule=dembal_rule)"
+)
+OBJDEF = (
+    "def objdef_rule(model):\n"
+    "    card_s = len(model.s)\n"
+    "    return model.obj_var == (\n"
+    "        sum(model.dis[t] * model.p[j] * model.x[j, t] for j in model.j for t in model.t)\n"
+    "        + (model.w / card_s) * sum(model.z[s] for s in model.s)\n"
+    "    )\n"
+    "model.objdef = Constraint(rule=objdef_rule)"
+)
+WHOLESET = "\n".join([CAPBAL, DEMBAL, OBJDEF])
+
+CAPBAL_DESC = (
+    "The installed capacity available in each period must reflect everything installed so far. "
+    "For each period, the capacity in that period equals the capacity carried over from the "
+    "immediately preceding period plus the capacity added by all components installed in the "
+    "current period, where a component's contribution is its number of units installed times the "
+    "capacity each unit provides. In the very first period there is no preceding period, so the "
+    "capacity comes entirely from what is installed in that opening period."
+)
+DEMBAL_DESC = (
+    "In every period and under every demand scenario, the demand must be covered by the installed "
+    "capacity together with whatever shortfall is absorbed for that scenario. For each period and "
+    "scenario, the installed capacity in that period plus the shortfall recorded for that scenario "
+    "must be at least the demand for that period and scenario."
+)
+OBJDEF_DESC = (
+    "The total cost combines the discounted spending on installations with the expected penalty for "
+    "shortfalls. Value every installation at the cost of the component installed times the number of "
+    "units, discounted to the period in which it occurs, and sum this over all components and "
+    "periods. Then average the recorded shortfalls across the scenarios and charge the per-unit "
+    "shortage penalty on that average. Set the total cost equal to the sum of these two amounts."
+)
+
+WHOLESET_DESC = (
+    "To build the complete model, enforce the following relationships in order. "
+    "First, the installed capacity in each period equals the capacity carried over from the "
+    "immediately preceding period plus the capacity added by everything installed in the current "
+    "period, with the opening period carrying nothing over. "
+    "Second, in every period and under every scenario the installed capacity together with the "
+    "shortfall absorbed for that scenario must cover the demand for that period and scenario. "
+    "Finally, the total cost equals the discounted spending on all installations plus the per-unit "
+    "shortage penalty charged on the shortfalls averaged across the scenarios."
+)
+
+records = [
+    {"description": CAPBAL_DESC, "expected_pyomo": CAPBAL},
+    {"description": DEMBAL_DESC, "expected_pyomo": DEMBAL},
+    {"description": OBJDEF_DESC, "expected_pyomo": OBJDEF},
+    {"description": WHOLESET_DESC, "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "rotdk_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

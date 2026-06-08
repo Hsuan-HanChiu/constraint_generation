@@ -1,0 +1,256 @@
+{
+ "sets": {
+  "i": [
+   "usa",
+   "w-europe",
+   "guyana"
+  ],
+  "r": [
+   "western-us",
+   "eastern-us",
+   "guyana"
+  ],
+  "j": [
+   "wn-america",
+   "c-amer+car"
+  ],
+  "cm": [
+   "highsi",
+   "mono",
+   "tri-201"
+  ],
+  "ci": [
+   "alumina"
+  ],
+  "cf": [
+   "aluminum"
+  ],
+  "cl": [
+   "electr"
+  ],
+  "p": [
+   "ref-hs",
+   "ref-m",
+   "ref-t201",
+   "smelting"
+  ],
+  "m": [
+   "refineryss",
+   "refinerym",
+   "refineryt",
+   "smelter"
+  ],
+  "mr": [
+   "refineryss",
+   "refinerym",
+   "refineryt"
+  ],
+  "ms": [
+   "smelter"
+  ],
+  "seg": [
+   1,
+   2
+  ],
+  "l": [
+   "el-actual",
+   "el-hicost"
+  ],
+  "c": [
+   "highsi",
+   "mono",
+   "tri-201",
+   "alumina",
+   "aluminum",
+   "electr"
+  ],
+  "cpospi": [
+   "usa|highsi",
+   "w-europe|mono",
+   "guyana|tri-201"
+  ],
+  "fr": [
+   "oecd|western-us",
+   "oecd|eastern-us",
+   "ldcs|guyana"
+  ],
+  "fi": [
+   "oecd|usa",
+   "oecd|w-europe",
+   "ldcs|guyana"
+  ],
+  "fj": [
+   "oecd|wn-america",
+   "ldcs|c-amer+car"
+  ]
+ },
+ "scalar_params": {
+  "gamma": 0.0,
+  "interval": 20.0,
+  "pl": 2000.0,
+  "sigma": 0.117459624772546,
+  "utm": 0.9
+ },
+ "indexed_params": {
+  "capm": {
+   "usa": 1945.0,
+   "w-europe": 8803.0,
+   "guyana": 3720.0
+  },
+  "d": {
+   "wn-america": 4489.0,
+   "c-amer+car": 281.0
+  },
+  "nmaa2000": {
+   "eastern-us": 1758.9733553038
+  },
+  "nmba2000": {
+   "usa": 721.696975799283,
+   "guyana": 4683.07044957991
+  },
+  "om": {
+   "usa": 15.376,
+   "w-europe": 15.376,
+   "guyana": 12.596
+  },
+  "utr": {
+   "refineryt": 0.92,
+   "refinerym": 0.92,
+   "refineryss": 0.92,
+   "smelter": 0.95
+  },
+  "zmbar": {
+   "usa": 40000.0,
+   "w-europe": 1200000.0,
+   "guyana": 700000.0
+  },
+  "a": {
+   "tri-201|ref-t201": -2.0,
+   "mono|ref-m": -2.5,
+   "highsi|ref-hs": -2.3,
+   "alumina|ref-t201": 1.0,
+   "alumina|ref-m": 1.0,
+   "alumina|ref-hs": 1.0,
+   "alumina|smelting": -1.93,
+   "aluminum|smelting": 1.0,
+   "electr|smelting": -12.6
+  },
+  "b": {
+   "refineryt|ref-t201": 1.0,
+   "refinerym|ref-m": 1.0,
+   "refineryss|ref-hs": 1.0,
+   "smelter|smelting": 1.0
+  },
+  "capr": {
+   "western-us|smelter": 1784.0,
+   "eastern-us|refineryt": 5060.0,
+   "eastern-us|refineryss": 800.0,
+   "eastern-us|smelter": 3376.0,
+   "guyana|refineryt": 350.0
+  },
+  "muf": {
+   "western-us|c-amer+car": 42.69,
+   "eastern-us|wn-america": 58.05,
+   "eastern-us|c-amer+car": 18.13,
+   "guyana|wn-america": 58.27,
+   "guyana|c-amer+car": 19.58
+  },
+  "mui": {
+   "western-us|eastern-us": 19.0664,
+   "western-us|guyana": 26.94464,
+   "eastern-us|western-us": 19.0664,
+   "eastern-us|guyana": 13.88528,
+   "guyana|western-us": 26.94464,
+   "guyana|eastern-us": 13.88528
+  },
+  "mur": {
+   "usa|western-us": 17.516,
+   "usa|eastern-us": 1.044,
+   "usa|guyana": 13.1984,
+   "w-europe|western-us": 44.6704,
+   "w-europe|eastern-us": 32.848,
+   "w-europe|guyana": 27.1672,
+   "guyana|western-us": 25.2772,
+   "guyana|eastern-us": 14.3944,
+   "guyana|guyana": 2.24
+  },
+  "omegam": {
+   "usa|1": 45.0,
+   "usa|2": 705.0,
+   "w-europe|1": 45.0,
+   "w-europe|2": 705.0,
+   "guyana|1": 45.21,
+   "guyana|2": 708.29
+  },
+  "prelec": {
+   "western-us|el-actual": 20.0,
+   "western-us|el-hicost": 50.0,
+   "eastern-us|el-actual": 24.0,
+   "eastern-us|el-hicost": 50.0,
+   "guyana|el-hicost": 50.0
+  },
+  "sbm": {
+   "usa|2": 16000.0,
+   "w-europe|2": 16000.0,
+   "guyana|2": 16000.0
+  },
+  "ubar": {
+   "western-us|el-actual": 23434.125,
+   "eastern-us|el-actual": 21396.375
+  },
+  "omegar": {
+   "refineryt|1|western-us": 330.0,
+   "refineryt|1|eastern-us": 330.0,
+   "refineryt|1|guyana": 363.0,
+   "refineryt|2|western-us": 1770.0,
+   "refineryt|2|eastern-us": 1770.0,
+   "refineryt|2|guyana": 1947.0,
+   "refinerym|1|western-us": 370.0,
+   "refinerym|1|eastern-us": 370.0,
+   "refinerym|1|guyana": 407.0,
+   "refinerym|2|western-us": 1990.0,
+   "refinerym|2|eastern-us": 1990.0,
+   "refinerym|2|guyana": 2189.0,
+   "refineryss|1|western-us": 412.0,
+   "refineryss|1|eastern-us": 412.0,
+   "refineryss|1|guyana": 453.2,
+   "refineryss|2|western-us": 2212.0,
+   "refineryss|2|eastern-us": 2212.0,
+   "refineryss|2|guyana": 2433.2,
+   "smelter|1|western-us": 100.0,
+   "smelter|1|eastern-us": 100.0,
+   "smelter|1|guyana": 110.0,
+   "smelter|2|western-us": 580.0,
+   "smelter|2|eastern-us": 580.0,
+   "smelter|2|guyana": 638.0
+  },
+  "sbr": {
+   "refineryt|2|western-us": 2000.0,
+   "refineryt|2|eastern-us": 2000.0,
+   "refineryt|2|guyana": 2000.0,
+   "refinerym|2|western-us": 2000.0,
+   "refinerym|2|eastern-us": 2000.0,
+   "refinerym|2|guyana": 2000.0,
+   "refineryss|2|western-us": 2000.0,
+   "refineryss|2|eastern-us": 2000.0,
+   "refineryss|2|guyana": 2000.0,
+   "smelter|2|western-us": 200.0,
+   "smelter|2|eastern-us": 200.0,
+   "smelter|2|guyana": 200.0
+  },
+  "ors": {
+   "western-us|ref-t201": 131.45,
+   "western-us|ref-m": 147.65,
+   "western-us|ref-hs": 376.0,
+   "western-us|smelting": 649.725,
+   "eastern-us|ref-t201": 131.45,
+   "eastern-us|ref-m": 147.65,
+   "eastern-us|ref-hs": 376.0,
+   "eastern-us|smelting": 649.725,
+   "guyana|ref-t201": 120.65,
+   "guyana|ref-m": 135.65,
+   "guyana|ref-hs": 352.0,
+   "guyana|smelting": 598.125
+  }
+ }
+}

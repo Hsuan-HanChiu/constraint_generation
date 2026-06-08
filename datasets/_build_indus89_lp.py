@@ -1,0 +1,102 @@
+#!/usr/bin/env python
+"""Builder for the indus89_lp (Indus Basin Model Revised, IBMR) constraint-gen dataset.
+
+indus89_lp is a large agricultural-water-resource LP extracted from GAMS in fully
+expanded coefficient-matrix form: variables x[v], a sparse coefficient matrix
+A[r, v], right-hand sides rhs[r], and per-row senses csense[r] in {E, L, G}. It
+has a SINGLE constraint family `con` (one row per member of R), so the dataset is
+one per-constraint record plus one whole-set record (which, with a single family,
+is the same target wrapped in the ordinal-narrative lead-in).
+"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "indus89_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "V", "members": ["x1", "x2", "x3", "..."],
+         "doc": "the indices of the decision variables, one per column of the model"},
+        {"name": "R", "members": ["r1", "r2", "r3", "..."],
+         "doc": "the indices of the constraint rows of the model, one per relationship to enforce"},
+    ],
+    "params": [
+        {"name": "A", "index": "(R, V)", "kind": "coefficient",
+         "doc": "the sparse coefficient matrix; A[r, v] is the coefficient of variable v in row r, and entries that are absent are zero, so only the variables that actually appear in a row contribute to it"},
+        {"name": "rhs", "index": "R", "kind": "bound",
+         "doc": "the right-hand side constant of each constraint row"},
+        {"name": "csense", "index": "R", "kind": "sense",
+         "doc": "the sense of each constraint row given as a single letter: 'E' means the row is an equality, 'L' means the row's weighted sum is bounded above by its right-hand side, and 'G' means it is bounded below"},
+        {"name": "objc", "index": "V", "kind": "objective coefficient",
+         "doc": "the objective coefficient of each variable, its per-unit contribution to surplus"},
+        {"name": "obj_const", "index": "", "kind": "constant",
+         "doc": "a constant term added to the objective"},
+        {"name": "lb", "index": "V", "kind": "bound",
+         "doc": "the lower bound of each variable, zero unless overridden"},
+        {"name": "ub", "index": "V", "kind": "bound",
+         "doc": "the upper bound of each variable, unbounded above unless overridden"},
+    ],
+    "vars": [
+        {"name": "x", "index": "V", "domain": "NonNegativeReals",
+         "doc": "the level chosen for each decision variable, bounded between its lower and upper bound"},
+    ],
+    "objective": {"sense": "maximize", "expr_var": "objc"},
+}
+
+NARRATIVE = (
+    "This is a large agricultural-water-resource planning model for the Indus basin, "
+    "written in fully expanded coefficient-matrix form. There is one continuous decision "
+    "variable for each column of the model, each kept within its own lower and upper bound. "
+    "The model is driven by a sparse coefficient matrix together with a right-hand side and "
+    "a sense for every row. The objective is to choose the variable levels so as to maximize "
+    "the total consumer-plus-producer surplus, computed as each variable's level weighted by "
+    "its objective coefficient, plus a fixed constant."
+)
+
+CON = (
+    "def con_rule(model, r):\n"
+    "    cols = [v for (rr, v) in model.A.keys() if rr == r]\n"
+    "    lhs = sum(model.A[r, v] * model.x[v] for v in cols)\n"
+    "    s = model.csense[r]\n"
+    "    if s == 'E':\n"
+    "        return lhs == model.rhs[r]\n"
+    "    elif s == 'L':\n"
+    "        return lhs <= model.rhs[r]\n"
+    "    else:\n"
+    "        return lhs >= model.rhs[r]\n"
+    "model.con = Constraint(model.R, rule=con_rule)"
+)
+
+WHOLESET = CON
+
+CON_DESC = (
+    "Every row of the model imposes one relationship between a weighted combination of the "
+    "decision variables and a fixed right-hand side. For each row, form the weighted sum of "
+    "the variables that appear in that row, each multiplied by its coefficient in that row, "
+    "and require that this sum relates to the row's right-hand side according to the row's "
+    "own sense. When the sense marks the row as an equality the weighted sum must equal the "
+    "right-hand side, when it marks the row as an upper-bound type the weighted sum must not "
+    "exceed the right-hand side, and when it marks the row as a lower-bound type the weighted "
+    "sum must be at least the right-hand side."
+)
+
+WHOLESET_DESC = (
+    "To build the complete model, enforce the following relationships in order. "
+    "This model has a single family of relationships covering every row. " + CON_DESC
+)
+
+records = [
+    {"description": CON_DESC, "expected_pyomo": CON},
+    {"description": WHOLESET_DESC, "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "indus89_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

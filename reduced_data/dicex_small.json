@@ -1,0 +1,20 @@
+{
+ "sets": {
+  "f": ["face1", "face2", "face3"],
+  "d": ["dice1", "dice2"]
+ },
+ "scalar_params": {
+  "wn": 4.0,
+  "big": 6.0
+ },
+ "indexed_params": {
+  "fnum": {
+   "dice1|face1": 2.0,
+   "dice1|face2": 5.0,
+   "dice1|face3": 6.0,
+   "dice2|face1": 1.0,
+   "dice2|face2": 3.0,
+   "dice2|face3": 4.0
+  }
+ }
+}

@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+"""Builder for the cvrp_mip (capacitated vehicle routing, MTZ) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "cvrp_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "node", "members": ["n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8",
+                                      "n9", "n10", "n11", "n12", "n13", "n14", "n15", "n16"],
+         "doc": "all locations, comprising the single depot and the customer nodes that must be served"},
+        {"name": "vehicle", "members": ["k1", "k2", "k3"],
+         "doc": "the vehicles in the fleet, each based at the depot"},
+        {"name": "depot", "members": ["n1"],
+         "doc": "the depot node where every vehicle starts and ends its route; it is a subset of the node set and the remaining nodes are the customers"},
+        {"name": "arc", "members": "all triples (i, j, k) where i and j are distinct nodes and k is a vehicle",
+         "doc": "the allowed directed travel options: vehicle k may drive directly from node i to node j whenever i and j are different nodes"},
+    ],
+    "params": [
+        {"name": "demand", "index": "node", "kind": "demand",
+         "doc": "the amount of goods required by the customer at each node, in load units; the depot has demand zero"},
+        {"name": "capacity", "index": "vehicle", "kind": "capacity",
+         "doc": "the maximum total load each vehicle can carry, in load units"},
+        {"name": "distance", "index": "node,node", "kind": "distance",
+         "doc": "the travel distance between each ordered pair of nodes, in distance units"},
+        {"name": "card", "index": "", "kind": "count",
+         "doc": "the number of nodes in the problem; used as the large constant in the ordering inequalities, with value equal to the node count"},
+    ],
+    "vars": [
+        {"name": "X", "index": "arc", "domain": "Binary",
+         "doc": "equals 1 if vehicle k travels directly from node i to node j, and 0 otherwise; defined only over allowed arcs"},
+        {"name": "P", "index": "node", "domain": "NonNegativeReals",
+         "doc": "a position variable for each node giving its order along the route that visits it, ranging between 0 and one less than the node count; it is pinned to 0 at the depot"},
+        {"name": "totdist", "index": "", "domain": "Reals",
+         "doc": "the total distance travelled by the whole fleet"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "totdist"},
+}
+
+NARRATIVE = (
+    "We plan delivery routes for a fleet of vehicles based at a single depot that together must "
+    "serve a set of customers, each with a known demand. For every vehicle we decide which direct "
+    "trips between locations it makes, and we track the position of each location along the route "
+    "that serves it. Every vehicle has a limited carrying capacity. The objective is to minimize "
+    "the total distance travelled by the entire fleet."
+)
+
+NODE_BALANCE = (
+    "def node_balance_rule(model, j, k):\n"
+    "    return (sum(model.X[i, j, k] for i in model.node if i != j)\n"
+    "            == sum(model.X[j, i, k] for i in model.node if i != j))\n"
+    "model.eq_node_balance = Constraint(model.node, model.vehicle, rule=node_balance_rule)"
+)
+ENTER_ONCE = (
+    "def enter_once_rule(model, j):\n"
+    "    if j in model.depot:\n"
+    "        return Constraint.Skip\n"
+    "    return sum(model.X[i, j, k] for i in model.node for k in model.vehicle if i != j) == 1\n"
+    "model.eq_enter_once = Constraint(model.node, rule=enter_once_rule)"
+)
+LEAVE_DEPOT = (
+    "def leave_depot_rule(model, k, d):\n"
+    "    return sum(model.X[d, j, k] for j in model.node if j not in model.depot) == 1\n"
+    "model.eq_leave_depot = Constraint(model.vehicle, model.depot, rule=leave_depot_rule)"
+)
+CAPACITY = (
+    "def capacity_rule(model, k):\n"
+    "    return (sum(model.demand[j] * model.X[i, j, k]\n"
+    "                for i in model.node for j in model.node\n"
+    "                if i != j and j not in model.depot)\n"
+    "            <= model.capacity[k])\n"
+    "model.eq_capacity = Constraint(model.vehicle, rule=capacity_rule)"
+)
+MTZ = (
+    "def mtz_rule(model, i, j):\n"
+    "    if i == j:\n"
+    "        return Constraint.Skip\n"
+    "    extra = model.card if j in model.depot else 0\n"
+    "    return (model.P[i] - model.P[j]\n"
+    "            <= model.card - model.card * sum(model.X[i, j, k] for k in model.vehicle) - 1 + extra)\n"
+    "model.eq_mtz = Constraint(model.node, model.node, rule=mtz_rule)"
+)
+TOTDIST = (
+    "def totdist_rule(model):\n"
+    "    return model.totdist == sum(\n"
+    "        model.distance[i, j] * model.X[i, j, k] for (i, j, k) in model.arc)\n"
+    "model.eq_tot_dist = Constraint(rule=totdist_rule)"
+)
+
+WHOLESET = "\n".join([NODE_BALANCE, ENTER_ONCE, LEAVE_DEPOT, CAPACITY, MTZ, TOTDIST])
+
+WHOLESET_DESC = (
+    "To build the complete model, enforce the following relationships in order. "
+    "First, make sure that for every vehicle and every location, the number of times that vehicle "
+    "drives into a location equals the number of times it drives back out, so a vehicle never gets "
+    "stranded at any node. "
+    "Second, require that each customer is visited exactly once, counting arrivals from any other "
+    "location and by any vehicle, while the depot is left out of this requirement. "
+    "Third, require that every vehicle departs the depot exactly once, heading directly to some "
+    "customer. "
+    "Fourth, ensure that the total demand of all the customers served by each vehicle stays within "
+    "that vehicle's carrying capacity. "
+    "Fifth, enforce the route-ordering relationships that prevent disconnected loops: whenever a "
+    "vehicle travels directly between two locations, the position of the destination must come "
+    "after the position of the origin along the route, with the depot handled as the route's "
+    "reference point. "
+    "Finally, define the total distance travelled by the fleet as the sum over every direct trip "
+    "actually made of the distance of that trip."
+)
+
+records = [
+    {"description": (
+        "For each vehicle and each location, the number of trips that vehicle makes into the "
+        "location must equal the number of trips it makes out of that location, so whenever a "
+        "vehicle arrives somewhere it also departs from there."),
+     "expected_pyomo": NODE_BALANCE},
+    {"description": (
+        "Every customer must be visited exactly once. Counting arrivals from any other location "
+        "and by any vehicle, each customer location is entered a single time. The depot is excluded "
+        "from this requirement."),
+     "expected_pyomo": ENTER_ONCE},
+    {"description": (
+        "Each vehicle must leave the depot exactly once, travelling directly from the depot to one "
+        "of the customer locations."),
+     "expected_pyomo": LEAVE_DEPOT},
+    {"description": (
+        "For each vehicle, the total demand of all the customers it serves must not exceed that "
+        "vehicle's carrying capacity. A customer counts toward a vehicle's load when that vehicle "
+        "drives directly into it, and the depot does not contribute any demand."),
+     "expected_pyomo": CAPACITY},
+    {"description": (
+        "To prevent routes that loop among the customers without connecting back to the depot, "
+        "impose an ordering along each route. For every pair of distinct locations, whenever some "
+        "vehicle drives directly from the first to the second, the second location's position along "
+        "the route must come after the first location's position. The depot serves as the reference "
+        "point of the ordering, so trips returning to the depot are handled accordingly. When no "
+        "vehicle makes the direct trip between the two locations, the ordering requirement is "
+        "relaxed so that it does not bind."),
+     "expected_pyomo": MTZ},
+    {"description": (
+        "The total distance travelled by the fleet equals the sum, over every direct trip actually "
+        "made by any vehicle, of the distance of that trip."),
+     "expected_pyomo": TOTDIST},
+    {"description": WHOLESET_DESC,
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "cvrp_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

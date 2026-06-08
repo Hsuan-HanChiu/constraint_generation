@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+"""Builder for the phosdis_lp (world phosphate shortest sea-route) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "phosdis_lp_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "nodes", "members": ["...77 ports..."],
+         "doc": "the full set of ports / nodes in the sea-route network"},
+        {"name": "src", "members": ["veracruz", "yucatan-ch"],
+         "doc": "the source nodes; the origins that flow is routed out from"},
+        {"name": "dest", "members": ["...destinations..."],
+         "doc": "the destination nodes that must be reached from the sources"},
+        {"name": "arcs", "members": ["(n, np) directed links"],
+         "doc": "the directed arcs that carry a distance; each physical link is stored both ways, so (n, np) and (np, n) are separate members"},
+    ],
+    "params": [
+        {"name": "darc", "index": "arcs", "kind": "distance",
+         "doc": "the distance of each directed arc, in nautical miles"},
+    ],
+    "vars": [
+        {"name": "x", "index": "src x arcs", "domain": "NonNegativeReals",
+         "doc": "the amount of flow sent from a given source along a given directed arc"},
+        {"name": "cost", "index": "", "domain": "Reals",
+         "doc": "the total routed length over all sources and arcs, in nautical miles"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "cost"},
+}
+
+NARRATIVE = (
+    "We are mapping the shortest sea routes for a world phosphate network. From each "
+    "source port we send flow out across a network of directed sea links, where every "
+    "link carries a known distance in nautical miles. For each source we choose how much "
+    "flow to push along each directed link. The goal is to make the total routed length, "
+    "summed over every source and every link, as small as possible."
+)
+
+# nb: indexed over (src, nodes), skip n==s. For every other node the inflow must
+# exceed the outflow by at least one unit. Self-contained: rebuild adjacency from
+# model.arcs so the rule does not depend on the base file's helper dicts.
+NB = (
+    "def nb_rule(model, s, n):\n"
+    "    if n == s:\n"
+    "        return Constraint.Skip\n"
+    "    inflow = sum(model.x[s, a, b] for (a, b) in model.arcs if b == n)\n"
+    "    outflow = sum(model.x[s, a, b] for (a, b) in model.arcs if a == n)\n"
+    "    return inflow >= outflow + 1\n"
+    "model.nb = Constraint(model.src, model.nodes, rule=nb_rule)"
+)
+# cd: scalar cost-definition equality.
+CD = (
+    "def cd_rule(model):\n"
+    "    return model.cost == sum(model.darc[a, b] * model.x[s, a, b] for s in model.src for (a, b) in model.arcs)\n"
+    "model.cd = Constraint(rule=cd_rule)"
+)
+
+WHOLESET = "\n".join([NB, CD])
+
+WHOLESET_DESC = (
+    "To build the complete model, enforce the following relationships in order. "
+    "First, at every node other than a source itself, require that the flow arriving "
+    "into that node from a given source exceeds the flow leaving that node by at least "
+    "one unit, so that each node is reached from each source. "
+    "Finally, define the total routed length by accumulating, over every source and "
+    "every directed link, the distance of that link multiplied by the flow the source "
+    "sends along it, and set the total length equal to that accumulated amount."
+)
+
+records = [
+    {"description": (
+        "For each source and for every node that is not that source itself, the total flow "
+        "from that source arriving into the node must be at least one unit greater than the "
+        "total flow from that source leaving the node. A source node imposes no such "
+        "requirement on itself."),
+     "expected_pyomo": NB},
+    {"description": (
+        "The total routed length accounts for every bit of flow on every link. Across all "
+        "sources and all directed links, take the distance of each link times the flow that "
+        "source sends along it, and set the total length equal to the sum of all those amounts."),
+     "expected_pyomo": CD},
+    {"description": WHOLESET_DESC,
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "phosdis_lp",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

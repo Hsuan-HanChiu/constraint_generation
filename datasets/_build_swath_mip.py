@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+"""Builder for the swath_mip (SAR surveillance mission planning) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "swath_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "s", "members": ["s0", "s1", "s2", "s3"],
+         "doc": "the swaths, which are the regions that must be scanned; the first swath serves as the start and end region of the tour and the remaining swaths are the regions to be visited"},
+        {"name": "n", "members": ["n1", "n2"],
+         "doc": "the candidate entry and exit nodes of a swath; each swath is scanned by traversing it between one of its valid node combinations"},
+        {"name": "a", "members": "the valid arcs, listed as four-tuples (from-swath, from-node, to-swath, to-node)",
+         "doc": "the set of valid arcs that can be flown; each arc connects a node combination of one swath to a node combination of a different swath, so an arc is given as a from-swath, a from-node, a to-swath, and a to-node, and no arc stays within the same swath"},
+        {"name": "sx", "members": "the valid (swath, node) combinations that appear as the origin endpoint of some arc",
+         "doc": "the valid swath-node combinations, meaning the (swath, node) pairs that are actually usable as endpoints of flown arcs; a (swath, node) pair not in this set is never a valid place to enter or leave"},
+    ],
+    "params": [
+        {"name": "l", "index": "a", "kind": "distance",
+         "doc": "the flight distance of each arc, that is the length flown when traveling from the arc's origin swath-node combination to its destination swath-node combination, in distance units"},
+    ],
+    "vars": [
+        {"name": "x", "index": "a", "domain": "Binary",
+         "doc": "the arc-use indicator; equals 1 if that arc is flown as part of the tour and 0 otherwise"},
+        {"name": "y", "index": "s,s", "domain": "Binary",
+         "doc": "the swath-ordering indicator over an ordered pair of swaths; equals 1 if the second swath is visited immediately after the first swath in the tour and 0 otherwise; only meaningful for pairs of distinct swaths"},
+        {"name": "z", "index": "", "domain": "Reals",
+         "doc": "the total length of the chosen tour, in distance units"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "z"},
+}
+
+NARRATIVE = (
+    "We plan a surveillance flight for an aircraft that must scan a collection of swaths, where "
+    "each swath is a region scanned by flying through it between one of its valid pairs of entry "
+    "and exit nodes. The aircraft flies a single tour that enters and leaves each swath once, and "
+    "we decide which arcs to fly between swath node combinations and the resulting order in which "
+    "the swaths are visited. Each arc has a known flight distance. The objective is to minimize the "
+    "total flight distance of the tour."
+)
+
+DEFONE = (
+    "def defone_rule(model, sw):\n"
+    "    return sum(model.x[i, ni, j, nj] for (i, ni, j, nj) in model.a if j == sw) == 1\n"
+    "model.defone = Constraint(model.s, rule=defone_rule)"
+)
+DEFBAL = (
+    "def defbal_rule(model, sw, nd):\n"
+    "    if (sw, nd) not in model.sx:\n"
+    "        return Constraint.Skip\n"
+    "    inflow = sum(model.x[i, ni, j, nj] for (i, ni, j, nj) in model.a if (j, nj) == (sw, nd))\n"
+    "    outflow = sum(model.x[i, ni, j, nj] for (i, ni, j, nj) in model.a if (i, ni) == (sw, nd))\n"
+    "    return inflow - outflow == 0\n"
+    "model.defbal = Constraint(model.s, model.n, rule=defbal_rule)"
+)
+DEFY = (
+    "def defy_rule(model, i, j):\n"
+    "    if i == j:\n"
+    "        return Constraint.Skip\n"
+    "    return model.y[i, j] == sum(model.x[ii, ni, jj, nj] for (ii, ni, jj, nj) in model.a if ii == i and jj == j)\n"
+    "model.defy = Constraint(model.s, model.s, rule=defy_rule)"
+)
+DEFOBJ = (
+    "def defobj_rule(model):\n"
+    "    return model.z == sum(model.l[a] * model.x[a] for a in model.a)\n"
+    "model.defobj = Constraint(rule=defobj_rule)"
+)
+WHOLESET = "\n".join([DEFONE, DEFBAL, DEFY, DEFOBJ])
+
+records = [
+    {"description": (
+        "Every swath must be entered exactly once by the tour. For each swath, count the flown "
+        "arcs whose destination lies in that swath across all of its node combinations, and require "
+        "that this count equals one."),
+     "expected_pyomo": DEFONE},
+    {"description": (
+        "The flight must be continuous at every usable swath-node combination, so the aircraft "
+        "leaves a combination exactly when it arrives there. For each valid swath-node combination, "
+        "the number of flown arcs arriving at that combination must equal the number of flown arcs "
+        "departing from it. Combinations that are not valid endpoints impose no such requirement."),
+     "expected_pyomo": DEFBAL},
+    {"description": (
+        "The order in which swaths are visited follows from the arcs actually flown between them. "
+        "For each ordered pair of distinct swaths, the indicator that the second swath is visited "
+        "immediately after the first must equal the total number of flown arcs that go from any node "
+        "combination of the first swath to any node combination of the second."),
+     "expected_pyomo": DEFY},
+    {"description": (
+        "The total tour length accumulates the distance of every flown arc. Set the total tour "
+        "length equal to the sum over all arcs of each arc's flight distance counted only when that "
+        "arc is flown."),
+     "expected_pyomo": DEFOBJ},
+    {"description": (
+        "To build the complete model, enforce the following relationships in order. First, require "
+        "that every swath is entered exactly once by the tour, counting over all of its node "
+        "combinations. Second, require flight continuity at every usable swath-node combination, so "
+        "that at each such combination the number of arrivals equals the number of departures, while "
+        "combinations that are not valid endpoints impose nothing. Third, tie the visiting order of "
+        "swaths to the arcs actually flown, so that for each ordered pair of distinct swaths the "
+        "indicator of an immediate succession equals the number of flown arcs running from the first "
+        "swath to the second. Finally, set the total tour length equal to the summed flight distance "
+        "of every arc that is flown."),
+     "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "swath_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")

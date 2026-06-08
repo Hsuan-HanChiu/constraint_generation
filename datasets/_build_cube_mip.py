@@ -1,0 +1,152 @@
+#!/usr/bin/env python
+"""Builder for the cube_mip (3-D noughts and crosses) constraint-generation dataset."""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "cube_mip_constraint_gen.jsonl"
+
+COMPONENTS = {
+    "sets": [
+        {"name": "s", "members": ["a", "b", "c", "incr", "decr"],
+         "doc": "the line-identifier symbols used to name a line by what it does along each of the three axes; the first three symbols are the three coordinate slots along an axis, while the two extra symbols mark a line that runs increasing or decreasing along that axis"},
+        {"name": "x", "members": ["a", "b", "c"],
+         "doc": "the three coordinate positions along a single axis of the cube, listed in order from first to last"},
+        {"name": "d", "members": ["incr", "decr"],
+         "doc": "the two diagonal directions a line can take along an axis, one increasing through the positions and one decreasing"},
+        {"name": "b", "members": ["low", "high"],
+         "doc": "the two sides of each line-balance relationship, a lower side and an upper side, used to bound how many balls of a color a line may hold"},
+    ],
+    "params": [
+        {"name": "ls", "index": "b", "kind": "sign",
+         "doc": "the sign applied to a line's ball count on each side of the balance, equal to plus one on the lower side and minus one on the upper side, so that the same line count can be bounded from both directions"},
+        {"name": "lr", "index": "b", "kind": "bound",
+         "doc": "the constant offset on each side of the line-balance relationship, equal to two on the lower side and minus one on the upper side"},
+    ],
+    "vars": [
+        {"name": "core", "index": "x,x,x", "domain": "Binary",
+         "doc": "the color placed in each cell of the three-by-three-by-three cube, indexed by its three coordinate positions; zero means a white ball and one means a black ball, with exactly one ball per cell"},
+        {"name": "line", "index": "s,s,s", "domain": "NonNegativeReals",
+         "doc": "a nonnegative indicator measuring how far a line is from being all one color, defined only for the symbol triples that name a genuine line of the cube"},
+        {"name": "num", "index": "", "domain": "Reals",
+         "doc": "the total count of lines whose balls all share one color"},
+    ],
+    "objective": {"sense": "minimize", "expr_var": "num"},
+}
+
+NARRATIVE = (
+    "We arrange balls in a three-by-three-by-three cube, placing exactly one ball in every cell and "
+    "coloring each ball either white or black. The cube contains many straight lines of three cells running "
+    "along its axes, across its faces, and through its body diagonals. A line counts against us when all "
+    "three of its balls turn out to be the same color. We decide the color of every ball, and the objective "
+    "is to minimize the total number of lines that end up entirely one color."
+)
+
+NBB = (
+    "def nbb_rule(model):\n"
+    "    n = len(model.x)\n"
+    "    rhs = (n ** 3) // 2\n"
+    "    return sum(model.core[ix, iy, iz] for ix in model.x for iy in model.x for iz in model.x) == rhs\n"
+    "model.nbb = Constraint(rule=nbb_rule)"
+)
+
+# ldef is self-contained: it rebuilds the coordinate-shift function df, the cell-mapping
+# helper, and the genuine-line set ld purely from model.x and model.d, since the grading
+# namespace only exposes `model`.
+LDEF = (
+    "def ldef_rule(model, ss, sp, spp, bb):\n"
+    "    x_list = list(model.x)\n"
+    "    d_list = list(model.d)\n"
+    "    ordx = {lab: i + 1 for i, lab in enumerate(x_list)}\n"
+    "    cardx = len(x_list)\n"
+    "    df = {}\n"
+    "    for a in x_list:\n"
+    "        for c in x_list:\n"
+    "            df[(a, c)] = ordx[c] - ordx[a]\n"
+    "        df[(a, 'incr')] = 0\n"
+    "        df[(a, 'decr')] = 1 + cardx - 2 * ordx[a]\n"
+    "    ld = set()\n"
+    "    for y in x_list:\n"
+    "        for z in x_list:\n"
+    "            ld.add(('incr', y, z)); ld.add((y, 'incr', z)); ld.add((y, z, 'incr'))\n"
+    "    for dd in d_list:\n"
+    "        for z in x_list:\n"
+    "            ld.add(('incr', dd, z)); ld.add((z, 'incr', dd)); ld.add((dd, z, 'incr'))\n"
+    "        for dp in d_list:\n"
+    "            ld.add(('incr', dd, dp))\n"
+    "    if (ss, sp, spp) not in ld:\n"
+    "        return Constraint.Skip\n"
+    "    def cell(lab, direction):\n"
+    "        return x_list[ordx[lab] + df[(lab, direction)] - 1]\n"
+    "    lhs = model.ls[bb] * sum(model.core[cell(lab, ss), cell(lab, sp), cell(lab, spp)] for lab in x_list)\n"
+    "    return lhs <= model.line[ss, sp, spp] + model.lr[bb]\n"
+    "model.ldef = Constraint(model.s, model.s, model.s, model.b, rule=ldef_rule)"
+)
+
+NDEF = (
+    "def ndef_rule(model):\n"
+    "    x_list = list(model.x)\n"
+    "    d_list = list(model.d)\n"
+    "    ld = set()\n"
+    "    for y in x_list:\n"
+    "        for z in x_list:\n"
+    "            ld.add(('incr', y, z)); ld.add((y, 'incr', z)); ld.add((y, z, 'incr'))\n"
+    "    for dd in d_list:\n"
+    "        for z in x_list:\n"
+    "            ld.add(('incr', dd, z)); ld.add((z, 'incr', dd)); ld.add((dd, z, 'incr'))\n"
+    "        for dp in d_list:\n"
+    "            ld.add(('incr', dd, dp))\n"
+    "    return model.num == sum(model.line[t] for t in sorted(ld))\n"
+    "model.ndef = Constraint(rule=ndef_rule)"
+)
+
+WHOLESET = "\n".join([NBB, LDEF, NDEF])
+
+NBB_DESC = (
+    "Exactly half of the cube's cells, rounded down, must hold a black ball. Summed over every cell of "
+    "the cube, the number of black balls placed must equal half the total number of cells with any "
+    "fraction dropped."
+)
+LDEF_DESC = (
+    "For each genuine line of the cube, tie its same-color indicator to the colors of the three cells it "
+    "passes through, on both the lower and upper side of the balance. On the lower side, the number of "
+    "black balls along the line must not exceed the line's indicator raised by the lower offset. On the "
+    "upper side, the negative of that same black-ball count must not exceed the indicator lowered by the "
+    "upper offset, which together force the indicator to register whenever the three cells are all black "
+    "or all white. Apply this only to the symbol triples that name a real line, and skip every triple that "
+    "does not correspond to an actual line of the cube."
+)
+NDEF_DESC = (
+    "The total count of all-one-color lines adds up the indicators of every genuine line. Set the total "
+    "to the sum, over all the symbol triples that name a real line of the cube, of that line's same-color "
+    "indicator."
+)
+
+WHOLESET_DESC = (
+    "To build the complete model, enforce the following relationships in order. "
+    "First, require that exactly half of the cube's cells, rounded down, hold a black ball, counting black "
+    "balls across every cell of the cube. "
+    "Second, for each genuine line of the cube, tie its same-color indicator to the colors of the three "
+    "cells it passes through on both the lower and upper side of a balance, so that the indicator registers "
+    "whenever those three cells are all the same color, applying this only to the symbol triples that name "
+    "a real line and skipping every triple that does not. "
+    "Finally, set the total count of all-one-color lines equal to the sum of the same-color indicators over "
+    "all the symbol triples that name a real line of the cube."
+)
+
+records = [
+    {"description": NBB_DESC, "expected_pyomo": NBB},
+    {"description": LDEF_DESC, "expected_pyomo": LDEF},
+    {"description": NDEF_DESC, "expected_pyomo": NDEF},
+    {"description": WHOLESET_DESC, "expected_pyomo": WHOLESET},
+]
+
+with open(OUT, "w") as f:
+    for r in records:
+        f.write(json.dumps({
+            "problem_id": "cube_mip",
+            "model_narrative": NARRATIVE,
+            "components": COMPONENTS,
+            "description": r["description"],
+            "expected_pyomo": r["expected_pyomo"],
+        }, ensure_ascii=False) + "\n")
+print(f"wrote {OUT} ({len(records)} records)")
