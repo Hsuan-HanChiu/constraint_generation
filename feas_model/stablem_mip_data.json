@@ -1,0 +1,55 @@
+{
+  "sets": {
+    "m": [
+      "Alan",
+      "Bob",
+      "Carl",
+      "Dan"
+    ],
+    "w": [
+      "Alice",
+      "Brenda",
+      "Cindy",
+      "Debbie"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "wp": {
+      "Alice|Alan": 3.0,
+      "Alice|Bob": 4.0,
+      "Alice|Carl": 2.0,
+      "Alice|Dan": 1.0,
+      "Brenda|Alan": 3.0,
+      "Brenda|Bob": 4.0,
+      "Brenda|Carl": 1.0,
+      "Brenda|Dan": 2.0,
+      "Cindy|Alan": 3.0,
+      "Cindy|Bob": 2.0,
+      "Cindy|Carl": 1.0,
+      "Cindy|Dan": 4.0,
+      "Debbie|Alan": 4.0,
+      "Debbie|Bob": 2.0,
+      "Debbie|Carl": 3.0,
+      "Debbie|Dan": 1.0
+    },
+    "mp": {
+      "Alan|Alice": 2.0,
+      "Alan|Brenda": 4.0,
+      "Alan|Cindy": 1.0,
+      "Alan|Debbie": 3.0,
+      "Bob|Alice": 1.0,
+      "Bob|Brenda": 4.0,
+      "Bob|Cindy": 2.0,
+      "Bob|Debbie": 3.0,
+      "Carl|Alice": 3.0,
+      "Carl|Brenda": 4.0,
+      "Carl|Cindy": 2.0,
+      "Carl|Debbie": 1.0,
+      "Dan|Alice": 3.0,
+      "Dan|Brenda": 2.0,
+      "Dan|Cindy": 1.0,
+      "Dan|Debbie": 4.0
+    }
+  }
+}

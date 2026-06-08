@@ -1,0 +1,83 @@
+{
+  "sets": {
+    "t": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+    "a": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    "m": ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+    "mc": ["jul", "aug", "sep", "oct"],
+    "i": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "c": ["maize", "tobacco"]
+  },
+  "scalar_params": {
+    "nfam": 400.0,
+    "sfam": 3.0,
+    "resw": 0.5,
+    "fdmaize": 650.0,
+    "tob": 234.0,
+    "sr": 5.0,
+    "width": 1.0,
+    "ws": 5.0,
+    "whd": 10.0,
+    "wdm": 25.0,
+    "tr": 1.31,
+    "tc": 349.0,
+    "wrc": 46.75,
+    "dwr": 10.0,
+    "labwc": 1.0,
+    "labvc": 0.5,
+    "yw": 40.0,
+    "rho": 0.1,
+    "matr": 0.25
+  },
+  "indexed_params": {
+    "ld": {
+      "tobacco|jan": 44.7,
+      "tobacco|feb": 84.2,
+      "tobacco|mar": 87.3,
+      "tobacco|apr": 90.7,
+      "tobacco|may": 20.5,
+      "tobacco|sep": 37.3,
+      "tobacco|oct": 44.7,
+      "tobacco|nov": 19.7,
+      "tobacco|dec": 46.4,
+      "maize|jan": 46.7,
+      "maize|feb": 10.0,
+      "maize|mar": 13.0,
+      "maize|apr": 16.7,
+      "maize|may": 18.3,
+      "maize|nov": 13.3,
+      "maize|dec": 33.3,
+      "timber-1|jan": 10.0,
+      "timber-1|mar": 3.0,
+      "timber-1|may": 10.0,
+      "timber-1|aug": 1.0,
+      "timber-1|sep": 7.0,
+      "timber-1|oct": 8.0,
+      "timber-1|nov": 9.0,
+      "timber-2|jan": 7.0,
+      "timber-2|may": 10.0,
+      "timber-2|aug": 1.0,
+      "other|jan": 10.0,
+      "other|feb": 8.0,
+      "other|mar": 12.0,
+      "other|apr": 10.0,
+      "other|may": 4.0,
+      "other|jun": 2.0,
+      "other|oct": 10.0,
+      "other|nov": 28.0,
+      "other|dec": 24.0
+    },
+    "tmd": {
+      "input-cost|tobacco": 2000.0,
+      "input-cost|maize": 20.0,
+      "yield|tobacco": 675.0,
+      "yield|maize": 750.0,
+      "price|tobacco": 8.4,
+      "price|maize": 0.8
+    },
+    "yv": {
+      "8": 120.0,
+      "16": 120.0,
+      "24": 120.0
+    }
+  }
+}

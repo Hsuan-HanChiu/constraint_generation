@@ -1,0 +1,288 @@
+{
+  "i": [
+    "ahmsa",
+    "fundidora",
+    "sicartsa",
+    "hylsa",
+    "hylsap",
+    "tampico",
+    "coatza"
+  ],
+  "im": [
+    "coahuila",
+    "ore-north",
+    "ore-south"
+  ],
+  "j": [
+    "mexico-df",
+    "monterrey",
+    "guadalaja"
+  ],
+  "c": [
+    "pellets",
+    "coke",
+    "nat-gas",
+    "electric",
+    "scrap",
+    "pig-iron",
+    "sponge",
+    "steel"
+  ],
+  "cf": [
+    "steel"
+  ],
+  "ce": [
+    "steel"
+  ],
+  "ci": [
+    "sponge"
+  ],
+  "cr": [
+    "nat-gas",
+    "electric",
+    "scrap"
+  ],
+  "cm": [
+    "coke",
+    "pellets"
+  ],
+  "cv": [
+    "coke",
+    "pellets"
+  ],
+  "p": [
+    "pig-iron",
+    "sponge",
+    "steel-oh",
+    "steel-el",
+    "steel-bof",
+    "steel-bofs"
+  ],
+  "m": [
+    "blast-furn",
+    "openhearth",
+    "bof",
+    "direct-red",
+    "elec-arc"
+  ],
+  "me": [
+    "blast-furn",
+    "bof",
+    "direct-red",
+    "elec-arc"
+  ],
+  "t": [
+    "1981-83",
+    "1984-86",
+    "1987-89",
+    "1990-92",
+    "1993-95"
+  ],
+  "te": [
+    "1984-86",
+    "1987-89",
+    "1990-92",
+    "1993-95"
+  ],
+  "energy": [
+    "nat-gas",
+    "electric"
+  ],
+  "q": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "g": [
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "a": {
+    "pellets|pig-iron": -1.58,
+    "pellets|sponge": -1.38,
+    "coke|pig-iron": -0.63,
+    "nat-gas|sponge": -0.38,
+    "electric|steel-el": -0.68,
+    "scrap|steel-oh": -0.33,
+    "scrap|steel-bof": -0.12,
+    "scrap|steel-bofs": -0.25,
+    "pig-iron|pig-iron": 1.0,
+    "pig-iron|steel-oh": -0.77,
+    "pig-iron|steel-bof": -0.95,
+    "pig-iron|steel-bofs": -0.82,
+    "sponge|sponge": 1.0,
+    "sponge|steel-el": -1.09,
+    "steel|steel-oh": 1.0,
+    "steel|steel-el": 1.0,
+    "steel|steel-bof": 1.0,
+    "steel|steel-bofs": 1.0
+  },
+  "b": {
+    "blast-furn|pig-iron": 1.0,
+    "openhearth|steel-oh": 1.0,
+    "bof|steel-bof": 1.0,
+    "bof|steel-bofs": 1.0,
+    "direct-red|sponge": 1.0,
+    "elec-arc|steel-el": 1.0
+  },
+  "k": {
+    "blast-furn|ahmsa": 3.25,
+    "blast-furn|fundidora": 1.4,
+    "blast-furn|sicartsa": 1.1,
+    "openhearth|ahmsa": 1.5,
+    "openhearth|fundidora": 0.85,
+    "bof|ahmsa": 2.07,
+    "bof|fundidora": 1.5,
+    "bof|sicartsa": 1.3,
+    "direct-red|hylsa": 0.98,
+    "direct-red|hylsap": 1.0,
+    "elec-arc|hylsa": 1.13,
+    "elec-arc|hylsap": 0.56
+  },
+  "km": {
+    "coke|coahuila|p-low": 52,
+    "coke|coahuila|p-high": 100,
+    "coke|coahuila|wmax": 230,
+    "coke|coahuila|expo": 1.3,
+    "pellets|ore-north|p-low": 18.7,
+    "pellets|ore-north|p-high": 38,
+    "pellets|ore-north|wmax": 60,
+    "pellets|ore-north|expo": 1.3,
+    "pellets|ore-south|p-low": 18.7,
+    "pellets|ore-south|p-high": 38,
+    "pellets|ore-south|wmax": 115,
+    "pellets|ore-south|expo": 1.3
+  },
+  "rd": {
+    "ahmsa|mexico-df": 1204,
+    "ahmsa|monterrey": 218,
+    "ahmsa|guadalaja": 1125,
+    "ahmsa|export": 739,
+    "fundidora|mexico-df": 1017,
+    "fundidora|guadalaja": 1030,
+    "fundidora|export": 521,
+    "sicartsa|mexico-df": 819,
+    "sicartsa|monterrey": 1305,
+    "sicartsa|guadalaja": 704,
+    "hylsa|mexico-df": 1017,
+    "hylsa|guadalaja": 1030,
+    "hylsa|export": 521,
+    "hylsap|mexico-df": 185,
+    "hylsap|monterrey": 1085,
+    "hylsap|guadalaja": 760,
+    "hylsap|export": 315,
+    "tampico|mexico-df": 941,
+    "tampico|monterrey": 521,
+    "tampico|guadalaja": 995,
+    "coatza|mexico-df": 900,
+    "coatza|monterrey": 1756,
+    "coatza|guadalaja": 1100,
+    "import|mexico-df": 428,
+    "import|monterrey": 521,
+    "import|guadalaja": 300
+  },
+  "ri": {
+    "fundidora|ahmsa": 218,
+    "sicartsa|ahmsa": 1416,
+    "sicartsa|fundidora": 1322,
+    "hylsa|ahmsa": 218,
+    "hylsa|fundidora": 10,
+    "hylsa|sicartsa": 1327,
+    "hylsap|ahmsa": 1300,
+    "hylsap|fundidora": 1159,
+    "hylsap|sicartsa": 995,
+    "hylsap|hylsa": 1159,
+    "tampico|ahmsa": 739,
+    "tampico|fundidora": 521,
+    "tampico|sicartsa": 1319,
+    "tampico|hylsa": 521,
+    "tampico|hylsap": 1111,
+    "coatza|ahmsa": 1850,
+    "coatza|fundidora": 1756,
+    "coatza|sicartsa": 1638,
+    "coatza|hylsa": 1756,
+    "coatza|hylsap": 671,
+    "coatza|tampico": 1702
+  },
+  "rm": {
+    "coahuila|ahmsa": 120,
+    "coahuila|fundidora": 400,
+    "coahuila|sicartsa": 1500,
+    "coahuila|hylsa": 400,
+    "coahuila|hylsap": 1420,
+    "coahuila|tampico": 900,
+    "coahuila|coatza": 2100,
+    "ore-north|ahmsa": 219,
+    "ore-north|fundidora": 563,
+    "ore-north|sicartsa": 1613,
+    "ore-north|hylsa": 563,
+    "ore-north|hylsap": 1411,
+    "ore-north|tampico": 1048,
+    "ore-north|coatza": 2195,
+    "ore-south|ahmsa": 1490,
+    "ore-south|fundidora": 1396,
+    "ore-south|hylsa": 1396,
+    "ore-south|hylsap": 1116,
+    "ore-south|tampico": 1338,
+    "ore-south|coatza": 1500
+  },
+  "inv": {
+    "blast-furn|hhat": 1.5,
+    "blast-furn|phihat": 250,
+    "blast-furn|beta": 0.6,
+    "bof|hhat": 1.5,
+    "bof|phihat": 120,
+    "bof|beta": 0.6,
+    "direct-red|hhat": 0.8,
+    "direct-red|phihat": 100,
+    "direct-red|beta": 0.6,
+    "elec-arc|hhat": 0.5,
+    "elec-arc|phihat": 42,
+    "elec-arc|beta": 0.6
+  },
+  "dd": {
+    "mexico-df": 0.55,
+    "monterrey": 0.3,
+    "guadalaja": 0.15
+  },
+  "site": {
+    "fundidora": 1.1,
+    "hylsa": 1.1,
+    "sicartsa": 1,
+    "hylsap": 1,
+    "ahmsa": 1,
+    "tampico": 1.2,
+    "coatza": 1.2
+  },
+  "region": {
+    "coatza": 0.3,
+    "sicartsa": 0.3,
+    "tampico": 0.3
+  },
+  "pdb": {
+    "nat-gas": 14,
+    "electric": 26,
+    "scrap": 105
+  },
+  "pv": {
+    "coke": 60,
+    "pellets": 40,
+    "steel": 150
+  },
+  "pe": {
+    "steel": 140
+  },
+  "baseyear": 1979,
+  "theta": 3,
+  "dt": 5.2,
+  "rse": 40,
+  "gd": 10,
+  "rlev": 1,
+  "iron": 30,
+  "zeta": 20,
+  "rho": 0.1
+}

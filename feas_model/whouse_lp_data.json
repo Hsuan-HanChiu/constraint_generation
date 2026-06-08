@@ -1,0 +1,25 @@
+{
+  "sets": {
+    "t": [
+      "q-1",
+      "q-2",
+      "q-3",
+      "q-4"
+    ]
+  },
+  "scalar_params": {
+    "storecost": 1,
+    "storecap": 100
+  },
+  "indexed_params": {
+    "price": {
+      "q-1": 10,
+      "q-2": 12,
+      "q-3": 8,
+      "q-4": 9
+    },
+    "istock": {
+      "q-1": 50
+    }
+  }
+}

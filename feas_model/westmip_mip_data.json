@@ -1,0 +1,156 @@
+{
+  "sets": {
+    "i": [
+      "finished",
+      "intermed",
+      "primary",
+      "overhead"
+    ],
+    "n": [
+      "normal",
+      "auxiliary"
+    ],
+    "r": [
+      "foreign",
+      "domestic"
+    ],
+    "te": [
+      "base",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "terminal"
+    ],
+    "t": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "terminal"
+    ],
+    "ia": [
+      "finished",
+      "intermed"
+    ],
+    "im": [
+      "finished",
+      "intermed"
+    ],
+    "ie": [
+      "primary"
+    ],
+    "in": [
+      [
+        "finished",
+        "normal"
+      ],
+      [
+        "finished",
+        "auxiliary"
+      ],
+      [
+        "intermed",
+        "normal"
+      ],
+      [
+        "intermed",
+        "auxiliary"
+      ],
+      [
+        "primary",
+        "normal"
+      ],
+      [
+        "overhead",
+        "normal"
+      ]
+    ]
+  },
+  "scalar_params": {
+    "cmin": 10.6,
+    "dmax": 75,
+    "rho": 0.07,
+    "vmax": 200
+  },
+  "indexed_params": {
+    "a": {
+      "finished|finished": 1.0,
+      "intermed|finished": -0.4,
+      "primary|finished": -0.12,
+      "overhead|finished": -0.1,
+      "intermed|intermed": 1.0,
+      "primary|intermed": -0.48,
+      "overhead|intermed": -0.21,
+      "primary|primary": 1.0,
+      "overhead|primary": -0.35,
+      "overhead|overhead": 1.0
+    },
+    "u": {
+      "finished|foreign": 0.04,
+      "finished|domestic": -0.2,
+      "intermed|foreign": 0.06,
+      "intermed|domestic": -0.2,
+      "primary|domestic": -0.2,
+      "overhead|domestic": -0.2
+    },
+    "rbase": {
+      "foreign": 40,
+      "domestic": 82.3
+    },
+    "alpha": {
+      "finished": 0.45,
+      "intermed": 0.32,
+      "primary": 0.04,
+      "overhead": 0.19
+    },
+    "cbb": {
+      "finished": 90,
+      "intermed": 75,
+      "primary": 11.5,
+      "overhead": 50
+    },
+    "kb": {
+      "finished|normal": 50,
+      "finished|auxiliary": 50,
+      "intermed|normal": 75,
+      "intermed|auxiliary": 75,
+      "primary|normal": 160,
+      "overhead|normal": 126.7
+    },
+    "inv_fixed_foreign": {
+      "intermed|normal": 19,
+      "overhead|normal": 57.6
+    },
+    "inv_fixed_domestic": {
+      "intermed|normal": 42,
+      "overhead|normal": 108
+    },
+    "inv_prop_foreign": {
+      "finished|normal": 0.2,
+      "finished|auxiliary": 0.1,
+      "intermed|normal": 0.15,
+      "intermed|auxiliary": 0.05,
+      "primary|normal": 0.6,
+      "overhead|normal": 1.28
+    },
+    "inv_prop_domestic": {
+      "finished|normal": 0.53,
+      "finished|auxiliary": 0.27,
+      "intermed|normal": 0.45,
+      "intermed|auxiliary": 0.15,
+      "primary|normal": 7,
+      "overhead|normal": 2.4
+    }
+  }
+}

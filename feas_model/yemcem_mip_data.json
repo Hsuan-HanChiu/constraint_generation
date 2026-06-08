@@ -1,0 +1,237 @@
+{
+  "sets": {
+    "i": [
+      "amran",
+      "baijil",
+      "mafrak"
+    ],
+    "j": [
+      "sanaa",
+      "hodeideh",
+      "taizz",
+      "ibb",
+      "dhamar"
+    ],
+    "m": [
+      "dry-kiln",
+      "wet-kiln",
+      "mills"
+    ],
+    "p": [
+      "dry",
+      "wet",
+      "grind"
+    ],
+    "c": [
+      "cement",
+      "clinker",
+      "fuel"
+    ],
+    "cf": [
+      "cement"
+    ],
+    "ci": [
+      "clinker",
+      "fuel"
+    ],
+    "t": [
+      "1983-85",
+      "1986-88",
+      "1989-91",
+      "1992-94"
+    ],
+    "te": [
+      "1986-88",
+      "1989-91",
+      "1992-94"
+    ],
+    "s": [
+      "small",
+      "medium",
+      "large"
+    ],
+    "ms": [
+      "dry-kiln",
+      "wet-kiln"
+    ],
+    "mp": [
+      "mills"
+    ]
+  },
+  "scalar_params": {
+    "sigma": 0.1060792482526339
+  },
+  "indexed_params": {
+    "a": {
+      "fuel|dry": -0.1127,
+      "clinker|dry": 0.96,
+      "cement|dry": 0.0,
+      "fuel|wet": -0.1465,
+      "clinker|wet": 0.96,
+      "cement|wet": 0.0,
+      "fuel|grind": 0.0,
+      "clinker|grind": -0.96,
+      "cement|grind": 1.0
+    },
+    "b": {
+      "dry-kiln|dry": 1.0,
+      "dry-kiln|wet": 0.0,
+      "dry-kiln|grind": 0.0,
+      "wet-kiln|dry": 0.0,
+      "wet-kiln|wet": 1.0,
+      "wet-kiln|grind": 0.0,
+      "mills|dry": 0.0,
+      "mills|wet": 0.0,
+      "mills|grind": 1.0
+    },
+    "k": {
+      "dry-kiln|amran": 500.0,
+      "dry-kiln|baijil": 0.0,
+      "dry-kiln|mafrak": 0.0,
+      "wet-kiln|amran": 0.0,
+      "wet-kiln|baijil": 320.0,
+      "wet-kiln|mafrak": 0.0,
+      "mills|amran": 500.0,
+      "mills|baijil": 320.0,
+      "mills|mafrak": 0.0
+    },
+    "ts": {
+      "1983-85|1986-88": 0.0,
+      "1983-85|1989-91": 0.0,
+      "1983-85|1992-94": 0.0,
+      "1986-88|1986-88": 1.0,
+      "1986-88|1989-91": 0.0,
+      "1986-88|1992-94": 0.0,
+      "1989-91|1986-88": 1.0,
+      "1989-91|1989-91": 1.0,
+      "1989-91|1992-94": 0.0,
+      "1992-94|1986-88": 1.0,
+      "1992-94|1989-91": 1.0,
+      "1992-94|1992-94": 1.0
+    },
+    "klim": {
+      "amran": 2000.0,
+      "baijil": 2000.0,
+      "mafrak": 2000.0
+    },
+    "rc": {
+      "dry": 10.20325,
+      "wet": 10.20325,
+      "grind": 28.46528
+    },
+    "fc": {
+      "dry-kiln": 55.8,
+      "wet-kiln": 60.0,
+      "mills": 0.0
+    },
+    "delta": {
+      "1983-85": 0.826446281,
+      "1986-88": 0.620921323,
+      "1989-91": 0.46650738,
+      "1992-94": 0.350493899
+    },
+    "site": {
+      "amran": 1.2,
+      "baijil": 1.15,
+      "mafrak": 1.05
+    },
+    "size": {
+      "small": 500.0,
+      "medium": 750.0,
+      "large": 1000.0
+    },
+    "inv": {
+      "dry-kiln|cost": 526.296,
+      "dry-kiln|size": 500.0,
+      "dry-kiln|scale": 0.53,
+      "wet-kiln|cost": 447.352,
+      "wet-kiln|size": 500.0,
+      "wet-kiln|scale": 0.56,
+      "mills|cost": 105.259,
+      "mills|size": 500.0,
+      "mills|scale": 1.0
+    },
+    "muf": {
+      "amran|sanaa": 55.944,
+      "amran|hodeideh": 179.4882,
+      "amran|taizz": 195.7408,
+      "amran|dhamar": 108.2268,
+      "amran|ibb": 143.9468,
+      "baijil|sanaa": 121.6218,
+      "baijil|hodeideh": 61.302,
+      "baijil|taizz": 186.1434,
+      "baijil|dhamar": 173.397,
+      "baijil|ibb": 207.8856,
+      "mafrak|sanaa": 203.9188,
+      "mafrak|hodeideh": 141.1221,
+      "mafrak|taizz": 64.6437,
+      "mafrak|dhamar": 150.978,
+      "mafrak|ibb": 115.5964
+    },
+    "muv": {
+      "sanaa": 153.7698,
+      "hodeideh": 32.35,
+      "taizz": 177.8808,
+      "dhamar": 209.3708,
+      "ibb": 230.5255
+    },
+    "mue": {
+      "amran": 179.4882,
+      "baijil": 61.302,
+      "mafrak": 141.1221
+    },
+    "mui": {
+      "clinker|amran": 141.321,
+      "clinker|baijil": 53.31,
+      "clinker|mafrak": 112.7505,
+      "fuel|amran": 211.9815,
+      "fuel|baijil": 79.965,
+      "fuel|mafrak": 169.12575
+    },
+    "ebu": {
+      "1983-85": 1000.0,
+      "1986-88": 1000.0,
+      "1989-91": 1000.0,
+      "1992-94": 1000.0
+    },
+    "vbu": {
+      "1983-85": 3000.0,
+      "1986-88": 3000.0,
+      "1989-91": 3000.0,
+      "1992-94": 3000.0
+    },
+    "vibu": {
+      "1983-85": 0.0,
+      "1986-88": 0.0,
+      "1989-91": 0.0,
+      "1992-94": 0.0
+    },
+    "pv": {
+      "cement": 280.0,
+      "clinker": 224.0,
+      "fuel": 600.0
+    },
+    "d": {
+      "sanaa|1983-85|cement": 382.553743,
+      "sanaa|1986-88|cement": 523.192359,
+      "sanaa|1989-91|cement": 715.534088,
+      "sanaa|1992-94|cement": 978.586601,
+      "hodeideh|1983-85|cement": 368.89111,
+      "hodeideh|1986-88|cement": 504.506917,
+      "hodeideh|1989-91|cement": 689.9793,
+      "hodeideh|1992-94|cement": 943.63708,
+      "taizz|1983-85|cement": 273.252674,
+      "taizz|1986-88|cement": 373.708828,
+      "taizz|1989-91|cement": 511.095777,
+      "taizz|1992-94|cement": 698.990429,
+      "ibb|1983-85|cement": 170.782921,
+      "ibb|1986-88|cement": 233.568017,
+      "ibb|1989-91|cement": 319.434861,
+      "ibb|1992-94|cement": 436.869018,
+      "dhamar|1983-85|cement": 170.782921,
+      "dhamar|1986-88|cement": 233.568017,
+      "dhamar|1989-91|cement": 319.434861,
+      "dhamar|1992-94|cement": 436.869018
+    }
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "sets": {
+    "i": [
+      "Depot1",
+      "Depot2",
+      "Depot3",
+      "Depot4",
+      "Depot5",
+      "Depot6",
+      "Depot7",
+      "Depot8",
+      "Depot9",
+      "Depot10",
+      "Depot11",
+      "Depot12",
+      "Depot13",
+      "Depot14",
+      "Depot15",
+      "Depot16",
+      "Depot17",
+      "Depot18",
+      "Depot19",
+      "Depot20"
+    ],
+    "j": [
+      "stock",
+      "wages",
+      "issues",
+      "receipts",
+      "reqs"
+    ],
+    "ji": [
+      "stock",
+      "wages"
+    ],
+    "jo": [
+      "issues",
+      "receipts",
+      "reqs"
+    ],
+    "ii": [
+      "Depot1",
+      "Depot2",
+      "Depot18"
+    ]
+  },
+  "scalar_params": {
+    "vlo": 0.0001,
+    "ulo": 0.0001,
+    "norm": 100,
+    "returns_to_scale": "CRS",
+    "selected_unit": "Depot18"
+  },
+  "indexed_params": {
+    "data": {
+      "Depot1": {
+        "stock": 3.0,
+        "wages": 5.0,
+        "issues": 40.0,
+        "receipts": 55.0,
+        "reqs": 30.0
+      },
+      "Depot2": {
+        "stock": 2.5,
+        "wages": 4.5,
+        "issues": 45.0,
+        "receipts": 50.0,
+        "reqs": 40.0
+      },
+      "Depot3": {
+        "stock": 4.0,
+        "wages": 6.0,
+        "issues": 55.0,
+        "receipts": 45.0,
+        "reqs": 30.0
+      },
+      "Depot4": {
+        "stock": 6.0,
+        "wages": 7.0,
+        "issues": 48.0,
+        "receipts": 20.0,
+        "reqs": 60.0
+      },
+      "Depot5": {
+        "stock": 2.3,
+        "wages": 3.5,
+        "issues": 28.0,
+        "receipts": 50.0,
+        "reqs": 25.0
+      },
+      "Depot6": {
+        "stock": 4.0,
+        "wages": 6.5,
+        "issues": 48.0,
+        "receipts": 20.0,
+        "reqs": 65.0
+      },
+      "Depot7": {
+        "stock": 7.0,
+        "wages": 10.0,
+        "issues": 80.0,
+        "receipts": 65.0,
+        "reqs": 57.0
+      },
+      "Depot8": {
+        "stock": 4.4,
+        "wages": 6.4,
+        "issues": 25.0,
+        "receipts": 48.0,
+        "reqs": 30.0
+      },
+      "Depot9": {
+        "stock": 3.0,
+        "wages": 5.0,
+        "issues": 45.0,
+        "receipts": 64.0,
+        "reqs": 42.0
+      },
+      "Depot10": {
+        "stock": 5.0,
+        "wages": 7.0,
+        "issues": 70.0,
+        "receipts": 65.0,
+        "reqs": 48.0
+      },
+      "Depot11": {
+        "stock": 5.0,
+        "wages": 7.0,
+        "issues": 45.0,
+        "receipts": 65.0,
+        "reqs": 40.0
+      },
+      "Depot12": {
+        "stock": 2.0,
+        "wages": 4.0,
+        "issues": 45.0,
+        "receipts": 40.0,
+        "reqs": 44.0
+      },
+      "Depot13": {
+        "stock": 5.0,
+        "wages": 7.0,
+        "issues": 65.0,
+        "receipts": 25.0,
+        "reqs": 35.0
+      },
+      "Depot14": {
+        "stock": 4.0,
+        "wages": 4.0,
+        "issues": 38.0,
+        "receipts": 18.0,
+        "reqs": 64.0
+      },
+      "Depot15": {
+        "stock": 2.0,
+        "wages": 3.0,
+        "issues": 20.0,
+        "receipts": 50.0,
+        "reqs": 15.0
+      },
+      "Depot16": {
+        "stock": 3.0,
+        "wages": 6.0,
+        "issues": 38.0,
+        "receipts": 20.0,
+        "reqs": 60.0
+      },
+      "Depot17": {
+        "stock": 7.0,
+        "wages": 11.0,
+        "issues": 68.0,
+        "receipts": 64.0,
+        "reqs": 54.0
+      },
+      "Depot18": {
+        "stock": 4.0,
+        "wages": 6.0,
+        "issues": 25.0,
+        "receipts": 38.0,
+        "reqs": 20.0
+      },
+      "Depot19": {
+        "stock": 3.0,
+        "wages": 4.0,
+        "issues": 45.0,
+        "receipts": 67.0,
+        "reqs": 32.0
+      },
+      "Depot20": {
+        "stock": 3.0,
+        "wages": 6.0,
+        "issues": 57.0,
+        "receipts": 60.0,
+        "reqs": 40.0
+      }
+    }
+  }
+}

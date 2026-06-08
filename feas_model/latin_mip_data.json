@@ -1,0 +1,38 @@
+{
+  "SIZE": 4,
+  "k": [
+    "row1",
+    "row2",
+    "row3",
+    "row4"
+  ],
+  "l": [
+    "col1",
+    "col2",
+    "col3",
+    "col4"
+  ],
+  "v": [
+    "val1",
+    "val2",
+    "val3",
+    "val4"
+  ],
+  "s": [
+    "one",
+    "two"
+  ],
+  "# optional example fixes": "These reproduce the GAMS forced values used in the example",
+  "original_fix": {
+    "i": "val1",
+    "j": "val1",
+    "k": "row1",
+    "l": "col1"
+  },
+  "new_fix": {
+    "s": "one",
+    "v": "val1",
+    "k": "row1",
+    "l": "col1"
+  }
+}

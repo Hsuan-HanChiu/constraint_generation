@@ -1,0 +1,64 @@
+{
+  "sets": {
+    "i": [
+      "seattle",
+      "san-diego"
+    ],
+    "j": [
+      "new-york",
+      "chicago",
+      "topeka"
+    ],
+    "s": [
+      "slope0",
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s6",
+      "slopeN"
+    ],
+    "ss": [
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s6"
+    ],
+    "g": [
+      "slope0",
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s6"
+    ]
+  },
+  "indexed_params": {
+    "a": {
+      "seattle": 350,
+      "san-diego": 600
+    },
+    "b": {
+      "new-york": 325,
+      "chicago": 300,
+      "topeka": 275
+    },
+    "d": {
+      "seattle|new-york": 2.5,
+      "seattle|chicago": 1.7,
+      "seattle|topeka": 1.8,
+      "san-diego|new-york": 2.5,
+      "san-diego|chicago": 1.8,
+      "san-diego|topeka": 1.4
+    }
+  },
+  "scalar_params": {
+    "f": 90,
+    "xlow": 50,
+    "xhigh": 400
+  }
+}

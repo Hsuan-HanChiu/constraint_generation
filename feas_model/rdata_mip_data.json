@@ -1,0 +1,116 @@
+{
+  "sets": {
+    "plant": [
+      "sparrows",
+      "inland",
+      "comfort",
+      "rockdale",
+      "lansing"
+    ],
+    "commodity": [
+      "iron-ore",
+      "pig-iron",
+      "scrap-iron",
+      "steel",
+      "flat-steel",
+      "bauxite",
+      "alumina",
+      "aluminum",
+      "auto-body",
+      "automobile"
+    ],
+    "process": [
+      "pig-iron",
+      "steel-pig",
+      "stl-scrap",
+      "rolling",
+      "alumina",
+      "aluminum",
+      "auto-body",
+      "auto-assm"
+    ],
+    "unit": [
+      "blast-furn",
+      "steel-shop",
+      "roll-mill",
+      "alumina",
+      "aluminum",
+      "stamping",
+      "assembly"
+    ],
+    "union": [
+      "iam",
+      "ibew",
+      "ibt",
+      "uaw",
+      "usa"
+    ],
+    "rawmat": [
+      "iron-ore",
+      "scrap-iron",
+      "bauxite"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "demand": {
+      "automobile": 0.5
+    },
+    "a": {
+      "iron-ore|pig-iron": -1.0,
+      "pig-iron|pig-iron": 1.0,
+      "pig-iron|steel-pig": -0.9,
+      "pig-iron|stl-scrap": -0.7,
+      "scrap-iron|steel-pig": -0.2,
+      "scrap-iron|stl-scrap": -0.4,
+      "scrap-iron|rolling": 0.2,
+      "steel|steel-pig": 1.0,
+      "steel|stl-scrap": 1.0,
+      "steel|rolling": -1.2,
+      "flat-steel|rolling": 1.0,
+      "flat-steel|auto-body": -1.2,
+      "bauxite|alumina": -1.4,
+      "alumina|alumina": 1.0,
+      "alumina|aluminum": -1.2,
+      "aluminum|aluminum": 1.0,
+      "aluminum|auto-body": -0.2,
+      "auto-body|auto-body": 1.0,
+      "auto-body|auto-assm": -1.0,
+      "automobile|auto-assm": 1.0
+    },
+    "b": {
+      "blast-furn|pig-iron": 1,
+      "steel-shop|steel-pig": 1,
+      "steel-shop|stl-scrap": 1,
+      "roll-mill|rolling": 1,
+      "alumina|alumina": 1,
+      "aluminum|aluminum": 1,
+      "stamping|auto-body": 1,
+      "assembly|auto-assm": 1
+    },
+    "k80": {
+      "blast-furn|sparrows": 2.0,
+      "blast-furn|inland": 2.5,
+      "steel-shop|sparrows": 2.35,
+      "steel-shop|inland": 2.8,
+      "roll-mill|sparrows": 1.9,
+      "roll-mill|inland": 2.4,
+      "alumina|comfort": 0.8,
+      "aluminum|comfort": 0.6,
+      "aluminum|rockdale": 0.5,
+      "stamping|lansing": 0.6,
+      "assembly|lansing": 0.6
+    },
+    "emp": {
+      "sparrows|usa": 1.2,
+      "sparrows|ibt": 0.3,
+      "sparrows|iam": 0.05,
+      "inland|usa": 0.4,
+      "comfort|usa": 0.7,
+      "comfort|ibt": 0.2,
+      "rockdale|usa": 0.5,
+      "rockdale|ibew": 0.05,
+      "lansing|uaw": 1.2
+    }
+  }
+}

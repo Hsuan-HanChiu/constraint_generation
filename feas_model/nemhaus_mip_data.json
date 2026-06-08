@@ -1,0 +1,43 @@
+{
+  "i": [
+    "act-1",
+    "act-2",
+    "act-3",
+    "act-4",
+    "act-5"
+  ],
+  "jj": [
+    "fac-1",
+    "fac-2",
+    "fac-3",
+    "fac-4",
+    "fac-5"
+  ],
+  "a": {
+    "act-1|act-1": 0,
+    "act-1|act-2": 0,
+    "act-1|act-3": 2,
+    "act-1|act-4": 4,
+    "act-1|act-5": 3,
+    "act-2|act-1": 0,
+    "act-2|act-2": 0,
+    "act-2|act-3": 6,
+    "act-2|act-4": 2,
+    "act-2|act-5": 3,
+    "act-3|act-1": 0,
+    "act-3|act-2": 2,
+    "act-3|act-3": 0,
+    "act-3|act-4": 5,
+    "act-3|act-5": 3,
+    "act-4|act-1": 0,
+    "act-4|act-2": 4,
+    "act-4|act-3": 2,
+    "act-4|act-4": 0,
+    "act-4|act-5": 3,
+    "act-5|act-1": 0,
+    "act-5|act-2": 3,
+    "act-5|act-3": 3,
+    "act-5|act-4": 3,
+    "act-5|act-5": 0
+  }
+}

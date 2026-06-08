@@ -1,0 +1,58 @@
+{
+  "sets": {
+    "q": [
+      "summer",
+      "fall",
+      "winter",
+      "spring"
+    ],
+    "s": [
+      "first",
+      "second"
+    ],
+    "l": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "scalar_params": {
+    "mc": 100.0,
+    "sr": 2.0,
+    "hc": 900.0,
+    "fc": 150.0,
+    "discount_base": 1.03
+  },
+  "indexed_params": {
+    "d": {
+      "spring": 24000.0
+    },
+    "lc": {
+      "summer": 15000.0
+    },
+    "ei": {
+      "summer": 84.0
+    },
+    "pr_labor": {
+      "1": 20.0,
+      "2": 40.0,
+      "3": 50.0,
+      "4": 60.0
+    },
+    "pr_motor": {
+      "1": 1000.0,
+      "2": 3000.0,
+      "3": 4500.0,
+      "4": 5800.0
+    },
+    "sc_fixed": {
+      "first": 10000.0,
+      "second": 16000.0
+    },
+    "sc_labor": {
+      "first": 3500.0,
+      "second": 4100.0
+    }
+  }
+}

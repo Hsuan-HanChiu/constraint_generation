@@ -1,0 +1,91 @@
+{
+  "sets": {
+    "p": [
+      "chumphon",
+      "surat",
+      "nakon",
+      "songkhla"
+    ],
+    "v": [
+      "v-01", "v-02", "v-03", "v-04", "v-05",
+      "v-06", "v-07", "v-08", "v-09", "v-10",
+      "v-11", "v-12", "v-13", "v-14", "v-15"
+    ],
+    "k": [
+      "small",
+      "medium",
+      "large"
+    ],
+    "vk": [
+      ["v-01", "small"], ["v-01", "medium"], ["v-01", "large"],
+      ["v-02", "medium"], ["v-02", "large"],
+      ["v-03", "medium"], ["v-03", "large"],
+      ["v-04", "large"],
+      ["v-05", "medium"], ["v-05", "large"],
+      ["v-06", "medium"], ["v-06", "large"],
+      ["v-07", "large"],
+      ["v-08", "medium"], ["v-08", "large"],
+      ["v-09", "large"],
+      ["v-10", "large"],
+      ["v-11", "medium"], ["v-11", "large"],
+      ["v-12", "large"],
+      ["v-13", "large"],
+      ["v-14", "large"],
+      ["v-15", "large"]
+    ],
+    "vkp": [
+      ["v-01", "small", "chumphon"], ["v-01", "medium", "chumphon"], ["v-01", "large", "chumphon"],
+      ["v-02", "medium", "surat"], ["v-02", "large", "surat"],
+      ["v-03", "medium", "nakon"], ["v-03", "large", "nakon"],
+      ["v-04", "large", "songkhla"],
+      ["v-05", "medium", "chumphon"], ["v-05", "medium", "surat"], ["v-05", "large", "chumphon"], ["v-05", "large", "surat"],
+      ["v-06", "medium", "chumphon"], ["v-06", "medium", "nakon"], ["v-06", "large", "chumphon"], ["v-06", "large", "nakon"],
+      ["v-07", "large", "chumphon"], ["v-07", "large", "songkhla"],
+      ["v-08", "medium", "surat"], ["v-08", "medium", "nakon"], ["v-08", "large", "surat"], ["v-08", "large", "nakon"],
+      ["v-09", "large", "surat"], ["v-09", "large", "songkhla"],
+      ["v-10", "large", "nakon"], ["v-10", "large", "songkhla"],
+      ["v-11", "medium", "chumphon"], ["v-11", "medium", "surat"], ["v-11", "medium", "nakon"],
+      ["v-11", "large", "chumphon"], ["v-11", "large", "surat"], ["v-11", "large", "nakon"],
+      ["v-12", "large", "chumphon"], ["v-12", "large", "surat"], ["v-12", "large", "songkhla"],
+      ["v-13", "large", "chumphon"], ["v-13", "large", "nakon"], ["v-13", "large", "songkhla"],
+      ["v-14", "large", "surat"], ["v-14", "large", "nakon"], ["v-14", "large", "songkhla"],
+      ["v-15", "large", "chumphon"], ["v-15", "large", "surat"], ["v-15", "large", "nakon"], ["v-15", "large", "songkhla"]
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "d": {
+      "chumphon": 475.0,
+      "surat": 659.0,
+      "nakon": 672.0,
+      "songkhla": 1123.0
+    },
+    "shipcap": {
+      "small": 100.0,
+      "medium": 200.0,
+      "large": 600.0
+    },
+    "n": {
+      "small": 2.0,
+      "medium": 3.0,
+      "large": 4.0
+    },
+    "dist": {
+      "v-01": 370.0,
+      "v-02": 460.0,
+      "v-03": 600.0,
+      "v-04": 750.0,
+      "v-05": 515.0,
+      "v-06": 640.0,
+      "v-07": 810.0,
+      "v-08": 665.0,
+      "v-09": 665.0,
+      "v-10": 800.0,
+      "v-11": 720.0,
+      "v-12": 860.0,
+      "v-13": 840.0,
+      "v-14": 865.0,
+      "v-15": 920.0
+    }
+  }
+}

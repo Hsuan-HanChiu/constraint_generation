@@ -1,0 +1,933 @@
+{
+  "sets": {
+    "nh": [
+      "Seniority",
+      "Qualification",
+      "Pay rate"
+    ],
+    "sh": [
+      "Start time",
+      "End time",
+      "Minimum requirement",
+      "Maximum requirement"
+    ],
+    "nurse": [
+      "Anne",
+      "Bethanie",
+      "Betsy",
+      "Cathy",
+      "Cecilia",
+      "Chris",
+      "Cindy",
+      "David",
+      "Debbie",
+      "Dee",
+      "Edith",
+      "Elaina",
+      "Elaine",
+      "Eleanor",
+      "Elena",
+      "Eliana",
+      "Elianna",
+      "Elisa",
+      "Elise",
+      "Elizabeth",
+      "Ella",
+      "Elle",
+      "Elliana",
+      "Ellie",
+      "Eloise",
+      "Elsie",
+      "Ethel",
+      "Ember",
+      "Emelia",
+      "Gloria",
+      "Isabelle",
+      "Jane",
+      "Janelle",
+      "Janice",
+      "Jemma",
+      "Joan",
+      "Joanna",
+      "Joyce",
+      "Jude",
+      "Julie",
+      "Juliet",
+      "Kate",
+      "Mary",
+      "Nancy",
+      "Nathalie",
+      "Nicole",
+      "Patricia",
+      "Pippa",
+      "Patrick",
+      "Roberta",
+      "Suzanne",
+      "Vickie",
+      "Wendie",
+      "Zoe"
+    ],
+    "shift": [
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s6",
+      "s7",
+      "s8",
+      "s9",
+      "s10",
+      "s11",
+      "s12",
+      "s13",
+      "s14",
+      "s15",
+      "s16",
+      "s17",
+      "s18",
+      "s19",
+      "s20",
+      "s21",
+      "s22",
+      "s23",
+      "s24",
+      "s25",
+      "s26",
+      "s27",
+      "s28",
+      "s29",
+      "s30",
+      "s31",
+      "s32",
+      "s33",
+      "s34",
+      "s35",
+      "s36",
+      "s37",
+      "s38",
+      "s39",
+      "s40",
+      "s41",
+      "s42",
+      "s43",
+      "s44",
+      "s45",
+      "s46",
+      "s47",
+      "s48",
+      "s49",
+      "s50",
+      "s51",
+      "s52",
+      "s53",
+      "s54"
+    ],
+    "department": [
+      "Emergency",
+      "Consultation",
+      "Cardiac_Care",
+      "Geriatrics"
+    ],
+    "skill": [
+      "Anaesthesiology",
+      "Oncology",
+      "Pediatrics",
+      "Cardiac_Care",
+      "Geriatrics"
+    ],
+    "day": [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ],
+    "nurseSkills": [
+      [
+        "Anne",
+        "Anaesthesiology"
+      ],
+      [
+        "Anne",
+        "Oncology"
+      ],
+      [
+        "Anne",
+        "Pediatrics"
+      ],
+      [
+        "Betsy",
+        "Cardiac_Care"
+      ],
+      [
+        "Cathy",
+        "Anaesthesiology"
+      ],
+      [
+        "Cecilia",
+        "Anaesthesiology"
+      ],
+      [
+        "Cecilia",
+        "Oncology"
+      ],
+      [
+        "Cecilia",
+        "Pediatrics"
+      ],
+      [
+        "Chris",
+        "Cardiac_Care"
+      ],
+      [
+        "Chris",
+        "Oncology"
+      ],
+      [
+        "Chris",
+        "Geriatrics"
+      ],
+      [
+        "Gloria",
+        "Pediatrics"
+      ],
+      [
+        "Jemma",
+        "Cardiac_Care"
+      ],
+      [
+        "Joyce",
+        "Anaesthesiology"
+      ],
+      [
+        "Joyce",
+        "Pediatrics"
+      ],
+      [
+        "Julie",
+        "Geriatrics"
+      ],
+      [
+        "Juliet",
+        "Pediatrics"
+      ],
+      [
+        "Kate",
+        "Pediatrics"
+      ],
+      [
+        "Nancy",
+        "Cardiac_Care"
+      ],
+      [
+        "Nathalie",
+        "Anaesthesiology"
+      ],
+      [
+        "Nathalie",
+        "Geriatrics"
+      ],
+      [
+        "Patrick",
+        "Oncology"
+      ],
+      [
+        "Suzanne",
+        "Pediatrics"
+      ],
+      [
+        "Wendie",
+        "Geriatrics"
+      ],
+      [
+        "Zoe",
+        "Cardiac_Care"
+      ]
+    ],
+    "vacation": [
+      [
+        "Anne",
+        "friday"
+      ],
+      [
+        "Anne",
+        "sunday"
+      ],
+      [
+        "Cathy",
+        "thursday"
+      ],
+      [
+        "Cathy",
+        "tuesday"
+      ],
+      [
+        "Joan",
+        "thursday"
+      ],
+      [
+        "Joan",
+        "saturday"
+      ],
+      [
+        "Juliet",
+        "monday"
+      ],
+      [
+        "Juliet",
+        "thursday"
+      ],
+      [
+        "Nathalie",
+        "sunday"
+      ],
+      [
+        "Nathalie",
+        "thursday"
+      ],
+      [
+        "Isabelle",
+        "monday"
+      ],
+      [
+        "Isabelle",
+        "thursday"
+      ],
+      [
+        "Patricia",
+        "saturday"
+      ],
+      [
+        "Patricia",
+        "wednesday"
+      ],
+      [
+        "Nicole",
+        "friday"
+      ],
+      [
+        "Nicole",
+        "wednesday"
+      ],
+      [
+        "Jude",
+        "tuesday"
+      ],
+      [
+        "Jude",
+        "friday"
+      ],
+      [
+        "Debbie",
+        "saturday"
+      ],
+      [
+        "Debbie",
+        "wednesday"
+      ],
+      [
+        "Joyce",
+        "sunday"
+      ],
+      [
+        "Joyce",
+        "thursday"
+      ],
+      [
+        "Chris",
+        "thursday"
+      ],
+      [
+        "Chris",
+        "tuesday"
+      ],
+      [
+        "Cecilia",
+        "friday"
+      ],
+      [
+        "Cecilia",
+        "wednesday"
+      ],
+      [
+        "Patrick",
+        "saturday"
+      ],
+      [
+        "Patrick",
+        "sunday"
+      ],
+      [
+        "Cindy",
+        "sunday"
+      ],
+      [
+        "Dee",
+        "tuesday"
+      ],
+      [
+        "Dee",
+        "friday"
+      ],
+      [
+        "Jemma",
+        "friday"
+      ],
+      [
+        "Jemma",
+        "wednesday"
+      ],
+      [
+        "Bethanie",
+        "wednesday"
+      ],
+      [
+        "Bethanie",
+        "tuesday"
+      ],
+      [
+        "Betsy",
+        "monday"
+      ],
+      [
+        "Betsy",
+        "thursday"
+      ],
+      [
+        "David",
+        "monday"
+      ],
+      [
+        "Gloria",
+        "monday"
+      ],
+      [
+        "Jane",
+        "saturday"
+      ],
+      [
+        "Jane",
+        "sunday"
+      ],
+      [
+        "Janelle",
+        "wednesday"
+      ],
+      [
+        "Janelle",
+        "friday"
+      ],
+      [
+        "Julie",
+        "sunday"
+      ],
+      [
+        "Kate",
+        "tuesday"
+      ],
+      [
+        "Kate",
+        "monday"
+      ],
+      [
+        "Nancy",
+        "sunday"
+      ],
+      [
+        "Roberta",
+        "friday"
+      ],
+      [
+        "Roberta",
+        "saturday"
+      ],
+      [
+        "Janice",
+        "tuesday"
+      ],
+      [
+        "Janice",
+        "friday"
+      ],
+      [
+        "Suzanne",
+        "monday"
+      ],
+      [
+        "Vickie",
+        "wednesday"
+      ],
+      [
+        "Vickie",
+        "friday"
+      ],
+      [
+        "Wendie",
+        "thursday"
+      ],
+      [
+        "Wendie",
+        "saturday"
+      ],
+      [
+        "Zoe",
+        "saturday"
+      ],
+      [
+        "Zoe",
+        "sunday"
+      ]
+    ],
+    "nurseAssoc": [
+      [
+        "Isabelle",
+        "Dee"
+      ],
+      [
+        "Anne",
+        "Patrick"
+      ]
+    ],
+    "nurseIncompat": [
+      [
+        "Patricia",
+        "Patrick"
+      ],
+      [
+        "Janice",
+        "Wendie"
+      ],
+      [
+        "Suzanne",
+        "Betsy"
+      ],
+      [
+        "Janelle",
+        "Jane"
+      ],
+      [
+        "Gloria",
+        "David"
+      ],
+      [
+        "Dee",
+        "Jemma"
+      ],
+      [
+        "Bethanie",
+        "Dee"
+      ],
+      [
+        "Roberta",
+        "Zoe"
+      ],
+      [
+        "Nicole",
+        "Patricia"
+      ],
+      [
+        "Vickie",
+        "Dee"
+      ],
+      [
+        "Joan",
+        "Anne"
+      ]
+    ]
+  },
+  "indexed_params": {
+    "nurseData": {
+      "Anne|Seniority": 11,
+      "Anne|Qualification": 1,
+      "Anne|Pay rate": 25,
+      "Bethanie|Seniority": 4,
+      "Bethanie|Qualification": 5,
+      "Bethanie|Pay rate": 28,
+      "Betsy|Seniority": 2,
+      "Betsy|Qualification": 2,
+      "Betsy|Pay rate": 17,
+      "Cathy|Seniority": 2,
+      "Cathy|Qualification": 2,
+      "Cathy|Pay rate": 17,
+      "Cecilia|Seniority": 9,
+      "Cecilia|Qualification": 5,
+      "Cecilia|Pay rate": 38,
+      "Chris|Seniority": 11,
+      "Chris|Qualification": 4,
+      "Chris|Pay rate": 38,
+      "Cindy|Seniority": 5,
+      "Cindy|Qualification": 2,
+      "Cindy|Pay rate": 21,
+      "David|Seniority": 1,
+      "David|Qualification": 2,
+      "David|Pay rate": 15,
+      "Debbie|Seniority": 7,
+      "Debbie|Qualification": 2,
+      "Debbie|Pay rate": 24,
+      "Dee|Seniority": 3,
+      "Dee|Qualification": 3,
+      "Dee|Pay rate": 21,
+      "Edith|Seniority": 8,
+      "Edith|Qualification": 2,
+      "Edith|Pay rate": 25,
+      "Elaina|Seniority": 8,
+      "Elaina|Qualification": 4,
+      "Elaina|Pay rate": 31,
+      "Elaine|Seniority": 8,
+      "Elaine|Qualification": 3,
+      "Elaine|Pay rate": 28,
+      "Eleanor|Seniority": 8,
+      "Eleanor|Qualification": 3,
+      "Eleanor|Pay rate": 28,
+      "Elena|Seniority": 8,
+      "Elena|Qualification": 3,
+      "Elena|Pay rate": 28,
+      "Eliana|Seniority": 8,
+      "Eliana|Qualification": 2,
+      "Eliana|Pay rate": 27,
+      "Elianna|Seniority": 8,
+      "Elianna|Qualification": 4,
+      "Elianna|Pay rate": 31,
+      "Elisa|Seniority": 8,
+      "Elisa|Qualification": 4,
+      "Elisa|Pay rate": 32,
+      "Elise|Seniority": 8,
+      "Elise|Qualification": 4,
+      "Elise|Pay rate": 30,
+      "Elizabeth|Seniority": 8,
+      "Elizabeth|Qualification": 5,
+      "Elizabeth|Pay rate": 34,
+      "Ella|Seniority": 8,
+      "Ella|Qualification": 4,
+      "Ella|Pay rate": 31,
+      "Elle|Seniority": 8,
+      "Elle|Qualification": 4,
+      "Elle|Pay rate": 30,
+      "Elliana|Seniority": 8,
+      "Elliana|Qualification": 5,
+      "Elliana|Pay rate": 32,
+      "Ellie|Seniority": 8,
+      "Ellie|Qualification": 4,
+      "Ellie|Pay rate": 30,
+      "Eloise|Seniority": 8,
+      "Eloise|Qualification": 2,
+      "Eloise|Pay rate": 25,
+      "Elsie|Seniority": 8,
+      "Elsie|Qualification": 5,
+      "Elsie|Pay rate": 33,
+      "Ethel|Seniority": 8,
+      "Ethel|Qualification": 3,
+      "Ethel|Pay rate": 26,
+      "Ember|Seniority": 8,
+      "Ember|Qualification": 5,
+      "Ember|Pay rate": 30,
+      "Emelia|Seniority": 8,
+      "Emelia|Qualification": 5,
+      "Emelia|Pay rate": 30,
+      "Gloria|Seniority": 8,
+      "Gloria|Qualification": 2,
+      "Gloria|Pay rate": 25,
+      "Isabelle|Seniority": 3,
+      "Isabelle|Qualification": 1,
+      "Isabelle|Pay rate": 16,
+      "Jane|Seniority": 3,
+      "Jane|Qualification": 4,
+      "Jane|Pay rate": 23,
+      "Janelle|Seniority": 4,
+      "Janelle|Qualification": 3,
+      "Janelle|Pay rate": 22,
+      "Janice|Seniority": 2,
+      "Janice|Qualification": 2,
+      "Janice|Pay rate": 17,
+      "Jemma|Seniority": 2,
+      "Jemma|Qualification": 4,
+      "Jemma|Pay rate": 22,
+      "Joan|Seniority": 5,
+      "Joan|Qualification": 3,
+      "Joan|Pay rate": 24,
+      "Joanna|Seniority": 5,
+      "Joanna|Qualification": 2,
+      "Joanna|Pay rate": 18,
+      "Joyce|Seniority": 8,
+      "Joyce|Qualification": 3,
+      "Joyce|Pay rate": 29,
+      "Jude|Seniority": 4,
+      "Jude|Qualification": 3,
+      "Jude|Pay rate": 22,
+      "Julie|Seniority": 6,
+      "Julie|Qualification": 2,
+      "Julie|Pay rate": 22,
+      "Juliet|Seniority": 7,
+      "Juliet|Qualification": 4,
+      "Juliet|Pay rate": 31,
+      "Kate|Seniority": 5,
+      "Kate|Qualification": 3,
+      "Kate|Pay rate": 24,
+      "Mary|Seniority": 9,
+      "Mary|Qualification": 5,
+      "Mary|Pay rate": 36,
+      "Nancy|Seniority": 8,
+      "Nancy|Qualification": 4,
+      "Nancy|Pay rate": 32,
+      "Nathalie|Seniority": 9,
+      "Nathalie|Qualification": 5,
+      "Nathalie|Pay rate": 38,
+      "Nicole|Seniority": 0,
+      "Nicole|Qualification": 2,
+      "Nicole|Pay rate": 14,
+      "Patricia|Seniority": 1,
+      "Patricia|Qualification": 1,
+      "Patricia|Pay rate": 13,
+      "Pippa|Seniority": 1,
+      "Pippa|Qualification": 1,
+      "Pippa|Pay rate": 25,
+      "Patrick|Seniority": 6,
+      "Patrick|Qualification": 1,
+      "Patrick|Pay rate": 19,
+      "Roberta|Seniority": 3,
+      "Roberta|Qualification": 5,
+      "Roberta|Pay rate": 26,
+      "Suzanne|Seniority": 5,
+      "Suzanne|Qualification": 1,
+      "Suzanne|Pay rate": 18,
+      "Vickie|Seniority": 7,
+      "Vickie|Qualification": 1,
+      "Vickie|Pay rate": 20,
+      "Wendie|Seniority": 5,
+      "Wendie|Qualification": 2,
+      "Wendie|Pay rate": 21,
+      "Zoe|Seniority": 8,
+      "Zoe|Qualification": 3,
+      "Zoe|Pay rate": 29
+    },
+    "shiftData": {
+      "s1|Emergency|monday|Start time": 2,
+      "s1|Emergency|monday|End time": 8,
+      "s1|Emergency|monday|Minimum requirement": 3,
+      "s1|Emergency|monday|Maximum requirement": 5,
+      "s2|Emergency|monday|Start time": 8,
+      "s2|Emergency|monday|End time": 12,
+      "s2|Emergency|monday|Minimum requirement": 4,
+      "s2|Emergency|monday|Maximum requirement": 7,
+      "s3|Emergency|monday|Start time": 12,
+      "s3|Emergency|monday|End time": 18,
+      "s3|Emergency|monday|Minimum requirement": 2,
+      "s3|Emergency|monday|Maximum requirement": 5,
+      "s4|Emergency|monday|Start time": 18,
+      "s4|Emergency|monday|End time": 2,
+      "s4|Emergency|monday|Minimum requirement": 3,
+      "s4|Emergency|monday|Maximum requirement": 7,
+      "s5|Consultation|monday|Start time": 8,
+      "s5|Consultation|monday|End time": 12,
+      "s5|Consultation|monday|Minimum requirement": 10,
+      "s5|Consultation|monday|Maximum requirement": 13,
+      "s6|Consultation|monday|Start time": 12,
+      "s6|Consultation|monday|End time": 18,
+      "s6|Consultation|monday|Minimum requirement": 8,
+      "s6|Consultation|monday|Maximum requirement": 12,
+      "s7|Cardiac_Care|monday|Start time": 8,
+      "s7|Cardiac_Care|monday|End time": 12,
+      "s7|Cardiac_Care|monday|Minimum requirement": 10,
+      "s7|Cardiac_Care|monday|Maximum requirement": 13,
+      "s8|Cardiac_Care|monday|Start time": 12,
+      "s8|Cardiac_Care|monday|End time": 18,
+      "s8|Cardiac_Care|monday|Minimum requirement": 8,
+      "s8|Cardiac_Care|monday|Maximum requirement": 12,
+      "s9|Geriatrics|monday|Start time": 8,
+      "s9|Geriatrics|monday|End time": 12,
+      "s9|Geriatrics|monday|Minimum requirement": 8,
+      "s9|Geriatrics|monday|Maximum requirement": 10,
+      "s10|Geriatrics|monday|Start time": 12,
+      "s10|Geriatrics|monday|End time": 18,
+      "s10|Geriatrics|monday|Minimum requirement": 8,
+      "s10|Geriatrics|monday|Maximum requirement": 15,
+      "s11|Emergency|tuesday|Start time": 8,
+      "s11|Emergency|tuesday|End time": 12,
+      "s11|Emergency|tuesday|Minimum requirement": 4,
+      "s11|Emergency|tuesday|Maximum requirement": 7,
+      "s12|Emergency|tuesday|Start time": 12,
+      "s12|Emergency|tuesday|End time": 18,
+      "s12|Emergency|tuesday|Minimum requirement": 2,
+      "s12|Emergency|tuesday|Maximum requirement": 5,
+      "s13|Emergency|tuesday|Start time": 18,
+      "s13|Emergency|tuesday|End time": 2,
+      "s13|Emergency|tuesday|Minimum requirement": 3,
+      "s13|Emergency|tuesday|Maximum requirement": 7,
+      "s14|Consultation|tuesday|Start time": 8,
+      "s14|Consultation|tuesday|End time": 12,
+      "s14|Consultation|tuesday|Minimum requirement": 10,
+      "s14|Consultation|tuesday|Maximum requirement": 13,
+      "s15|Consultation|tuesday|Start time": 12,
+      "s15|Consultation|tuesday|End time": 18,
+      "s15|Consultation|tuesday|Minimum requirement": 8,
+      "s15|Consultation|tuesday|Maximum requirement": 12,
+      "s16|Cardiac_Care|tuesday|Start time": 8,
+      "s16|Cardiac_Care|tuesday|End time": 12,
+      "s16|Cardiac_Care|tuesday|Minimum requirement": 4,
+      "s16|Cardiac_Care|tuesday|Maximum requirement": 7,
+      "s17|Cardiac_Care|tuesday|Start time": 12,
+      "s17|Cardiac_Care|tuesday|End time": 18,
+      "s17|Cardiac_Care|tuesday|Minimum requirement": 2,
+      "s17|Cardiac_Care|tuesday|Maximum requirement": 5,
+      "s18|Cardiac_Care|tuesday|Start time": 18,
+      "s18|Cardiac_Care|tuesday|End time": 2,
+      "s18|Cardiac_Care|tuesday|Minimum requirement": 3,
+      "s18|Cardiac_Care|tuesday|Maximum requirement": 7,
+      "s19|Geriatrics|tuesday|Start time": 8,
+      "s19|Geriatrics|tuesday|End time": 12,
+      "s19|Geriatrics|tuesday|Minimum requirement": 8,
+      "s19|Geriatrics|tuesday|Maximum requirement": 10,
+      "s20|Geriatrics|tuesday|Start time": 12,
+      "s20|Geriatrics|tuesday|End time": 18,
+      "s20|Geriatrics|tuesday|Minimum requirement": 8,
+      "s20|Geriatrics|tuesday|Maximum requirement": 15,
+      "s21|Emergency|wednesday|Start time": 2,
+      "s21|Emergency|wednesday|End time": 8,
+      "s21|Emergency|wednesday|Minimum requirement": 3,
+      "s21|Emergency|wednesday|Maximum requirement": 5,
+      "s22|Emergency|wednesday|Start time": 8,
+      "s22|Emergency|wednesday|End time": 12,
+      "s22|Emergency|wednesday|Minimum requirement": 4,
+      "s22|Emergency|wednesday|Maximum requirement": 7,
+      "s23|Emergency|wednesday|Start time": 12,
+      "s23|Emergency|wednesday|End time": 18,
+      "s23|Emergency|wednesday|Minimum requirement": 2,
+      "s23|Emergency|wednesday|Maximum requirement": 5,
+      "s24|Emergency|wednesday|Start time": 18,
+      "s24|Emergency|wednesday|End time": 2,
+      "s24|Emergency|wednesday|Minimum requirement": 3,
+      "s24|Emergency|wednesday|Maximum requirement": 7,
+      "s25|Consultation|wednesday|Start time": 8,
+      "s25|Consultation|wednesday|End time": 12,
+      "s25|Consultation|wednesday|Minimum requirement": 10,
+      "s25|Consultation|wednesday|Maximum requirement": 13,
+      "s26|Consultation|wednesday|Start time": 12,
+      "s26|Consultation|wednesday|End time": 18,
+      "s26|Consultation|wednesday|Minimum requirement": 8,
+      "s26|Consultation|wednesday|Maximum requirement": 12,
+      "s27|Geriatrics|wednesday|Start time": 8,
+      "s27|Geriatrics|wednesday|End time": 12,
+      "s27|Geriatrics|wednesday|Minimum requirement": 8,
+      "s27|Geriatrics|wednesday|Maximum requirement": 10,
+      "s28|Geriatrics|wednesday|Start time": 12,
+      "s28|Geriatrics|wednesday|End time": 18,
+      "s28|Geriatrics|wednesday|Minimum requirement": 8,
+      "s28|Geriatrics|wednesday|Maximum requirement": 15,
+      "s29|Emergency|thursday|Start time": 2,
+      "s29|Emergency|thursday|End time": 8,
+      "s29|Emergency|thursday|Minimum requirement": 3,
+      "s29|Emergency|thursday|Maximum requirement": 5,
+      "s30|Emergency|thursday|Start time": 8,
+      "s30|Emergency|thursday|End time": 12,
+      "s30|Emergency|thursday|Minimum requirement": 4,
+      "s30|Emergency|thursday|Maximum requirement": 7,
+      "s31|Emergency|thursday|Start time": 12,
+      "s31|Emergency|thursday|End time": 18,
+      "s31|Emergency|thursday|Minimum requirement": 2,
+      "s31|Emergency|thursday|Maximum requirement": 5,
+      "s32|Emergency|thursday|Start time": 18,
+      "s32|Emergency|thursday|End time": 2,
+      "s32|Emergency|thursday|Minimum requirement": 3,
+      "s32|Emergency|thursday|Maximum requirement": 7,
+      "s33|Consultation|thursday|Start time": 8,
+      "s33|Consultation|thursday|End time": 12,
+      "s33|Consultation|thursday|Minimum requirement": 10,
+      "s33|Consultation|thursday|Maximum requirement": 13,
+      "s34|Consultation|thursday|Start time": 12,
+      "s34|Consultation|thursday|End time": 18,
+      "s34|Consultation|thursday|Minimum requirement": 8,
+      "s34|Consultation|thursday|Maximum requirement": 12,
+      "s35|Geriatrics|thursday|Start time": 8,
+      "s35|Geriatrics|thursday|End time": 12,
+      "s35|Geriatrics|thursday|Minimum requirement": 8,
+      "s35|Geriatrics|thursday|Maximum requirement": 10,
+      "s36|Geriatrics|thursday|Start time": 12,
+      "s36|Geriatrics|thursday|End time": 18,
+      "s36|Geriatrics|thursday|Minimum requirement": 8,
+      "s36|Geriatrics|thursday|Maximum requirement": 15,
+      "s37|Emergency|friday|Start time": 2,
+      "s37|Emergency|friday|End time": 8,
+      "s37|Emergency|friday|Minimum requirement": 3,
+      "s37|Emergency|friday|Maximum requirement": 5,
+      "s38|Emergency|friday|Start time": 8,
+      "s38|Emergency|friday|End time": 12,
+      "s38|Emergency|friday|Minimum requirement": 4,
+      "s38|Emergency|friday|Maximum requirement": 7,
+      "s39|Emergency|friday|Start time": 12,
+      "s39|Emergency|friday|End time": 18,
+      "s39|Emergency|friday|Minimum requirement": 2,
+      "s39|Emergency|friday|Maximum requirement": 5,
+      "s40|Emergency|friday|Start time": 18,
+      "s40|Emergency|friday|End time": 2,
+      "s40|Emergency|friday|Minimum requirement": 3,
+      "s40|Emergency|friday|Maximum requirement": 7,
+      "s41|Consultation|friday|Start time": 8,
+      "s41|Consultation|friday|End time": 12,
+      "s41|Consultation|friday|Minimum requirement": 10,
+      "s41|Consultation|friday|Maximum requirement": 13,
+      "s42|Consultation|friday|Start time": 12,
+      "s42|Consultation|friday|End time": 18,
+      "s42|Consultation|friday|Minimum requirement": 8,
+      "s42|Consultation|friday|Maximum requirement": 12,
+      "s43|Geriatrics|friday|Start time": 8,
+      "s43|Geriatrics|friday|End time": 12,
+      "s43|Geriatrics|friday|Minimum requirement": 8,
+      "s43|Geriatrics|friday|Maximum requirement": 10,
+      "s44|Geriatrics|friday|Start time": 12,
+      "s44|Geriatrics|friday|End time": 18,
+      "s44|Geriatrics|friday|Minimum requirement": 8,
+      "s44|Geriatrics|friday|Maximum requirement": 15,
+      "s45|Emergency|saturday|Start time": 2,
+      "s45|Emergency|saturday|End time": 12,
+      "s45|Emergency|saturday|Minimum requirement": 5,
+      "s45|Emergency|saturday|Maximum requirement": 7,
+      "s46|Emergency|saturday|Start time": 12,
+      "s46|Emergency|saturday|End time": 20,
+      "s46|Emergency|saturday|Minimum requirement": 7,
+      "s46|Emergency|saturday|Maximum requirement": 9,
+      "s47|Emergency|saturday|Start time": 20,
+      "s47|Emergency|saturday|End time": 2,
+      "s47|Emergency|saturday|Minimum requirement": 12,
+      "s47|Emergency|saturday|Maximum requirement": 12,
+      "s48|Geriatrics|saturday|Start time": 8,
+      "s48|Geriatrics|saturday|End time": 12,
+      "s48|Geriatrics|saturday|Minimum requirement": 8,
+      "s48|Geriatrics|saturday|Maximum requirement": 10,
+      "s49|Geriatrics|saturday|Start time": 12,
+      "s49|Geriatrics|saturday|End time": 18,
+      "s49|Geriatrics|saturday|Minimum requirement": 8,
+      "s49|Geriatrics|saturday|Maximum requirement": 15,
+      "s50|Emergency|sunday|Start time": 2,
+      "s50|Emergency|sunday|End time": 12,
+      "s50|Emergency|sunday|Minimum requirement": 5,
+      "s50|Emergency|sunday|Maximum requirement": 7,
+      "s51|Emergency|sunday|Start time": 12,
+      "s51|Emergency|sunday|End time": 20,
+      "s51|Emergency|sunday|Minimum requirement": 7,
+      "s51|Emergency|sunday|Maximum requirement": 9,
+      "s52|Emergency|sunday|Start time": 20,
+      "s52|Emergency|sunday|End time": 2,
+      "s52|Emergency|sunday|Minimum requirement": 12,
+      "s52|Emergency|sunday|Maximum requirement": 12,
+      "s53|Geriatrics|sunday|Start time": 8,
+      "s53|Geriatrics|sunday|End time": 12,
+      "s53|Geriatrics|sunday|Minimum requirement": 8,
+      "s53|Geriatrics|sunday|Maximum requirement": 10,
+      "s54|Geriatrics|sunday|Start time": 12,
+      "s54|Geriatrics|sunday|End time": 18,
+      "s54|Geriatrics|sunday|Minimum requirement": 8,
+      "s54|Geriatrics|sunday|Maximum requirement": 15
+    },
+    "skillRequirements": {
+      "Emergency|Cardiac_Care": 1
+    }
+  },
+  "scalar_params": {
+    "maxWorkTime": 40,
+    "fairnessWeight": 100,
+    "assignmentWeight": 10
+  }
+}

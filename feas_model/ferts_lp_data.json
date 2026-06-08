@@ -1,0 +1,149 @@
+{
+  "sets": {
+    "i": ["aswan", "helwan", "assiout", "kafr-el-zt", "abu-zaabal"],
+    "j": ["alexandria", "behera", "gharbia", "kafr-el-sh", "dakahlia", "damietta", "sharkia", "ismailia", "suez", "menoufia", "kalubia", "giza", "beni-suef", "fayoum", "minia", "assiout", "new-valley", "sohag", "quena", "aswan"],
+    "m": ["sulf-a-s", "sulf-a-p", "nitr-acid", "amm-elec", "amm-c-gas", "c-amm-nitr", "amm-sulf", "ssp"],
+    "p": ["sulf-a-s", "sulf-a-p", "nitr-acid", "amm-elec", "amm-c-gas", "can-310", "can-335", "amm-sulf", "ssp-155"],
+    "cq": ["n", "p2o5"],
+    "c": ["urea", "can-260", "can-310", "can-335", "amm-sulf", "dap", "ssp-155", "c-250-55", "c-300-100", "ammonia", "nitr-acid", "sulf-acid", "el-aswan", "coke-gas", "phos-rock", "limestone", "el-sulfur", "pyrites", "electric", "bf-gas", "water", "steam", "bags"],
+    "cf": ["urea", "can-260", "can-310", "can-335", "dap", "ssp-155", "c-250-55", "c-300-100", "amm-sulf"],
+    "ci": ["ammonia", "nitr-acid", "sulf-acid"],
+    "cs": ["ammonia", "sulf-acid"],
+    "cr": ["el-aswan", "coke-gas", "phos-rock", "limestone", "el-sulfur", "pyrites", "electric", "bf-gas", "water", "steam", "bags", "sulf-acid"]
+  },
+  "scalar_params": {
+    "er": 0.4,
+    "util": 0.85
+  },
+  "indexed_params": {
+    "cf75": {
+      "alexandria|amm-sulf": 3.0, "alexandria|urea": 1.0, "alexandria|can-335": 5.0, "alexandria|ssp-155": 8.0,
+      "behera|amm-sulf": 90.0, "behera|urea": 35.0, "behera|can-260": 1.0, "behera|can-335": 25.0, "behera|dap": 0.1, "behera|ssp-155": 64.0, "behera|c-250-55": 1.0, "behera|c-300-100": 0.1,
+      "gharbia|amm-sulf": 60.0, "gharbia|urea": 28.0, "gharbia|can-335": 17.0, "gharbia|dap": 0.1, "gharbia|ssp-155": 57.0, "gharbia|c-250-55": 1.0, "gharbia|c-300-100": 0.2,
+      "kafr-el-sh|amm-sulf": 45.0, "kafr-el-sh|urea": 22.0, "kafr-el-sh|can-260": 1.0, "kafr-el-sh|can-335": 10.0, "kafr-el-sh|ssp-155": 25.0, "kafr-el-sh|c-250-55": 2.0, "kafr-el-sh|c-300-100": 0.1,
+      "dakahlia|amm-sulf": 60.0, "dakahlia|urea": 20.0, "dakahlia|can-260": 1.0, "dakahlia|can-335": 26.0, "dakahlia|ssp-155": 52.0, "dakahlia|c-250-55": 1.0,
+      "damietta|amm-sulf": 15.0, "damietta|urea": 8.0, "damietta|can-335": 2.0, "damietta|ssp-155": 5.0,
+      "sharkia|amm-sulf": 50.0, "sharkia|urea": 28.0, "sharkia|can-260": 1.0, "sharkia|can-335": 31.0, "sharkia|ssp-155": 43.0, "sharkia|c-250-55": 1.0, "sharkia|c-300-100": 0.1,
+      "ismailia|amm-sulf": 6.0, "ismailia|urea": 2.0, "ismailia|can-335": 4.0, "ismailia|ssp-155": 4.0,
+      "suez|can-335": 1.0, "suez|ssp-155": 1.0,
+      "menoufia|amm-sulf": 21.0, "menoufia|urea": 30.0, "menoufia|can-260": 1.0, "menoufia|can-335": 24.0, "menoufia|dap": 0.1, "menoufia|ssp-155": 33.0, "menoufia|c-250-55": 2.0, "menoufia|c-300-100": 0.1,
+      "kalubia|amm-sulf": 16.0, "kalubia|urea": 7.0, "kalubia|can-335": 25.0, "kalubia|dap": 0.1, "kalubia|ssp-155": 22.0, "kalubia|c-250-55": 1.0,
+      "giza|amm-sulf": 6.0, "giza|urea": 2.0, "giza|can-335": 40.0, "giza|ssp-155": 14.0, "giza|c-250-55": 1.0, "giza|c-300-100": 0.1,
+      "beni-suef|amm-sulf": 1.0, "beni-suef|urea": 20.0, "beni-suef|can-260": 1.0, "beni-suef|can-335": 15.0, "beni-suef|ssp-155": 13.0, "beni-suef|c-250-55": 3.0,
+      "fayoum|amm-sulf": 6.0, "fayoum|urea": 20.0, "fayoum|can-260": 1.0, "fayoum|can-335": 20.0, "fayoum|ssp-155": 17.0, "fayoum|c-250-55": 1.0,
+      "minia|amm-sulf": 1.0, "minia|urea": 41.0, "minia|can-260": 2.0, "minia|can-310": 15.0, "minia|can-335": 35.0, "minia|dap": 0.1, "minia|ssp-155": 50.0, "minia|c-250-55": 3.0, "minia|c-300-100": 0.2,
+      "assiout|amm-sulf": 1.0, "assiout|urea": 27.0, "assiout|can-260": 1.0, "assiout|can-310": 20.0, "assiout|can-335": 26.0, "assiout|ssp-155": 35.0, "assiout|c-250-55": 5.0, "assiout|c-300-100": 0.1,
+      "new-valley|urea": 1.0, "new-valley|ssp-155": 1.0,
+      "sohag|urea": 7.0, "sohag|can-310": 65.0, "sohag|can-335": 3.0, "sohag|ssp-155": 20.0, "sohag|c-250-55": 1.0,
+      "quena|urea": 3.0, "quena|can-310": 95.0, "quena|can-335": 2.0, "quena|ssp-155": 8.0,
+      "aswan|can-310": 40.0, "aswan|ssp-155": 8.0
+    },
+    "alpha": {
+      "urea|n": 0.46,
+      "can-260|n": 0.26,
+      "can-310|n": 0.31,
+      "can-335|n": 0.335,
+      "amm-sulf|n": 0.206,
+      "dap|n": 0.18, "dap|p2o5": 0.46,
+      "ssp-155|p2o5": 0.155,
+      "c-250-55|n": 0.25, "c-250-55|p2o5": 0.055,
+      "c-300-100|n": 0.30, "c-300-100|p2o5": 0.10
+    },
+    "road": {
+      "alexandria|abu-kir": 16.0, "alexandria|kafr-el-zt": 119.0, "alexandria|talkha": 187.0, "alexandria|abu-zaabal": 210.0, "alexandria|helwan": 244.0, "alexandria|assiout": 607.0, "alexandria|aswan": 1135.0,
+      "behera|abu-kir": 76.0, "behera|kafr-el-zt": 42.0, "behera|talkha": 120.0, "behera|abu-zaabal": 50.0, "behera|helwan": 184.0, "behera|assiout": 547.0, "behera|aswan": 1065.0,
+      "gharbia|abu-kir": 150.0, "gharbia|kafr-el-zt": 20.0, "gharbia|talkha": 55.0, "gharbia|abu-zaabal": 65.0, "gharbia|helwan": 122.0, "gharbia|assiout": 485.0, "gharbia|aswan": 1003.0,
+      "kafr-el-sh|abu-kir": 145.0, "kafr-el-sh|kafr-el-zt": 20.0, "kafr-el-sh|talkha": 35.0, "kafr-el-sh|abu-zaabal": 105.0, "kafr-el-sh|helwan": 162.0, "kafr-el-sh|assiout": 525.0, "kafr-el-sh|aswan": 1043.0,
+      "dakahlia|abu-kir": 208.0, "dakahlia|kafr-el-zt": 58.0, "dakahlia|talkha": 3.0, "dakahlia|abu-zaabal": 138.0, "dakahlia|helwan": 152.0, "dakahlia|assiout": 515.0, "dakahlia|aswan": 1033.0,
+      "damietta|abu-kir": 267.0, "damietta|kafr-el-zt": 131.0, "damietta|talkha": 66.0, "damietta|abu-zaabal": 216.0, "damietta|helwan": 233.0, "damietta|assiout": 596.0, "damietta|aswan": 1114.0,
+      "sharkia|abu-kir": 240.0, "sharkia|kafr-el-zt": 78.0, "sharkia|talkha": 58.0, "sharkia|abu-zaabal": 60.0, "sharkia|helwan": 110.0, "sharkia|assiout": 473.0, "sharkia|aswan": 991.0,
+      "ismailia|abu-kir": 365.0, "ismailia|kafr-el-zt": 241.0, "ismailia|talkha": 146.0, "ismailia|abu-zaabal": 142.0, "ismailia|helwan": 173.0, "ismailia|assiout": 536.0, "ismailia|aswan": 1054.0,
+      "suez|abu-kir": 370.0, "suez|kafr-el-zt": 246.0, "suez|talkha": 298.0, "suez|abu-zaabal": 224.0, "suez|helwan": 178.0, "suez|assiout": 541.0, "suez|aswan": 1059.0,
+      "menoufia|abu-kir": 157.0, "menoufia|kafr-el-zt": 33.0, "menoufia|talkha": 90.0, "menoufia|abu-zaabal": 154.0, "menoufia|helwan": 109.0, "menoufia|assiout": 472.0, "menoufia|aswan": 990.0,
+      "kalubia|abu-kir": 190.0, "kalubia|kafr-el-zt": 66.0, "kalubia|talkha": 81.0, "kalubia|abu-zaabal": 97.0, "kalubia|helwan": 76.0, "kalubia|assiout": 439.0, "kalubia|aswan": 957.0,
+      "giza|abu-kir": 287.0, "giza|kafr-el-zt": 133.0, "giza|talkha": 146.0, "giza|abu-zaabal": 48.0, "giza|helwan": 9.0, "giza|assiout": 372.0, "giza|aswan": 890.0,
+      "beni-suef|abu-kir": 359.0, "beni-suef|kafr-el-zt": 248.0, "beni-suef|talkha": 261.0, "beni-suef|abu-zaabal": 163.0, "beni-suef|helwan": 105.0, "beni-suef|assiout": 257.0, "beni-suef|aswan": 775.0,
+      "fayoum|abu-kir": 341.0, "fayoum|kafr-el-zt": 230.0, "fayoum|talkha": 243.0, "fayoum|abu-zaabal": 145.0, "fayoum|helwan": 88.0, "fayoum|assiout": 308.0, "fayoum|aswan": 826.0,
+      "minia|abu-kir": 384.0, "minia|kafr-el-zt": 372.0, "minia|talkha": 386.0, "minia|abu-zaabal": 288.0, "minia|helwan": 230.0, "minia|assiout": 132.0, "minia|aswan": 650.0,
+      "assiout|abu-kir": 616.0, "assiout|kafr-el-zt": 504.0, "assiout|talkha": 518.0, "assiout|abu-zaabal": 420.0, "assiout|helwan": 362.0, "assiout|aswan": 518.0,
+      "new-valley|abu-kir": 815.0, "new-valley|kafr-el-zt": 703.0, "new-valley|talkha": 717.0, "new-valley|abu-zaabal": 619.0, "new-valley|helwan": 561.0, "new-valley|assiout": 199.0, "new-valley|aswan": 519.0,
+      "sohag|abu-kir": 715.0, "sohag|kafr-el-zt": 603.0, "sohag|talkha": 617.0, "sohag|abu-zaabal": 519.0, "sohag|helwan": 461.0, "sohag|assiout": 99.0, "sohag|aswan": 419.0,
+      "quena|abu-kir": 858.0, "quena|kafr-el-zt": 746.0, "quena|talkha": 760.0, "quena|abu-zaabal": 662.0, "quena|helwan": 604.0, "quena|assiout": 242.0, "quena|aswan": 276.0,
+      "aswan|abu-kir": 1134.0, "aswan|kafr-el-zt": 1022.0, "aswan|talkha": 1036.0, "aswan|abu-zaabal": 938.0, "aswan|helwan": 880.0, "aswan|assiout": 518.0
+    },
+    "rail": {
+      "abu-zaabal|kafr-el-zt": 85.0,
+      "helwan|kafr-el-zt": 142.0, "helwan|abu-zaabal": 57.0,
+      "assiout|kafr-el-zt": 504.0, "assiout|abu-zaabal": 420.0, "assiout|helwan": 362.0,
+      "aswan|kafr-el-zt": 1022.0, "aswan|abu-zaabal": 938.0, "aswan|helwan": 880.0, "aswan|assiout": 518.0
+    },
+    "impd": {
+      "kafr-el-zt|barge": 104.0, "kafr-el-zt|road": 6.0,
+      "abu-zaabal|barge": 210.0, "abu-zaabal|road": 0.1,
+      "helwan|barge": 183.0,
+      "assiout|barge": 583.0,
+      "aswan|barge": 1087.0, "aswan|road": 10.0
+    },
+    "a": {
+      "el-aswan|amm-elec": -12.0,
+      "coke-gas|amm-c-gas": -2.0,
+      "pyrites|sulf-a-p": -0.826,
+      "el-sulfur|sulf-a-s": -0.334,
+      "sulf-acid|sulf-a-s": 1.0, "sulf-acid|sulf-a-p": 1.0,
+      "ammonia|nitr-acid": -0.292, "ammonia|amm-elec": 1.0, "ammonia|amm-c-gas": 1.0,
+      "nitr-acid|nitr-acid": 1.0,
+      "electric|sulf-a-s": -50.0, "electric|sulf-a-p": -75.0, "electric|nitr-acid": -231.0, "electric|amm-c-gas": -1960.0,
+      "bf-gas|amm-c-gas": -609.0,
+      "water|sulf-a-s": -20.0, "water|sulf-a-p": -60.0, "water|nitr-acid": -0.6, "water|amm-c-gas": -700.0,
+      "steam|amm-c-gas": -4.0,
+      "phos-rock|ssp-155": -0.62,
+      "sulf-acid|ssp-155": -0.41, "sulf-acid|amm-sulf": -0.76,
+      "ammonia|can-310": -0.20, "ammonia|can-335": -0.21, "ammonia|amm-sulf": -0.26,
+      "nitr-acid|can-310": -0.71, "nitr-acid|can-335": -0.76,
+      "limestone|can-310": -0.12, "limestone|can-335": -0.04,
+      "ssp-155|ssp-155": 1.0,
+      "can-310|can-310": 1.0,
+      "can-335|can-335": 1.0,
+      "amm-sulf|amm-sulf": 1.0,
+      "bags|ssp-155": -22.0, "bags|can-310": -23.0, "bags|can-335": -23.0, "bags|amm-sulf": -22.0,
+      "water|ssp-155": -6.0, "water|can-310": -49.0, "water|can-335": -49.0, "water|amm-sulf": -17.0,
+      "electric|ssp-155": -14.0, "electric|amm-sulf": -19.0,
+      "steam|can-310": -0.4, "steam|can-335": -0.4
+    },
+    "b": {
+      "sulf-a-s|sulf-a-s": 1.0,
+      "sulf-a-p|sulf-a-p": 1.0,
+      "nitr-acid|nitr-acid": 1.0,
+      "amm-elec|amm-elec": 1.0,
+      "amm-c-gas|amm-c-gas": 1.0,
+      "ssp|ssp-155": 1.0,
+      "c-amm-nitr|can-310": 1.0, "c-amm-nitr|can-335": 1.0,
+      "amm-sulf|amm-sulf": 1.0
+    },
+    "pv": {
+      "pyrites": 17.5, "el-sulfur": 55.0, "urea": 150.0, "can-260": 75.0, "can-310": 90.0,
+      "can-335": 100.0, "amm-sulf": 75.0, "dap": 175.0, "ssp-155": 80.0, "c-250-55": 100.0, "c-300-100": 130.0
+    },
+    "pd": {
+      "kafr-el-zt|phos-rock": 5.0,
+      "abu-zaabal|phos-rock": 4.0,
+      "helwan|limestone": 1.2, "helwan|coke-gas": 16.0, "helwan|sulf-acid": 3.0,
+      "assiout|phos-rock": 3.5,
+      "aswan|limestone": 1.2, "aswan|el-aswan": 1.0
+    },
+    "pmisc": {
+      "electric": 0.007,
+      "bf-gas": 0.0075,
+      "water": 0.031,
+      "steam": 1.25,
+      "bags": 0.28
+    },
+    "dcap": {
+      "aswan|nitr-acid": 800.0, "aswan|amm-elec": 450.0, "aswan|c-amm-nitr": 1100.0,
+      "helwan|nitr-acid": 282.0, "helwan|amm-c-gas": 172.0, "helwan|c-amm-nitr": 364.0, "helwan|amm-sulf": 24.0,
+      "kafr-el-zt|sulf-a-s": 200.0, "kafr-el-zt|sulf-a-p": 50.0, "kafr-el-zt|ssp": 600.0,
+      "assiout|sulf-a-s": 250.0, "assiout|ssp": 600.0,
+      "abu-zaabal|sulf-a-s": 242.0, "abu-zaabal|sulf-a-p": 227.0, "abu-zaabal|ssp": 600.0
+    }
+  }
+}

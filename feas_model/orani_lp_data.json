@@ -1,0 +1,248 @@
+{
+  "sets": {
+    "c": [
+      "food",
+      "clothing"
+    ],
+    "ca": [
+      "food"
+    ],
+    "cm": [
+      "clothing"
+    ],
+    "f": [
+      "labor",
+      "capital"
+    ],
+    "h": [
+      "families"
+    ],
+    "i": [
+      "agric",
+      "manuf"
+    ],
+    "s": [
+      "domestic",
+      "imported"
+    ],
+    "ce": [
+      [
+        "food",
+        "food"
+      ],
+      [
+        "food",
+        "clothing"
+      ],
+      [
+        "clothing",
+        "food"
+      ],
+      [
+        "clothing",
+        "clothing"
+      ]
+    ],
+    "cp": [
+      "food",
+      "clothing"
+    ],
+    "sp": [
+      "domestic",
+      "imported"
+    ],
+    "ip": [
+      "agric",
+      "manuf"
+    ]
+  },
+  "scalar_params": {
+    "theta": 1.0,
+    "elevel": 20.0,
+    "mlevel": 21.0
+  },
+  "indexed_params": {
+    "amc": {
+      "food|domestic|families": 17.0,
+      "food|domestic|agric": 10.0,
+      "food|domestic|manuf": 8.0,
+      "food|domestic|exp": 19.0,
+      "food|domestic|total": 54.0,
+      "food|imported|families": 1.0,
+      "food|imported|agric": 1.0,
+      "food|imported|manuf": 8.0,
+      "food|imported|total": 9.0,
+      "food|imported|duty": -1.0,
+      "clothing|domestic|families": 34.0,
+      "clothing|domestic|agric": 15.0,
+      "clothing|domestic|manuf": 1.0,
+      "clothing|domestic|exp": 1.0,
+      "clothing|domestic|total": 51.0,
+      "clothing|imported|families": 10.0,
+      "clothing|imported|agric": 5.0,
+      "clothing|imported|manuf": 2.0,
+      "clothing|imported|total": 12.0,
+      "clothing|imported|duty": -5.0
+    },
+    "amf": {
+      "labor|agric": 20.0,
+      "labor|manuf": 20.0,
+      "capital|agric": 10.0,
+      "capital|manuf": 5.0
+    },
+    "amq": {
+      "food|agric": 45.0,
+      "food|manuf": 9.0,
+      "clothing|agric": 16.0,
+      "clothing|manuf": 35.0
+    },
+    "epsilon": {
+      "food|domestic": 1.0,
+      "food|imported": 1.0,
+      "clothing|domestic": 1.0,
+      "clothing|imported": 1.0
+    },
+    "amt": {
+      "agric": 61.0,
+      "manuf": 44.0
+    },
+    "gamma": {
+      "food": 0.5,
+      "clothing": 0.05
+    },
+    "wl": {
+      "agric": 0.5,
+      "manuf": 0.5
+    },
+    "alpha": {
+      "food|domestic|agric": 0.9090909090909091,
+      "food|domestic|manuf": 0.5,
+      "food|imported|agric": 0.09090909090909091,
+      "food|imported|manuf": 0.5,
+      "clothing|domestic|agric": 0.75,
+      "clothing|domestic|manuf": 0.3333333333333333,
+      "clothing|imported|agric": 0.25,
+      "clothing|imported|manuf": 0.6666666666666666
+    },
+    "alphak": {
+      "agric": 0.3333333333333333,
+      "manuf": 0.2
+    },
+    "alphal": {
+      "agric": 0.6666666666666666,
+      "manuf": 0.8
+    },
+    "alphae": {
+      "food|domestic": 0.9444444444444444,
+      "food|imported": 0.05555555555555555,
+      "clothing|domestic": 0.7727272727272727,
+      "clothing|imported": 0.22727272727272727
+    },
+    "etabar": {
+      "food|domestic|food|domestic": -0.05555555555555558,
+      "food|domestic|food|imported": 0.05555555555555555,
+      "food|imported|food|domestic": 0.9444444444444444,
+      "food|imported|food|imported": -0.9444444444444444,
+      "clothing|domestic|clothing|domestic": -0.2272727272727273,
+      "clothing|domestic|clothing|imported": 0.22727272727272727,
+      "clothing|imported|clothing|domestic": 0.7727272727272727,
+      "clothing|imported|clothing|imported": -0.7727272727272727,
+      "food|domestic|clothing|domestic": 0.0,
+      "food|domestic|clothing|imported": 0.0,
+      "food|imported|clothing|domestic": 0.0,
+      "food|imported|clothing|imported": 0.0,
+      "clothing|domestic|food|domestic": 0.0,
+      "clothing|domestic|food|imported": 0.0,
+      "clothing|imported|food|domestic": 0.0,
+      "clothing|imported|food|imported": 0.0
+    },
+    "sb": {
+      "food|domestic": 0.27419354838709675,
+      "food|imported": 0.016129032258064516,
+      "clothing|domestic": 0.5483870967741935,
+      "clothing|imported": 0.16129032258064516
+    },
+    "eta": {
+      "food|domestic|food|domestic": -0.32974910394265233,
+      "food|domestic|food|imported": 0.03942652329749104,
+      "food|domestic|clothing|domestic": -0.5483870967741935,
+      "food|domestic|clothing|imported": -0.16129032258064516,
+      "food|imported|food|domestic": 0.6702508960573477,
+      "food|imported|food|imported": -0.9605734767025089,
+      "food|imported|clothing|domestic": -0.5483870967741935,
+      "food|imported|clothing|imported": -0.16129032258064516,
+      "clothing|domestic|food|domestic": -0.27419354838709675,
+      "clothing|domestic|food|imported": -0.016129032258064516,
+      "clothing|domestic|clothing|domestic": -0.7756598240469208,
+      "clothing|domestic|clothing|imported": 0.06598240469208211,
+      "clothing|imported|food|domestic": -0.27419354838709675,
+      "clothing|imported|food|imported": -0.016129032258064516,
+      "clothing|imported|clothing|domestic": 0.2243401759530792,
+      "clothing|imported|clothing|imported": -0.9340175953079178
+    },
+    "m": {
+      "food|agric": 0.8333333333333334,
+      "food|manuf": 0.16666666666666666,
+      "clothing|agric": 0.3137254901960784,
+      "clothing|manuf": 0.6862745098039216
+    },
+    "mu": {
+      "food|domestic": 0.27419354838709675,
+      "food|imported": 0.016129032258064516,
+      "clothing|domestic": 0.5483870967741935,
+      "clothing|imported": 0.16129032258064516
+    },
+    "nm": {
+      "food": 0.42857142857142855,
+      "clothing": 0.5714285714285714
+    },
+    "nx": {
+      "food": 0.95,
+      "clothing": 0.05
+    },
+    "r": {
+      "food|agric": 0.7377049180327869,
+      "food|manuf": 0.20454545454545456,
+      "clothing|agric": 0.26229508196721313,
+      "clothing|manuf": 0.7954545454545454
+    },
+    "sc": {
+      "food|domestic|agric": 0.16393442622950818,
+      "food|domestic|manuf": 0.18181818181818182,
+      "food|imported|agric": 0.01639344262295082,
+      "food|imported|manuf": 0.18181818181818182,
+      "clothing|domestic|agric": 0.2459016393442623,
+      "clothing|domestic|manuf": 0.022727272727272728,
+      "clothing|imported|agric": 0.08196721311475409,
+      "clothing|imported|manuf": 0.045454545454545456
+    },
+    "sk": {
+      "agric": 0.16393442622950818,
+      "manuf": 0.11363636363636363
+    },
+    "sl": {
+      "agric": 0.32786885245901637,
+      "manuf": 0.45454545454545453
+    },
+    "wc": {
+      "food|domestic": 0.3148148148148148,
+      "food|imported": 0.1,
+      "clothing|domestic": 0.6666666666666666,
+      "clothing|imported": 0.5882352941176471
+    },
+    "we": {
+      "food": 0.35185185185185186,
+      "clothing": 0.0196078431372549
+    },
+    "wi": {
+      "food|domestic|agric": 0.18518518518518517,
+      "food|domestic|manuf": 0.14814814814814814,
+      "food|imported|agric": 0.1,
+      "food|imported|manuf": 0.8,
+      "clothing|domestic|agric": 0.29411764705882354,
+      "clothing|domestic|manuf": 0.0196078431372549,
+      "clothing|imported|agric": 0.29411764705882354,
+      "clothing|imported|manuf": 0.11764705882352941
+    }
+  }
+}

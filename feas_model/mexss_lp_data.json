@@ -1,0 +1,99 @@
+{
+  "sets": {
+    "i": ["ahmsa", "fundidora", "sicartsa", "hylsa", "hylsap"],
+    "j": ["mexico-df", "monterrey", "guadalaja"],
+    "c": ["pellets", "coke", "nat-gas", "electric", "scrap", "pig-iron", "sponge", "steel"],
+    "cf": ["steel"],
+    "ci": ["sponge", "pig-iron"],
+    "cr": ["pellets", "coke", "nat-gas", "electric", "scrap"],
+    "p": ["pig-iron", "sponge", "steel-oh", "steel-el", "steel-bof"],
+    "m": ["blast-furn", "openhearth", "bof", "direct-red", "elec-arc"]
+  },
+  "scalar_params": {
+    "eb": 1.0
+  },
+  "indexed_params": {
+    "a": {
+      "pellets|pig-iron": -1.58,
+      "pellets|sponge": -1.38,
+      "coke|pig-iron": -0.63,
+      "nat-gas|sponge": -0.57,
+      "electric|steel-el": -0.58,
+      "scrap|steel-oh": -0.33,
+      "scrap|steel-bof": -0.12,
+      "pig-iron|pig-iron": 1.0,
+      "pig-iron|steel-oh": -0.77,
+      "pig-iron|steel-bof": -0.95,
+      "sponge|sponge": 1.0,
+      "sponge|steel-el": -1.09,
+      "steel|steel-oh": 1.0,
+      "steel|steel-el": 1.0,
+      "steel|steel-bof": 1.0
+    },
+    "b": {
+      "blast-furn|pig-iron": 1.0,
+      "openhearth|steel-oh": 1.0,
+      "bof|steel-bof": 1.0,
+      "direct-red|sponge": 1.0,
+      "elec-arc|steel-el": 1.0
+    },
+    "k": {
+      "blast-furn|ahmsa": 3.25,
+      "blast-furn|fundidora": 1.40,
+      "blast-furn|sicartsa": 1.10,
+      "openhearth|ahmsa": 1.50,
+      "openhearth|fundidora": 0.85,
+      "bof|ahmsa": 2.07,
+      "bof|fundidora": 1.50,
+      "bof|sicartsa": 1.30,
+      "direct-red|hylsa": 0.98,
+      "direct-red|hylsap": 1.00,
+      "elec-arc|hylsa": 1.13,
+      "elec-arc|hylsap": 0.56
+    },
+    "d": {
+      "steel|mexico-df": 4.01093,
+      "steel|monterrey": 2.18778,
+      "steel|guadalaja": 1.09389
+    },
+    "muf": {
+      "ahmsa|mexico-df": 12.5936,
+      "ahmsa|monterrey": 4.3112,
+      "ahmsa|guadalaja": 11.93,
+      "fundidora|mexico-df": 11.0228,
+      "fundidora|guadalaja": 11.132,
+      "sicartsa|mexico-df": 9.3596,
+      "sicartsa|monterrey": 13.442,
+      "sicartsa|guadalaja": 8.3936,
+      "hylsa|mexico-df": 11.0228,
+      "hylsa|guadalaja": 11.132,
+      "hylsap|mexico-df": 4.034,
+      "hylsap|monterrey": 11.594,
+      "hylsap|guadalaja": 8.864
+    },
+    "muv": {
+      "mexico-df": 6.0752,
+      "monterrey": 6.8564,
+      "guadalaja": 5.0
+    },
+    "mue": {
+      "ahmsa": 8.6876,
+      "fundidora": 6.8564,
+      "hylsa": 6.8564,
+      "hylsap": 5.126
+    },
+    "pd": {
+      "pellets": 18.7,
+      "coke": 52.17,
+      "nat-gas": 14.0,
+      "electric": 24.0,
+      "scrap": 105.0
+    },
+    "pv": {
+      "steel": 150.0
+    },
+    "pe": {
+      "steel": 140.0
+    }
+  }
+}

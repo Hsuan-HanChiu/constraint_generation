@@ -1,0 +1,47 @@
+{
+  "sets": {
+    "b": [
+      "municip-a",
+      "municip-b",
+      "corporate",
+      "us-ser-e",
+      "us-ser-f"
+    ],
+    "g": [
+      "corporate",
+      "us-ser-e",
+      "us-ser-f"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "rating": {
+      "municip-a": 2.0,
+      "municip-b": 5.0,
+      "corporate": 2.0,
+      "us-ser-e": 1.0,
+      "us-ser-f": 1.0
+    },
+    "maturity": {
+      "municip-a": 9.0,
+      "municip-b": 2.0,
+      "corporate": 15.0,
+      "us-ser-e": 4.0,
+      "us-ser-f": 3.0
+    },
+    "yield": {
+      "municip-a": 4.3,
+      "municip-b": 4.5,
+      "corporate": 5.4,
+      "us-ser-e": 5.0,
+      "us-ser-f": 4.4
+    },
+    "taxrate": {
+      "municip-a": 0.0,
+      "municip-b": 0.0,
+      "corporate": 0.5,
+      "us-ser-e": 0.5,
+      "us-ser-f": 0.5
+    }
+  }
+}

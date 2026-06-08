@@ -1,0 +1,49 @@
+{
+  "sets": {
+    "i": [
+      "seattle",
+      "san-diego"
+    ],
+    "j": [
+      "new-york",
+      "chicago",
+      "topeka"
+    ],
+    "s": [
+      "scen1",
+      "scen2",
+      "scen3",
+      "scen4",
+      "scen5",
+      "scen6",
+      "scen7",
+      "scen8",
+      "scen9",
+      "scen10"
+    ]
+  },
+  "scalar_params": {
+    "f": 90,
+    "pen": 1000,
+    "random_seed": 12345
+  },
+  "indexed_params": {
+    "a": {
+      "seattle": 350,
+      "san-diego": 600
+    },
+    "b": {
+      "new-york": 325,
+      "chicago": 300,
+      "topeka": 275
+    },
+    "d": {
+      "seattle|new-york": 2.5,
+      "seattle|chicago": 1.7,
+      "seattle|topeka": 1.8,
+      "san-diego|new-york": 2.5,
+      "san-diego|chicago": 1.8,
+      "san-diego|topeka": 1.4
+    }
+  }
+}

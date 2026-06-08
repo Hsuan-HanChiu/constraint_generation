@@ -1,0 +1,65 @@
+{
+  "sets": {
+    "p": [
+      "nuts",
+      "bolts",
+      "washers"
+    ],
+    "r": [
+      "iron",
+      "nickel"
+    ],
+    "tl": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "t": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "scalar_params": {
+    "m": 110.0
+  },
+  "indexed_params": {
+    "b": {
+      "iron": 30.0,
+      "nickel": 8.5
+    },
+    "d": {
+      "iron": 0.0345,
+      "nickel": 0.025
+    },
+    "f": {
+      "iron": 0.02,
+      "nickel": -0.01
+    },
+    "a": {
+      "iron|nuts": 0.79,
+      "iron|bolts": 0.83,
+      "iron|washers": 0.92,
+      "nickel|nuts": 0.21,
+      "nickel|bolts": 0.17,
+      "nickel|washers": 0.08
+    },
+    "c": {
+      "nuts|1": 1.73,
+      "nuts|2": 1.8,
+      "nuts|3": 1.6,
+      "nuts|4": 2.8,
+      "bolts|1": 1.82,
+      "bolts|2": 1.5,
+      "bolts|3": 1.7,
+      "bolts|4": 0.95,
+      "washers|1": 1.155,
+      "washers|2": 1.21,
+      "washers|3": 1.045,
+      "washers|4": 1.463
+    }
+  }
+}

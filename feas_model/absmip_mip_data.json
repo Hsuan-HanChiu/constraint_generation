@@ -1,0 +1,8 @@
+{
+  "sets": {},
+  "scalar_params": {
+    "xlo": -5.0,
+    "xup": 5.0
+  },
+  "indexed_params": {}
+}

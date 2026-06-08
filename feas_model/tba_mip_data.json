@@ -1,0 +1,67 @@
+{
+  "sets": {
+    "p": [
+      "gn999001",
+      "gn999002",
+      "gn999003",
+      "gn999004",
+      "gn999005",
+      "gn999006",
+      "gn999007",
+      "gn999008",
+      "gn999009",
+      "gn999010",
+      "gn999011"
+    ],
+    "i": [
+      20580252
+    ],
+    "l": [
+      "l1",
+      "l2",
+      "l3",
+      "l4"
+    ],
+    "c3": [
+      "gn999010",
+      "gn999011"
+    ]
+  },
+  "scalar_params": {
+    "head": 25,
+    "steps": 5
+  },
+  "indexed_params": {
+    "pv": {
+      "gn999001|original": 50,
+      "gn999001|adjusted": 50,
+      "gn999002|original": 100,
+      "gn999002|adjusted": 100,
+      "gn999003|original": 300,
+      "gn999003|adjusted": 300,
+      "gn999004|original": 400,
+      "gn999004|adjusted": 400,
+      "gn999005|original": 450,
+      "gn999005|adjusted": 450,
+      "gn999006|original": 450,
+      "gn999006|adjusted": 450,
+      "gn999007|original": 475,
+      "gn999007|adjusted": 475,
+      "gn999008|original": 700,
+      "gn999008|adjusted": 700,
+      "gn999009|original": 1000,
+      "gn999009|adjusted": 1000,
+      "gn999010|original": 1000,
+      "gn999010|adjusted": 1000,
+      "gn999011|original": 5000,
+      "gn999011|adjusted": 5000
+    },
+    "tbainfo": {
+      "20580252|quantity": 5000,
+      "20580252|selling": 100.88,
+      "20580252|market": 100,
+      "20580252|variation": 0.05,
+      "20580252|maxpools": 3
+    }
+  }
+}

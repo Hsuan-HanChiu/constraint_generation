@@ -1,0 +1,35 @@
+{
+  "sets": {
+    "s": [
+      "a",
+      "b",
+      "c",
+      "incr",
+      "decr"
+    ],
+    "x": [
+      "a",
+      "b",
+      "c"
+    ],
+    "d": [
+      "incr",
+      "decr"
+    ],
+    "b": [
+      "low",
+      "high"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "ls": {
+      "low": 1.0,
+      "high": -1.0
+    },
+    "lr": {
+      "low": 2.0,
+      "high": -1.0
+    }
+  }
+}

@@ -1,0 +1,1350 @@
+{
+  "sets": {
+    "c": [
+      "pulplogs",
+      "sawlogs",
+      "residuals",
+      "pulp",
+      "sawnwood"
+    ],
+    "s": [
+      "nigra",
+      "brutia"
+    ],
+    "k": [
+      "good",
+      "medium",
+      "poor"
+    ],
+    "at": [
+      "a-10",
+      "a-20",
+      "a-30",
+      "a-40",
+      "a-50",
+      "a-60",
+      "a-70",
+      "a-80",
+      "a-90",
+      "a-100",
+      "a-110",
+      "a-120",
+      "a-130",
+      "a-140",
+      "a-150",
+      "a-160",
+      "a-170"
+    ],
+    "u": [
+      "a-10",
+      "a-20",
+      "a-30",
+      "a-40",
+      "a-50",
+      "a-60",
+      "a-70",
+      "a-80",
+      "a-90"
+    ],
+    "p": [
+      "pulp-pl",
+      "pulp-sl",
+      "pulp-rs",
+      "sawing"
+    ],
+    "m": [
+      "pulp-mill",
+      "saw-mill"
+    ],
+    "te": [
+      "period-1",
+      "period-2",
+      "period-3",
+      "period-4",
+      "period-5",
+      "period-6",
+      "period-7",
+      "period-8",
+      "period-9",
+      "period-10",
+      "period-11",
+      "period-12"
+    ],
+    "t": [
+      "period-1",
+      "period-2",
+      "period-3",
+      "period-4",
+      "period-5",
+      "period-6",
+      "period-7",
+      "period-8",
+      "period-9"
+    ],
+    "cf": [
+      "pulp",
+      "sawnwood"
+    ],
+    "cl": [
+      "pulplogs",
+      "sawlogs"
+    ],
+    "wpos": [
+      [
+        "a-10",
+        "period-1"
+      ],
+      [
+        "a-10",
+        "period-2"
+      ],
+      [
+        "a-10",
+        "period-3"
+      ],
+      [
+        "a-10",
+        "period-4"
+      ],
+      [
+        "a-10",
+        "period-5"
+      ],
+      [
+        "a-10",
+        "period-6"
+      ],
+      [
+        "a-10",
+        "period-7"
+      ],
+      [
+        "a-10",
+        "period-8"
+      ],
+      [
+        "a-10",
+        "period-9"
+      ],
+      [
+        "a-20",
+        "period-1"
+      ],
+      [
+        "a-20",
+        "period-2"
+      ],
+      [
+        "a-20",
+        "period-3"
+      ],
+      [
+        "a-20",
+        "period-4"
+      ],
+      [
+        "a-20",
+        "period-5"
+      ],
+      [
+        "a-20",
+        "period-6"
+      ],
+      [
+        "a-20",
+        "period-7"
+      ],
+      [
+        "a-20",
+        "period-8"
+      ],
+      [
+        "a-20",
+        "period-9"
+      ],
+      [
+        "a-30",
+        "period-1"
+      ],
+      [
+        "a-30",
+        "period-2"
+      ],
+      [
+        "a-30",
+        "period-3"
+      ],
+      [
+        "a-30",
+        "period-4"
+      ],
+      [
+        "a-30",
+        "period-5"
+      ],
+      [
+        "a-30",
+        "period-6"
+      ],
+      [
+        "a-30",
+        "period-7"
+      ],
+      [
+        "a-30",
+        "period-8"
+      ],
+      [
+        "a-30",
+        "period-9"
+      ],
+      [
+        "a-40",
+        "period-1"
+      ],
+      [
+        "a-40",
+        "period-2"
+      ],
+      [
+        "a-40",
+        "period-3"
+      ],
+      [
+        "a-40",
+        "period-4"
+      ],
+      [
+        "a-40",
+        "period-5"
+      ],
+      [
+        "a-40",
+        "period-6"
+      ],
+      [
+        "a-40",
+        "period-7"
+      ],
+      [
+        "a-40",
+        "period-8"
+      ],
+      [
+        "a-40",
+        "period-9"
+      ],
+      [
+        "a-50",
+        "period-1"
+      ],
+      [
+        "a-50",
+        "period-2"
+      ],
+      [
+        "a-50",
+        "period-3"
+      ],
+      [
+        "a-50",
+        "period-4"
+      ],
+      [
+        "a-50",
+        "period-5"
+      ],
+      [
+        "a-50",
+        "period-6"
+      ],
+      [
+        "a-50",
+        "period-7"
+      ],
+      [
+        "a-50",
+        "period-8"
+      ],
+      [
+        "a-50",
+        "period-9"
+      ],
+      [
+        "a-60",
+        "period-1"
+      ],
+      [
+        "a-60",
+        "period-2"
+      ],
+      [
+        "a-60",
+        "period-3"
+      ],
+      [
+        "a-60",
+        "period-4"
+      ],
+      [
+        "a-60",
+        "period-5"
+      ],
+      [
+        "a-60",
+        "period-6"
+      ],
+      [
+        "a-60",
+        "period-7"
+      ],
+      [
+        "a-60",
+        "period-8"
+      ],
+      [
+        "a-60",
+        "period-9"
+      ],
+      [
+        "a-70",
+        "period-1"
+      ],
+      [
+        "a-70",
+        "period-2"
+      ],
+      [
+        "a-70",
+        "period-3"
+      ],
+      [
+        "a-70",
+        "period-4"
+      ],
+      [
+        "a-70",
+        "period-5"
+      ],
+      [
+        "a-70",
+        "period-6"
+      ],
+      [
+        "a-70",
+        "period-7"
+      ],
+      [
+        "a-70",
+        "period-8"
+      ],
+      [
+        "a-70",
+        "period-9"
+      ],
+      [
+        "a-80",
+        "period-1"
+      ],
+      [
+        "a-80",
+        "period-2"
+      ],
+      [
+        "a-80",
+        "period-3"
+      ],
+      [
+        "a-80",
+        "period-4"
+      ],
+      [
+        "a-80",
+        "period-5"
+      ],
+      [
+        "a-80",
+        "period-6"
+      ],
+      [
+        "a-80",
+        "period-7"
+      ],
+      [
+        "a-80",
+        "period-8"
+      ],
+      [
+        "a-80",
+        "period-9"
+      ],
+      [
+        "a-90",
+        "period-1"
+      ],
+      [
+        "a-90",
+        "period-2"
+      ],
+      [
+        "a-90",
+        "period-3"
+      ],
+      [
+        "a-90",
+        "period-4"
+      ],
+      [
+        "a-90",
+        "period-5"
+      ],
+      [
+        "a-90",
+        "period-6"
+      ],
+      [
+        "a-90",
+        "period-7"
+      ],
+      [
+        "a-90",
+        "period-8"
+      ],
+      [
+        "a-90",
+        "period-9"
+      ]
+    ],
+    "vpos": [
+      [
+        "period-1",
+        "period-2"
+      ],
+      [
+        "period-1",
+        "period-3"
+      ],
+      [
+        "period-1",
+        "period-4"
+      ],
+      [
+        "period-1",
+        "period-5"
+      ],
+      [
+        "period-1",
+        "period-6"
+      ],
+      [
+        "period-1",
+        "period-7"
+      ],
+      [
+        "period-1",
+        "period-8"
+      ],
+      [
+        "period-1",
+        "period-9"
+      ],
+      [
+        "period-2",
+        "period-3"
+      ],
+      [
+        "period-2",
+        "period-4"
+      ],
+      [
+        "period-2",
+        "period-5"
+      ],
+      [
+        "period-2",
+        "period-6"
+      ],
+      [
+        "period-2",
+        "period-7"
+      ],
+      [
+        "period-2",
+        "period-8"
+      ],
+      [
+        "period-2",
+        "period-9"
+      ],
+      [
+        "period-3",
+        "period-4"
+      ],
+      [
+        "period-3",
+        "period-5"
+      ],
+      [
+        "period-3",
+        "period-6"
+      ],
+      [
+        "period-3",
+        "period-7"
+      ],
+      [
+        "period-3",
+        "period-8"
+      ],
+      [
+        "period-3",
+        "period-9"
+      ],
+      [
+        "period-4",
+        "period-5"
+      ],
+      [
+        "period-4",
+        "period-6"
+      ],
+      [
+        "period-4",
+        "period-7"
+      ],
+      [
+        "period-4",
+        "period-8"
+      ],
+      [
+        "period-4",
+        "period-9"
+      ],
+      [
+        "period-5",
+        "period-6"
+      ],
+      [
+        "period-5",
+        "period-7"
+      ],
+      [
+        "period-5",
+        "period-8"
+      ],
+      [
+        "period-5",
+        "period-9"
+      ],
+      [
+        "period-6",
+        "period-7"
+      ],
+      [
+        "period-6",
+        "period-8"
+      ],
+      [
+        "period-6",
+        "period-9"
+      ],
+      [
+        "period-7",
+        "period-8"
+      ],
+      [
+        "period-7",
+        "period-9"
+      ],
+      [
+        "period-7",
+        "period-10"
+      ],
+      [
+        "period-8",
+        "period-9"
+      ],
+      [
+        "period-8",
+        "period-11"
+      ],
+      [
+        "period-9",
+        "period-12"
+      ]
+    ]
+  },
+  "scalar_params": {
+    "mup": 150.0,
+    "muc": 7.0,
+    "life": 30.0,
+    "rho": 0.1,
+    "sgm": 0.106079248252634
+  },
+  "indexed_params": {
+    "scd": {
+      "good": 0.25,
+      "medium": 0.5,
+      "poor": 0.25
+    },
+    "land": {
+      "nigra": 143.679,
+      "brutia": 227.58
+    },
+    "pc": {
+      "pulp-pl": 5.96,
+      "pulp-sl": 5.96,
+      "pulp-rs": 5.96,
+      "sawing": 6.0
+    },
+    "pd": {
+      "pulp": 147.0,
+      "sawnwood": 70.0
+    },
+    "nu": {
+      "pulp-mill": 37.8,
+      "saw-mill": 61.5
+    },
+    "age": {
+      "a-10": 10.0,
+      "a-20": 20.0,
+      "a-30": 30.0,
+      "a-40": 40.0,
+      "a-50": 50.0,
+      "a-60": 60.0,
+      "a-70": 70.0,
+      "a-80": 80.0,
+      "a-90": 90.0,
+      "a-100": 100.0,
+      "a-110": 110.0,
+      "a-120": 120.0,
+      "a-130": 130.0,
+      "a-140": 140.0,
+      "a-150": 150.0,
+      "a-160": 160.0,
+      "a-170": 170.0
+    },
+    "delt": {
+      "period-1": 1.0,
+      "period-2": 0.385543289429531,
+      "period-3": 0.148643628024143,
+      "period-4": 0.057308553301168,
+      "period-5": 0.0220949281521799,
+      "period-6": 0.00851855127950061,
+      "period-7": 0.00328427028147281,
+      "period-8": 0.00126622836769468,
+      "period-9": 0.000488185850049993
+    },
+    "a": {
+      "pulplogs|pulp-pl": -1.0,
+      "sawlogs|pulp-sl": -1.0,
+      "sawlogs|sawing": -1.0,
+      "residuals|pulp-rs": -1.0,
+      "residuals|sawing": 0.4,
+      "pulp|pulp-pl": 0.207,
+      "pulp|pulp-sl": 0.207,
+      "pulp|pulp-rs": 0.207,
+      "sawnwood|sawing": 0.6
+    },
+    "b": {
+      "pulp-mill|pulp-pl": 1.0,
+      "pulp-mill|pulp-sl": 1.0,
+      "pulp-mill|pulp-rs": 1.0,
+      "saw-mill|sawing": 1.0
+    },
+    "avl": {
+      "period-1|period-1": 1.0,
+      "period-2|period-1": 1.0,
+      "period-2|period-2": 1.0,
+      "period-3|period-1": 1.0,
+      "period-3|period-2": 1.0,
+      "period-3|period-3": 1.0,
+      "period-4|period-2": 1.0,
+      "period-4|period-3": 1.0,
+      "period-4|period-4": 1.0,
+      "period-5|period-3": 1.0,
+      "period-5|period-4": 1.0,
+      "period-5|period-5": 1.0,
+      "period-6|period-4": 1.0,
+      "period-6|period-5": 1.0,
+      "period-6|period-6": 1.0,
+      "period-7|period-5": 1.0,
+      "period-7|period-6": 1.0,
+      "period-7|period-7": 1.0,
+      "period-8|period-6": 1.0,
+      "period-8|period-7": 1.0,
+      "period-8|period-8": 1.0,
+      "period-9|period-7": 1.0,
+      "period-9|period-8": 1.0,
+      "period-9|period-9": 1.0
+    },
+    "iad": {
+      "a-10|nigra": 2.002002002002e-05,
+      "a-10|brutia": 1.99004975124378e-05,
+      "a-20|nigra": 2.002002002002e-05,
+      "a-20|brutia": 1.99004975124378e-05,
+      "a-30|nigra": 2.002002002002e-05,
+      "a-30|brutia": 1.99004975124378e-05,
+      "a-40|nigra": 0.000850850850850851,
+      "a-40|brutia": 0.0012636815920398,
+      "a-50|nigra": 0.000850850850850851,
+      "a-50|brutia": 0.0012636815920398,
+      "a-60|nigra": 0.000850850850850851,
+      "a-60|brutia": 0.0012636815920398,
+      "a-70|nigra": 0.00246246246246246,
+      "a-70|brutia": 0.00204975124378109,
+      "a-80|nigra": 0.00246246246246246,
+      "a-80|brutia": 0.00204975124378109,
+      "a-90|nigra": 0.00246246246246246,
+      "a-90|brutia": 0.00204975124378109
+    },
+    "yw": {
+      "period-1|a-10|nigra|pulplogs": 38.8,
+      "period-1|a-10|nigra|sawlogs": 1.2,
+      "period-1|a-10|brutia|pulplogs": 17.8,
+      "period-1|a-10|brutia|sawlogs": 3.2,
+      "period-1|a-20|nigra|pulplogs": 48.4,
+      "period-1|a-20|nigra|sawlogs": 8.6,
+      "period-1|a-20|brutia|pulplogs": 16.8,
+      "period-1|a-20|brutia|sawlogs": 19.1,
+      "period-1|a-30|nigra|pulplogs": 43.4,
+      "period-1|a-30|nigra|sawlogs": 26.6,
+      "period-1|a-30|brutia|pulplogs": 15.4,
+      "period-1|a-30|brutia|sawlogs": 32.6,
+      "period-1|a-40|nigra|pulplogs": 34.4,
+      "period-1|a-40|nigra|sawlogs": 45.6,
+      "period-1|a-40|brutia|pulplogs": 16.0,
+      "period-1|a-40|brutia|sawlogs": 41.0,
+      "period-1|a-50|nigra|pulplogs": 27.8,
+      "period-1|a-50|nigra|sawlogs": 59.2,
+      "period-1|a-50|brutia|pulplogs": 18.2,
+      "period-1|a-50|brutia|sawlogs": 46.8,
+      "period-1|a-60|nigra|pulplogs": 28.5,
+      "period-1|a-60|nigra|sawlogs": 66.5,
+      "period-1|a-60|brutia|pulplogs": 16.8,
+      "period-1|a-60|brutia|sawlogs": 53.2,
+      "period-1|a-70|nigra|pulplogs": 27.3,
+      "period-1|a-70|nigra|sawlogs": 72.7,
+      "period-1|a-70|brutia|pulplogs": 17.5,
+      "period-1|a-70|brutia|sawlogs": 55.5,
+      "period-1|a-80|nigra|pulplogs": 25.2,
+      "period-1|a-80|nigra|sawlogs": 79.8,
+      "period-1|a-80|brutia|pulplogs": 17.3,
+      "period-1|a-80|brutia|sawlogs": 54.7,
+      "period-1|a-90|nigra|pulplogs": 26.4,
+      "period-1|a-90|nigra|sawlogs": 83.8,
+      "period-1|a-90|brutia|pulplogs": 17.0,
+      "period-1|a-90|brutia|sawlogs": 54.0,
+      "period-2|a-10|nigra|pulplogs": 48.4,
+      "period-2|a-10|nigra|sawlogs": 8.6,
+      "period-2|a-10|brutia|pulplogs": 16.8,
+      "period-2|a-10|brutia|sawlogs": 19.1,
+      "period-2|a-20|nigra|pulplogs": 43.4,
+      "period-2|a-20|nigra|sawlogs": 26.6,
+      "period-2|a-20|brutia|pulplogs": 15.4,
+      "period-2|a-20|brutia|sawlogs": 32.6,
+      "period-2|a-30|nigra|pulplogs": 34.4,
+      "period-2|a-30|nigra|sawlogs": 45.6,
+      "period-2|a-30|brutia|pulplogs": 16.0,
+      "period-2|a-30|brutia|sawlogs": 41.0,
+      "period-2|a-40|nigra|pulplogs": 27.8,
+      "period-2|a-40|nigra|sawlogs": 59.2,
+      "period-2|a-40|brutia|pulplogs": 18.2,
+      "period-2|a-40|brutia|sawlogs": 46.8,
+      "period-2|a-50|nigra|pulplogs": 28.5,
+      "period-2|a-50|nigra|sawlogs": 66.5,
+      "period-2|a-50|brutia|pulplogs": 16.8,
+      "period-2|a-50|brutia|sawlogs": 53.2,
+      "period-2|a-60|nigra|pulplogs": 27.3,
+      "period-2|a-60|nigra|sawlogs": 72.7,
+      "period-2|a-60|brutia|pulplogs": 17.5,
+      "period-2|a-60|brutia|sawlogs": 55.5,
+      "period-2|a-70|nigra|pulplogs": 25.2,
+      "period-2|a-70|nigra|sawlogs": 79.8,
+      "period-2|a-70|brutia|pulplogs": 17.3,
+      "period-2|a-70|brutia|sawlogs": 54.7,
+      "period-2|a-80|nigra|pulplogs": 26.4,
+      "period-2|a-80|nigra|sawlogs": 83.8,
+      "period-2|a-80|brutia|pulplogs": 17.0,
+      "period-2|a-80|brutia|sawlogs": 54.0,
+      "period-2|a-90|nigra|pulplogs": 27.1,
+      "period-2|a-90|nigra|sawlogs": 85.9,
+      "period-2|a-90|brutia|pulplogs": 16.3,
+      "period-2|a-90|brutia|sawlogs": 51.7,
+      "period-3|a-10|nigra|pulplogs": 43.4,
+      "period-3|a-10|nigra|sawlogs": 26.6,
+      "period-3|a-10|brutia|pulplogs": 15.4,
+      "period-3|a-10|brutia|sawlogs": 32.6,
+      "period-3|a-20|nigra|pulplogs": 34.4,
+      "period-3|a-20|nigra|sawlogs": 45.6,
+      "period-3|a-20|brutia|pulplogs": 16.0,
+      "period-3|a-20|brutia|sawlogs": 41.0,
+      "period-3|a-30|nigra|pulplogs": 27.8,
+      "period-3|a-30|nigra|sawlogs": 59.2,
+      "period-3|a-30|brutia|pulplogs": 18.2,
+      "period-3|a-30|brutia|sawlogs": 46.8,
+      "period-3|a-40|nigra|pulplogs": 28.5,
+      "period-3|a-40|nigra|sawlogs": 66.5,
+      "period-3|a-40|brutia|pulplogs": 16.8,
+      "period-3|a-40|brutia|sawlogs": 53.2,
+      "period-3|a-50|nigra|pulplogs": 27.3,
+      "period-3|a-50|nigra|sawlogs": 72.7,
+      "period-3|a-50|brutia|pulplogs": 17.5,
+      "period-3|a-50|brutia|sawlogs": 55.5,
+      "period-3|a-60|nigra|pulplogs": 25.2,
+      "period-3|a-60|nigra|sawlogs": 79.8,
+      "period-3|a-60|brutia|pulplogs": 17.3,
+      "period-3|a-60|brutia|sawlogs": 54.7,
+      "period-3|a-70|nigra|pulplogs": 26.4,
+      "period-3|a-70|nigra|sawlogs": 83.8,
+      "period-3|a-70|brutia|pulplogs": 17.0,
+      "period-3|a-70|brutia|sawlogs": 54.0,
+      "period-3|a-80|nigra|pulplogs": 27.1,
+      "period-3|a-80|nigra|sawlogs": 85.9,
+      "period-3|a-80|brutia|pulplogs": 16.3,
+      "period-3|a-80|brutia|sawlogs": 51.7,
+      "period-3|a-90|nigra|pulplogs": 27.8,
+      "period-3|a-90|nigra|sawlogs": 88.2,
+      "period-3|a-90|brutia|pulplogs": 14.9,
+      "period-3|a-90|brutia|sawlogs": 47.1,
+      "period-4|a-10|nigra|pulplogs": 34.4,
+      "period-4|a-10|nigra|sawlogs": 45.6,
+      "period-4|a-10|brutia|pulplogs": 16.0,
+      "period-4|a-10|brutia|sawlogs": 41.0,
+      "period-4|a-20|nigra|pulplogs": 27.8,
+      "period-4|a-20|nigra|sawlogs": 59.2,
+      "period-4|a-20|brutia|pulplogs": 18.2,
+      "period-4|a-20|brutia|sawlogs": 46.8,
+      "period-4|a-30|nigra|pulplogs": 28.5,
+      "period-4|a-30|nigra|sawlogs": 66.5,
+      "period-4|a-30|brutia|pulplogs": 16.8,
+      "period-4|a-30|brutia|sawlogs": 53.2,
+      "period-4|a-40|nigra|pulplogs": 27.3,
+      "period-4|a-40|nigra|sawlogs": 72.7,
+      "period-4|a-40|brutia|pulplogs": 17.5,
+      "period-4|a-40|brutia|sawlogs": 55.5,
+      "period-4|a-50|nigra|pulplogs": 25.2,
+      "period-4|a-50|nigra|sawlogs": 79.8,
+      "period-4|a-50|brutia|pulplogs": 17.3,
+      "period-4|a-50|brutia|sawlogs": 54.7,
+      "period-4|a-60|nigra|pulplogs": 26.4,
+      "period-4|a-60|nigra|sawlogs": 83.8,
+      "period-4|a-60|brutia|pulplogs": 17.0,
+      "period-4|a-60|brutia|sawlogs": 54.0,
+      "period-4|a-70|nigra|pulplogs": 27.1,
+      "period-4|a-70|nigra|sawlogs": 85.9,
+      "period-4|a-70|brutia|pulplogs": 16.3,
+      "period-4|a-70|brutia|sawlogs": 51.7,
+      "period-4|a-80|nigra|pulplogs": 27.8,
+      "period-4|a-80|nigra|sawlogs": 88.2,
+      "period-4|a-80|brutia|pulplogs": 14.9,
+      "period-4|a-80|brutia|sawlogs": 47.1,
+      "period-4|a-90|nigra|pulplogs": 28.3,
+      "period-4|a-90|nigra|sawlogs": 89.7,
+      "period-4|a-90|brutia|pulplogs": 12.0,
+      "period-4|a-90|brutia|sawlogs": 38.0,
+      "period-5|a-10|nigra|pulplogs": 27.8,
+      "period-5|a-10|nigra|sawlogs": 59.2,
+      "period-5|a-10|brutia|pulplogs": 18.2,
+      "period-5|a-10|brutia|sawlogs": 46.8,
+      "period-5|a-20|nigra|pulplogs": 28.5,
+      "period-5|a-20|nigra|sawlogs": 66.5,
+      "period-5|a-20|brutia|pulplogs": 16.8,
+      "period-5|a-20|brutia|sawlogs": 53.2,
+      "period-5|a-30|nigra|pulplogs": 27.3,
+      "period-5|a-30|nigra|sawlogs": 72.7,
+      "period-5|a-30|brutia|pulplogs": 17.5,
+      "period-5|a-30|brutia|sawlogs": 55.5,
+      "period-5|a-40|nigra|pulplogs": 25.2,
+      "period-5|a-40|nigra|sawlogs": 79.8,
+      "period-5|a-40|brutia|pulplogs": 17.3,
+      "period-5|a-40|brutia|sawlogs": 54.7,
+      "period-5|a-50|nigra|pulplogs": 26.4,
+      "period-5|a-50|nigra|sawlogs": 83.8,
+      "period-5|a-50|brutia|pulplogs": 17.0,
+      "period-5|a-50|brutia|sawlogs": 54.0,
+      "period-5|a-60|nigra|pulplogs": 27.1,
+      "period-5|a-60|nigra|sawlogs": 85.9,
+      "period-5|a-60|brutia|pulplogs": 16.3,
+      "period-5|a-60|brutia|sawlogs": 51.7,
+      "period-5|a-70|nigra|pulplogs": 27.8,
+      "period-5|a-70|nigra|sawlogs": 88.2,
+      "period-5|a-70|brutia|pulplogs": 14.9,
+      "period-5|a-70|brutia|sawlogs": 47.1,
+      "period-5|a-80|nigra|pulplogs": 28.3,
+      "period-5|a-80|nigra|sawlogs": 89.7,
+      "period-5|a-80|brutia|pulplogs": 12.0,
+      "period-5|a-80|brutia|sawlogs": 38.0,
+      "period-5|a-90|nigra|pulplogs": 28.8,
+      "period-5|a-90|nigra|sawlogs": 91.2,
+      "period-5|a-90|brutia|pulplogs": 9.1,
+      "period-5|a-90|brutia|sawlogs": 28.9,
+      "period-6|a-10|nigra|pulplogs": 28.5,
+      "period-6|a-10|nigra|sawlogs": 66.5,
+      "period-6|a-10|brutia|pulplogs": 16.8,
+      "period-6|a-10|brutia|sawlogs": 53.2,
+      "period-6|a-20|nigra|pulplogs": 27.3,
+      "period-6|a-20|nigra|sawlogs": 72.7,
+      "period-6|a-20|brutia|pulplogs": 17.5,
+      "period-6|a-20|brutia|sawlogs": 55.5,
+      "period-6|a-30|nigra|pulplogs": 25.2,
+      "period-6|a-30|nigra|sawlogs": 79.8,
+      "period-6|a-30|brutia|pulplogs": 17.3,
+      "period-6|a-30|brutia|sawlogs": 54.7,
+      "period-6|a-40|nigra|pulplogs": 26.4,
+      "period-6|a-40|nigra|sawlogs": 83.8,
+      "period-6|a-40|brutia|pulplogs": 17.0,
+      "period-6|a-40|brutia|sawlogs": 54.0,
+      "period-6|a-50|nigra|pulplogs": 27.1,
+      "period-6|a-50|nigra|sawlogs": 85.9,
+      "period-6|a-50|brutia|pulplogs": 16.3,
+      "period-6|a-50|brutia|sawlogs": 51.7,
+      "period-6|a-60|nigra|pulplogs": 27.8,
+      "period-6|a-60|nigra|sawlogs": 88.2,
+      "period-6|a-60|brutia|pulplogs": 14.9,
+      "period-6|a-60|brutia|sawlogs": 47.1,
+      "period-6|a-70|nigra|pulplogs": 28.3,
+      "period-6|a-70|nigra|sawlogs": 89.7,
+      "period-6|a-70|brutia|pulplogs": 12.0,
+      "period-6|a-70|brutia|sawlogs": 38.0,
+      "period-6|a-80|nigra|pulplogs": 28.8,
+      "period-6|a-80|nigra|sawlogs": 91.2,
+      "period-6|a-80|brutia|pulplogs": 9.1,
+      "period-6|a-80|brutia|sawlogs": 28.9,
+      "period-6|a-90|nigra|pulplogs": 28.8,
+      "period-6|a-90|nigra|sawlogs": 91.2,
+      "period-6|a-90|brutia|pulplogs": 6.2,
+      "period-6|a-90|brutia|sawlogs": 19.8,
+      "period-7|a-10|nigra|pulplogs": 27.3,
+      "period-7|a-10|nigra|sawlogs": 72.7,
+      "period-7|a-10|brutia|pulplogs": 17.5,
+      "period-7|a-10|brutia|sawlogs": 55.5,
+      "period-7|a-20|nigra|pulplogs": 25.2,
+      "period-7|a-20|nigra|sawlogs": 79.8,
+      "period-7|a-20|brutia|pulplogs": 17.3,
+      "period-7|a-20|brutia|sawlogs": 54.7,
+      "period-7|a-30|nigra|pulplogs": 26.4,
+      "period-7|a-30|nigra|sawlogs": 83.8,
+      "period-7|a-30|brutia|pulplogs": 17.0,
+      "period-7|a-30|brutia|sawlogs": 54.0,
+      "period-7|a-40|nigra|pulplogs": 27.1,
+      "period-7|a-40|nigra|sawlogs": 85.9,
+      "period-7|a-40|brutia|pulplogs": 16.3,
+      "period-7|a-40|brutia|sawlogs": 51.7,
+      "period-7|a-50|nigra|pulplogs": 27.8,
+      "period-7|a-50|nigra|sawlogs": 88.2,
+      "period-7|a-50|brutia|pulplogs": 14.9,
+      "period-7|a-50|brutia|sawlogs": 47.1,
+      "period-7|a-60|nigra|pulplogs": 28.3,
+      "period-7|a-60|nigra|sawlogs": 89.7,
+      "period-7|a-60|brutia|pulplogs": 12.0,
+      "period-7|a-60|brutia|sawlogs": 38.0,
+      "period-7|a-70|nigra|pulplogs": 28.8,
+      "period-7|a-70|nigra|sawlogs": 91.2,
+      "period-7|a-70|brutia|pulplogs": 9.1,
+      "period-7|a-70|brutia|sawlogs": 28.9,
+      "period-7|a-80|nigra|pulplogs": 28.8,
+      "period-7|a-80|nigra|sawlogs": 91.2,
+      "period-7|a-80|brutia|pulplogs": 6.2,
+      "period-7|a-80|brutia|sawlogs": 19.8,
+      "period-7|a-90|nigra|pulplogs": 28.3,
+      "period-7|a-90|nigra|sawlogs": 89.7,
+      "period-7|a-90|brutia|pulplogs": 3.1,
+      "period-7|a-90|brutia|sawlogs": 9.9,
+      "period-8|a-10|nigra|pulplogs": 25.2,
+      "period-8|a-10|nigra|sawlogs": 79.8,
+      "period-8|a-10|brutia|pulplogs": 17.3,
+      "period-8|a-10|brutia|sawlogs": 54.7,
+      "period-8|a-20|nigra|pulplogs": 26.4,
+      "period-8|a-20|nigra|sawlogs": 83.8,
+      "period-8|a-20|brutia|pulplogs": 17.0,
+      "period-8|a-20|brutia|sawlogs": 54.0,
+      "period-8|a-30|nigra|pulplogs": 27.1,
+      "period-8|a-30|nigra|sawlogs": 85.9,
+      "period-8|a-30|brutia|pulplogs": 16.3,
+      "period-8|a-30|brutia|sawlogs": 51.7,
+      "period-8|a-40|nigra|pulplogs": 27.8,
+      "period-8|a-40|nigra|sawlogs": 88.2,
+      "period-8|a-40|brutia|pulplogs": 14.9,
+      "period-8|a-40|brutia|sawlogs": 47.1,
+      "period-8|a-50|nigra|pulplogs": 28.3,
+      "period-8|a-50|nigra|sawlogs": 89.7,
+      "period-8|a-50|brutia|pulplogs": 12.0,
+      "period-8|a-50|brutia|sawlogs": 38.0,
+      "period-8|a-60|nigra|pulplogs": 28.8,
+      "period-8|a-60|nigra|sawlogs": 91.2,
+      "period-8|a-60|brutia|pulplogs": 9.1,
+      "period-8|a-60|brutia|sawlogs": 28.9,
+      "period-8|a-70|nigra|pulplogs": 28.8,
+      "period-8|a-70|nigra|sawlogs": 91.2,
+      "period-8|a-70|brutia|pulplogs": 6.2,
+      "period-8|a-70|brutia|sawlogs": 19.8,
+      "period-8|a-80|nigra|pulplogs": 28.3,
+      "period-8|a-80|nigra|sawlogs": 89.7,
+      "period-8|a-80|brutia|pulplogs": 3.1,
+      "period-8|a-80|brutia|sawlogs": 9.9,
+      "period-8|a-90|nigra|pulplogs": 27.8,
+      "period-8|a-90|nigra|sawlogs": 82.2,
+      "period-8|a-90|brutia|pulplogs": 1.2,
+      "period-8|a-90|brutia|sawlogs": 3.8,
+      "period-9|a-10|nigra|pulplogs": 26.4,
+      "period-9|a-10|nigra|sawlogs": 83.8,
+      "period-9|a-10|brutia|pulplogs": 17.0,
+      "period-9|a-10|brutia|sawlogs": 54.0,
+      "period-9|a-20|nigra|pulplogs": 27.1,
+      "period-9|a-20|nigra|sawlogs": 85.9,
+      "period-9|a-20|brutia|pulplogs": 16.3,
+      "period-9|a-20|brutia|sawlogs": 51.7,
+      "period-9|a-30|nigra|pulplogs": 27.8,
+      "period-9|a-30|nigra|sawlogs": 88.2,
+      "period-9|a-30|brutia|pulplogs": 14.9,
+      "period-9|a-30|brutia|sawlogs": 47.1,
+      "period-9|a-40|nigra|pulplogs": 28.3,
+      "period-9|a-40|nigra|sawlogs": 89.7,
+      "period-9|a-40|brutia|pulplogs": 12.0,
+      "period-9|a-40|brutia|sawlogs": 38.0,
+      "period-9|a-50|nigra|pulplogs": 28.8,
+      "period-9|a-50|nigra|sawlogs": 91.2,
+      "period-9|a-50|brutia|pulplogs": 9.1,
+      "period-9|a-50|brutia|sawlogs": 28.9,
+      "period-9|a-60|nigra|pulplogs": 28.8,
+      "period-9|a-60|nigra|sawlogs": 91.2,
+      "period-9|a-60|brutia|pulplogs": 6.2,
+      "period-9|a-60|brutia|sawlogs": 19.8,
+      "period-9|a-70|nigra|pulplogs": 28.3,
+      "period-9|a-70|nigra|sawlogs": 89.7,
+      "period-9|a-70|brutia|pulplogs": 3.1,
+      "period-9|a-70|brutia|sawlogs": 9.9,
+      "period-9|a-80|nigra|pulplogs": 27.8,
+      "period-9|a-80|nigra|sawlogs": 82.2,
+      "period-9|a-80|brutia|pulplogs": 1.2,
+      "period-9|a-80|brutia|sawlogs": 3.8,
+      "period-9|a-90|nigra|pulplogs": 27.1,
+      "period-9|a-90|nigra|sawlogs": 85.9,
+      "period-9|a-90|brutia|pulplogs": 0.5,
+      "period-9|a-90|brutia|sawlogs": 1.5
+    },
+    "yv": {
+      "period-1|period-2|brutia|pulplogs|good": 17.5,
+      "period-1|period-3|nigra|pulplogs|good": 120.0,
+      "period-1|period-3|nigra|pulplogs|medium": 95.0,
+      "period-1|period-3|nigra|pulplogs|poor": 80.0,
+      "period-1|period-3|brutia|pulplogs|good": 66.8,
+      "period-1|period-3|brutia|pulplogs|medium": 51.1,
+      "period-1|period-3|brutia|pulplogs|poor": 37.8,
+      "period-1|period-4|nigra|pulplogs|good": 132.6,
+      "period-1|period-4|nigra|pulplogs|medium": 120.2,
+      "period-1|period-4|nigra|pulplogs|poor": 115.0,
+      "period-1|period-4|nigra|sawlogs|good": 37.4,
+      "period-1|period-4|nigra|sawlogs|medium": 14.8,
+      "period-1|period-4|brutia|pulplogs|good": 91.3,
+      "period-1|period-4|brutia|pulplogs|medium": 81.4,
+      "period-1|period-4|brutia|pulplogs|poor": 71.3,
+      "period-1|period-4|brutia|sawlogs|good": 25.7,
+      "period-1|period-4|brutia|sawlogs|medium": 10.0,
+      "period-1|period-5|nigra|pulplogs|good": 121.0,
+      "period-1|period-5|nigra|pulplogs|medium": 115.5,
+      "period-1|period-5|nigra|pulplogs|poor": 119.0,
+      "period-1|period-5|nigra|sawlogs|good": 99.0,
+      "period-1|period-5|nigra|sawlogs|medium": 59.5,
+      "period-1|period-5|nigra|sawlogs|poor": 21.0,
+      "period-1|period-5|brutia|pulplogs|good": 91.3,
+      "period-1|period-5|brutia|pulplogs|medium": 86.5,
+      "period-1|period-5|brutia|pulplogs|poor": 90.1,
+      "period-1|period-5|brutia|sawlogs|good": 74.7,
+      "period-1|period-5|brutia|sawlogs|medium": 44.5,
+      "period-1|period-5|brutia|sawlogs|poor": 15.9,
+      "period-1|period-6|nigra|pulplogs|good": 108.0,
+      "period-1|period-6|nigra|pulplogs|medium": 112.0,
+      "period-1|period-6|nigra|pulplogs|poor": 112.2,
+      "period-1|period-6|nigra|sawlogs|good": 162.0,
+      "period-1|period-6|nigra|sawlogs|medium": 108.0,
+      "period-1|period-6|nigra|sawlogs|poor": 57.8,
+      "period-1|period-6|brutia|pulplogs|good": 76.0,
+      "period-1|period-6|brutia|pulplogs|medium": 77.0,
+      "period-1|period-6|brutia|pulplogs|poor": 92.0,
+      "period-1|period-6|brutia|sawlogs|good": 114.0,
+      "period-1|period-6|brutia|sawlogs|medium": 74.0,
+      "period-1|period-6|brutia|sawlogs|poor": 47.6,
+      "period-1|period-7|nigra|pulplogs|good": 104.0,
+      "period-1|period-7|nigra|pulplogs|medium": 106.0,
+      "period-1|period-7|nigra|pulplogs|poor": 110.0,
+      "period-1|period-7|nigra|sawlogs|good": 221.0,
+      "period-1|period-7|nigra|sawlogs|medium": 159.0,
+      "period-1|period-7|nigra|sawlogs|poor": 90.0,
+      "period-1|period-7|brutia|pulplogs|good": 76.0,
+      "period-1|period-7|brutia|pulplogs|medium": 76.0,
+      "period-1|period-7|brutia|pulplogs|poor": 95.2,
+      "period-1|period-7|brutia|sawlogs|good": 116.0,
+      "period-1|period-7|brutia|sawlogs|medium": 113.0,
+      "period-1|period-7|brutia|sawlogs|poor": 77.8,
+      "period-1|period-8|nigra|pulplogs|good": 105.0,
+      "period-1|period-8|nigra|pulplogs|medium": 98.0,
+      "period-1|period-8|nigra|pulplogs|poor": 97.0,
+      "period-1|period-8|nigra|sawlogs|good": 270.0,
+      "period-1|period-8|nigra|sawlogs|medium": 207.0,
+      "period-1|period-8|nigra|sawlogs|poor": 128.0,
+      "period-1|period-8|brutia|pulplogs|good": 78.0,
+      "period-1|period-8|brutia|pulplogs|medium": 72.0,
+      "period-1|period-8|brutia|pulplogs|poor": 88.0,
+      "period-1|period-8|brutia|sawlogs|good": 200.0,
+      "period-1|period-8|brutia|sawlogs|medium": 153.0,
+      "period-1|period-8|brutia|sawlogs|poor": 116.0,
+      "period-1|period-9|nigra|pulplogs|good": 102.0,
+      "period-1|period-9|nigra|pulplogs|medium": 105.0,
+      "period-1|period-9|nigra|pulplogs|poor": 92.0,
+      "period-1|period-9|nigra|sawlogs|good": 323.0,
+      "period-1|period-9|nigra|sawlogs|medium": 235.0,
+      "period-1|period-9|nigra|sawlogs|poor": 163.0,
+      "period-1|period-9|brutia|pulplogs|good": 76.0,
+      "period-1|period-9|brutia|pulplogs|medium": 80.0,
+      "period-1|period-9|brutia|pulplogs|poor": 84.0,
+      "period-1|period-9|brutia|sawlogs|good": 240.0,
+      "period-1|period-9|brutia|sawlogs|medium": 177.0,
+      "period-1|period-9|brutia|sawlogs|poor": 148.0,
+      "period-2|period-3|brutia|pulplogs|good": 17.5,
+      "period-2|period-4|nigra|pulplogs|good": 120.0,
+      "period-2|period-4|nigra|pulplogs|medium": 95.0,
+      "period-2|period-4|nigra|pulplogs|poor": 80.0,
+      "period-2|period-4|brutia|pulplogs|good": 66.8,
+      "period-2|period-4|brutia|pulplogs|medium": 51.1,
+      "period-2|period-4|brutia|pulplogs|poor": 37.8,
+      "period-2|period-5|nigra|pulplogs|good": 132.6,
+      "period-2|period-5|nigra|pulplogs|medium": 120.2,
+      "period-2|period-5|nigra|pulplogs|poor": 115.0,
+      "period-2|period-5|nigra|sawlogs|good": 37.4,
+      "period-2|period-5|nigra|sawlogs|medium": 14.8,
+      "period-2|period-5|brutia|pulplogs|good": 91.3,
+      "period-2|period-5|brutia|pulplogs|medium": 81.4,
+      "period-2|period-5|brutia|pulplogs|poor": 71.3,
+      "period-2|period-5|brutia|sawlogs|good": 25.7,
+      "period-2|period-5|brutia|sawlogs|medium": 10.0,
+      "period-2|period-6|nigra|pulplogs|good": 121.0,
+      "period-2|period-6|nigra|pulplogs|medium": 115.5,
+      "period-2|period-6|nigra|pulplogs|poor": 119.0,
+      "period-2|period-6|nigra|sawlogs|good": 99.0,
+      "period-2|period-6|nigra|sawlogs|medium": 59.5,
+      "period-2|period-6|nigra|sawlogs|poor": 21.0,
+      "period-2|period-6|brutia|pulplogs|good": 91.3,
+      "period-2|period-6|brutia|pulplogs|medium": 86.5,
+      "period-2|period-6|brutia|pulplogs|poor": 90.1,
+      "period-2|period-6|brutia|sawlogs|good": 74.7,
+      "period-2|period-6|brutia|sawlogs|medium": 44.5,
+      "period-2|period-6|brutia|sawlogs|poor": 15.9,
+      "period-2|period-7|nigra|pulplogs|good": 108.0,
+      "period-2|period-7|nigra|pulplogs|medium": 112.0,
+      "period-2|period-7|nigra|pulplogs|poor": 112.2,
+      "period-2|period-7|nigra|sawlogs|good": 162.0,
+      "period-2|period-7|nigra|sawlogs|medium": 108.0,
+      "period-2|period-7|nigra|sawlogs|poor": 57.8,
+      "period-2|period-7|brutia|pulplogs|good": 76.0,
+      "period-2|period-7|brutia|pulplogs|medium": 77.0,
+      "period-2|period-7|brutia|pulplogs|poor": 92.0,
+      "period-2|period-7|brutia|sawlogs|good": 114.0,
+      "period-2|period-7|brutia|sawlogs|medium": 74.0,
+      "period-2|period-7|brutia|sawlogs|poor": 47.6,
+      "period-2|period-8|nigra|pulplogs|good": 104.0,
+      "period-2|period-8|nigra|pulplogs|medium": 106.0,
+      "period-2|period-8|nigra|pulplogs|poor": 110.0,
+      "period-2|period-8|nigra|sawlogs|good": 221.0,
+      "period-2|period-8|nigra|sawlogs|medium": 159.0,
+      "period-2|period-8|nigra|sawlogs|poor": 90.0,
+      "period-2|period-8|brutia|pulplogs|good": 76.0,
+      "period-2|period-8|brutia|pulplogs|medium": 76.0,
+      "period-2|period-8|brutia|pulplogs|poor": 95.2,
+      "period-2|period-8|brutia|sawlogs|good": 116.0,
+      "period-2|period-8|brutia|sawlogs|medium": 113.0,
+      "period-2|period-8|brutia|sawlogs|poor": 77.8,
+      "period-2|period-9|nigra|pulplogs|good": 105.0,
+      "period-2|period-9|nigra|pulplogs|medium": 98.0,
+      "period-2|period-9|nigra|pulplogs|poor": 97.0,
+      "period-2|period-9|nigra|sawlogs|good": 270.0,
+      "period-2|period-9|nigra|sawlogs|medium": 207.0,
+      "period-2|period-9|nigra|sawlogs|poor": 128.0,
+      "period-2|period-9|brutia|pulplogs|good": 78.0,
+      "period-2|period-9|brutia|pulplogs|medium": 72.0,
+      "period-2|period-9|brutia|pulplogs|poor": 88.0,
+      "period-2|period-9|brutia|sawlogs|good": 200.0,
+      "period-2|period-9|brutia|sawlogs|medium": 153.0,
+      "period-2|period-9|brutia|sawlogs|poor": 116.0,
+      "period-3|period-4|brutia|pulplogs|good": 17.5,
+      "period-3|period-5|nigra|pulplogs|good": 120.0,
+      "period-3|period-5|nigra|pulplogs|medium": 95.0,
+      "period-3|period-5|nigra|pulplogs|poor": 80.0,
+      "period-3|period-5|brutia|pulplogs|good": 66.8,
+      "period-3|period-5|brutia|pulplogs|medium": 51.1,
+      "period-3|period-5|brutia|pulplogs|poor": 37.8,
+      "period-3|period-6|nigra|pulplogs|good": 132.6,
+      "period-3|period-6|nigra|pulplogs|medium": 120.2,
+      "period-3|period-6|nigra|pulplogs|poor": 115.0,
+      "period-3|period-6|nigra|sawlogs|good": 37.4,
+      "period-3|period-6|nigra|sawlogs|medium": 14.8,
+      "period-3|period-6|brutia|pulplogs|good": 91.3,
+      "period-3|period-6|brutia|pulplogs|medium": 81.4,
+      "period-3|period-6|brutia|pulplogs|poor": 71.3,
+      "period-3|period-6|brutia|sawlogs|good": 25.7,
+      "period-3|period-6|brutia|sawlogs|medium": 10.0,
+      "period-3|period-7|nigra|pulplogs|good": 121.0,
+      "period-3|period-7|nigra|pulplogs|medium": 115.5,
+      "period-3|period-7|nigra|pulplogs|poor": 119.0,
+      "period-3|period-7|nigra|sawlogs|good": 99.0,
+      "period-3|period-7|nigra|sawlogs|medium": 59.5,
+      "period-3|period-7|nigra|sawlogs|poor": 21.0,
+      "period-3|period-7|brutia|pulplogs|good": 91.3,
+      "period-3|period-7|brutia|pulplogs|medium": 86.5,
+      "period-3|period-7|brutia|pulplogs|poor": 90.1,
+      "period-3|period-7|brutia|sawlogs|good": 74.7,
+      "period-3|period-7|brutia|sawlogs|medium": 44.5,
+      "period-3|period-7|brutia|sawlogs|poor": 15.9,
+      "period-3|period-8|nigra|pulplogs|good": 108.0,
+      "period-3|period-8|nigra|pulplogs|medium": 112.0,
+      "period-3|period-8|nigra|pulplogs|poor": 112.2,
+      "period-3|period-8|nigra|sawlogs|good": 162.0,
+      "period-3|period-8|nigra|sawlogs|medium": 108.0,
+      "period-3|period-8|nigra|sawlogs|poor": 57.8,
+      "period-3|period-8|brutia|pulplogs|good": 76.0,
+      "period-3|period-8|brutia|pulplogs|medium": 77.0,
+      "period-3|period-8|brutia|pulplogs|poor": 92.0,
+      "period-3|period-8|brutia|sawlogs|good": 114.0,
+      "period-3|period-8|brutia|sawlogs|medium": 74.0,
+      "period-3|period-8|brutia|sawlogs|poor": 47.6,
+      "period-3|period-9|nigra|pulplogs|good": 104.0,
+      "period-3|period-9|nigra|pulplogs|medium": 106.0,
+      "period-3|period-9|nigra|pulplogs|poor": 110.0,
+      "period-3|period-9|nigra|sawlogs|good": 221.0,
+      "period-3|period-9|nigra|sawlogs|medium": 159.0,
+      "period-3|period-9|nigra|sawlogs|poor": 90.0,
+      "period-3|period-9|brutia|pulplogs|good": 76.0,
+      "period-3|period-9|brutia|pulplogs|medium": 76.0,
+      "period-3|period-9|brutia|pulplogs|poor": 95.2,
+      "period-3|period-9|brutia|sawlogs|good": 116.0,
+      "period-3|period-9|brutia|sawlogs|medium": 113.0,
+      "period-3|period-9|brutia|sawlogs|poor": 77.8,
+      "period-4|period-5|brutia|pulplogs|good": 17.5,
+      "period-4|period-6|nigra|pulplogs|good": 120.0,
+      "period-4|period-6|nigra|pulplogs|medium": 95.0,
+      "period-4|period-6|nigra|pulplogs|poor": 80.0,
+      "period-4|period-6|brutia|pulplogs|good": 66.8,
+      "period-4|period-6|brutia|pulplogs|medium": 51.1,
+      "period-4|period-6|brutia|pulplogs|poor": 37.8,
+      "period-4|period-7|nigra|pulplogs|good": 132.6,
+      "period-4|period-7|nigra|pulplogs|medium": 120.2,
+      "period-4|period-7|nigra|pulplogs|poor": 115.0,
+      "period-4|period-7|nigra|sawlogs|good": 37.4,
+      "period-4|period-7|nigra|sawlogs|medium": 14.8,
+      "period-4|period-7|brutia|pulplogs|good": 91.3,
+      "period-4|period-7|brutia|pulplogs|medium": 81.4,
+      "period-4|period-7|brutia|pulplogs|poor": 71.3,
+      "period-4|period-7|brutia|sawlogs|good": 25.7,
+      "period-4|period-7|brutia|sawlogs|medium": 10.0,
+      "period-4|period-8|nigra|pulplogs|good": 121.0,
+      "period-4|period-8|nigra|pulplogs|medium": 115.5,
+      "period-4|period-8|nigra|pulplogs|poor": 119.0,
+      "period-4|period-8|nigra|sawlogs|good": 99.0,
+      "period-4|period-8|nigra|sawlogs|medium": 59.5,
+      "period-4|period-8|nigra|sawlogs|poor": 21.0,
+      "period-4|period-8|brutia|pulplogs|good": 91.3,
+      "period-4|period-8|brutia|pulplogs|medium": 86.5,
+      "period-4|period-8|brutia|pulplogs|poor": 90.1,
+      "period-4|period-8|brutia|sawlogs|good": 74.7,
+      "period-4|period-8|brutia|sawlogs|medium": 44.5,
+      "period-4|period-8|brutia|sawlogs|poor": 15.9,
+      "period-4|period-9|nigra|pulplogs|good": 108.0,
+      "period-4|period-9|nigra|pulplogs|medium": 112.0,
+      "period-4|period-9|nigra|pulplogs|poor": 112.2,
+      "period-4|period-9|nigra|sawlogs|good": 162.0,
+      "period-4|period-9|nigra|sawlogs|medium": 108.0,
+      "period-4|period-9|nigra|sawlogs|poor": 57.8,
+      "period-4|period-9|brutia|pulplogs|good": 76.0,
+      "period-4|period-9|brutia|pulplogs|medium": 77.0,
+      "period-4|period-9|brutia|pulplogs|poor": 92.0,
+      "period-4|period-9|brutia|sawlogs|good": 114.0,
+      "period-4|period-9|brutia|sawlogs|medium": 74.0,
+      "period-4|period-9|brutia|sawlogs|poor": 47.6,
+      "period-5|period-6|brutia|pulplogs|good": 17.5,
+      "period-5|period-7|nigra|pulplogs|good": 120.0,
+      "period-5|period-7|nigra|pulplogs|medium": 95.0,
+      "period-5|period-7|nigra|pulplogs|poor": 80.0,
+      "period-5|period-7|brutia|pulplogs|good": 66.8,
+      "period-5|period-7|brutia|pulplogs|medium": 51.1,
+      "period-5|period-7|brutia|pulplogs|poor": 37.8,
+      "period-5|period-8|nigra|pulplogs|good": 132.6,
+      "period-5|period-8|nigra|pulplogs|medium": 120.2,
+      "period-5|period-8|nigra|pulplogs|poor": 115.0,
+      "period-5|period-8|nigra|sawlogs|good": 37.4,
+      "period-5|period-8|nigra|sawlogs|medium": 14.8,
+      "period-5|period-8|brutia|pulplogs|good": 91.3,
+      "period-5|period-8|brutia|pulplogs|medium": 81.4,
+      "period-5|period-8|brutia|pulplogs|poor": 71.3,
+      "period-5|period-8|brutia|sawlogs|good": 25.7,
+      "period-5|period-8|brutia|sawlogs|medium": 10.0,
+      "period-5|period-9|nigra|pulplogs|good": 121.0,
+      "period-5|period-9|nigra|pulplogs|medium": 115.5,
+      "period-5|period-9|nigra|pulplogs|poor": 119.0,
+      "period-5|period-9|nigra|sawlogs|good": 99.0,
+      "period-5|period-9|nigra|sawlogs|medium": 59.5,
+      "period-5|period-9|nigra|sawlogs|poor": 21.0,
+      "period-5|period-9|brutia|pulplogs|good": 91.3,
+      "period-5|period-9|brutia|pulplogs|medium": 86.5,
+      "period-5|period-9|brutia|pulplogs|poor": 90.1,
+      "period-5|period-9|brutia|sawlogs|good": 74.7,
+      "period-5|period-9|brutia|sawlogs|medium": 44.5,
+      "period-5|period-9|brutia|sawlogs|poor": 15.9,
+      "period-6|period-7|brutia|pulplogs|good": 17.5,
+      "period-6|period-8|nigra|pulplogs|good": 120.0,
+      "period-6|period-8|nigra|pulplogs|medium": 95.0,
+      "period-6|period-8|nigra|pulplogs|poor": 80.0,
+      "period-6|period-8|brutia|pulplogs|good": 66.8,
+      "period-6|period-8|brutia|pulplogs|medium": 51.1,
+      "period-6|period-8|brutia|pulplogs|poor": 37.8,
+      "period-6|period-9|nigra|pulplogs|good": 132.6,
+      "period-6|period-9|nigra|pulplogs|medium": 120.2,
+      "period-6|period-9|nigra|pulplogs|poor": 115.0,
+      "period-6|period-9|nigra|sawlogs|good": 37.4,
+      "period-6|period-9|nigra|sawlogs|medium": 14.8,
+      "period-6|period-9|brutia|pulplogs|good": 91.3,
+      "period-6|period-9|brutia|pulplogs|medium": 81.4,
+      "period-6|period-9|brutia|pulplogs|poor": 71.3,
+      "period-6|period-9|brutia|sawlogs|good": 25.7,
+      "period-6|period-9|brutia|sawlogs|medium": 10.0,
+      "period-7|period-8|brutia|pulplogs|good": 17.5,
+      "period-7|period-9|nigra|pulplogs|good": 120.0,
+      "period-7|period-9|nigra|pulplogs|medium": 95.0,
+      "period-7|period-9|nigra|pulplogs|poor": 80.0,
+      "period-7|period-9|brutia|pulplogs|good": 66.8,
+      "period-7|period-9|brutia|pulplogs|medium": 51.1,
+      "period-7|period-9|brutia|pulplogs|poor": 37.8,
+      "period-7|period-10|nigra|pulplogs|good": 132.6,
+      "period-7|period-10|nigra|pulplogs|medium": 120.2,
+      "period-7|period-10|nigra|pulplogs|poor": 115.0,
+      "period-7|period-10|nigra|sawlogs|good": 37.4,
+      "period-7|period-10|nigra|sawlogs|medium": 14.8,
+      "period-7|period-10|brutia|pulplogs|good": 91.3,
+      "period-7|period-10|brutia|pulplogs|medium": 81.4,
+      "period-7|period-10|brutia|pulplogs|poor": 71.3,
+      "period-7|period-10|brutia|sawlogs|good": 25.7,
+      "period-7|period-10|brutia|sawlogs|medium": 10.0,
+      "period-8|period-9|brutia|pulplogs|good": 17.5,
+      "period-8|period-11|nigra|pulplogs|good": 132.6,
+      "period-8|period-11|nigra|pulplogs|medium": 120.2,
+      "period-8|period-11|nigra|pulplogs|poor": 115.0,
+      "period-8|period-11|nigra|sawlogs|good": 37.4,
+      "period-8|period-11|nigra|sawlogs|medium": 14.8,
+      "period-8|period-11|brutia|pulplogs|good": 91.3,
+      "period-8|period-11|brutia|pulplogs|medium": 81.4,
+      "period-8|period-11|brutia|pulplogs|poor": 71.3,
+      "period-8|period-11|brutia|sawlogs|good": 25.7,
+      "period-8|period-11|brutia|sawlogs|medium": 10.0,
+      "period-9|period-12|nigra|pulplogs|good": 132.6,
+      "period-9|period-12|nigra|pulplogs|medium": 120.2,
+      "period-9|period-12|nigra|pulplogs|poor": 115.0,
+      "period-9|period-12|nigra|sawlogs|good": 37.4,
+      "period-9|period-12|nigra|sawlogs|medium": 14.8,
+      "period-9|period-12|brutia|pulplogs|good": 91.3,
+      "period-9|period-12|brutia|pulplogs|medium": 81.4,
+      "period-9|period-12|brutia|pulplogs|poor": 71.3,
+      "period-9|period-12|brutia|sawlogs|good": 25.7,
+      "period-9|period-12|brutia|sawlogs|medium": 10.0
+    }
+  }
+}

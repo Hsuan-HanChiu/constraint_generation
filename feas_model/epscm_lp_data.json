@@ -1,0 +1,60 @@
+{
+  "sets": {
+    "p": [
+      "Lignite",
+      "Oil",
+      "Gas",
+      "RES"
+    ],
+    "i": [
+      "base",
+      "middle",
+      "peak"
+    ],
+    "pi": [
+      ["Lignite", "base"],
+      ["Lignite", "middle"],
+      ["Oil", "middle"],
+      ["Oil", "peak"],
+      ["Gas", "base"],
+      ["Gas", "middle"],
+      ["Gas", "peak"],
+      ["RES", "base"],
+      ["RES", "peak"]
+    ],
+    "es": [
+      "Lignite",
+      "RES"
+    ]
+  },
+  "scalar_params": {
+    "ad": 64000.0,
+    "eps_co2": 62460.0,
+    "eps_es": 27000.0
+  },
+  "indexed_params": {
+    "capacity": {
+      "Lignite": 31000.0,
+      "Oil": 15000.0,
+      "Gas": 22000.0,
+      "RES": 10000.0
+    },
+    "cost": {
+      "Lignite": 30.0,
+      "Oil": 75.0,
+      "Gas": 60.0,
+      "RES": 90.0
+    },
+    "co2": {
+      "Lignite": 1.44,
+      "Oil": 0.72,
+      "Gas": 0.45,
+      "RES": 0.0
+    },
+    "df": {
+      "base": 0.6,
+      "middle": 0.3,
+      "peak": 0.1
+    }
+  }
+}

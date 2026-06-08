@@ -1,0 +1,53 @@
+{
+  "sets": {
+    "crop": [
+      "wheat",
+      "corn",
+      "sugarbeets"
+    ],
+    "cropr": [
+      "wheat",
+      "corn"
+    ],
+    "cropx": [
+      "wheat",
+      "corn",
+      "beets1",
+      "beets2"
+    ]
+  },
+  "scalar_params": {
+    "land": 500.0,
+    "maxbeets1": 6000.0
+  },
+  "indexed_params": {
+    "yield": {
+      "wheat": 2.5,
+      "corn": 3.0,
+      "sugarbeets": 20.0
+    },
+    "plantcost": {
+      "wheat": 150.0,
+      "corn": 230.0,
+      "sugarbeets": 260.0
+    },
+    "sellprice": {
+      "wheat": 170.0,
+      "corn": 150.0,
+      "beets1": 36.0,
+      "beets2": 10.0
+    },
+    "purchprice": {
+      "wheat": 238.0,
+      "corn": 210.0
+    },
+    "minreq": {
+      "wheat": 200.0,
+      "corn": 240.0
+    },
+    "maxbuy": {
+      "wheat": 10000.0,
+      "corn": 10000.0
+    }
+  }
+}

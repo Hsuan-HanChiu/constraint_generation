@@ -1,0 +1,33 @@
+{
+  "sets": {
+    "i": [
+      "seattle",
+      "san-diego"
+    ],
+    "j": [
+      "new-york",
+      "chicago",
+      "topeka"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "a": {
+      "seattle": 350.0,
+      "san-diego": 600.0
+    },
+    "b": {
+      "new-york": 390.0,
+      "chicago": 360.0,
+      "topeka": 330.0
+    },
+    "c": {
+      "seattle|new-york": 0.225,
+      "seattle|chicago": 0.153,
+      "seattle|topeka": 0.162,
+      "san-diego|new-york": 0.225,
+      "san-diego|chicago": 0.162,
+      "san-diego|topeka": 0.126
+    }
+  }
+}

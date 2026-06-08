@@ -1,0 +1,78 @@
+{
+  "sets": {
+    "alloy": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f",
+      "g",
+      "h",
+      "i"
+    ],
+    "elem": [
+      "lead",
+      "zinc",
+      "tin"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "compdat": {
+      "lead|a": 10.0,
+      "lead|b": 10.0,
+      "lead|c": 40.0,
+      "lead|d": 60.0,
+      "lead|e": 30.0,
+      "lead|f": 30.0,
+      "lead|g": 30.0,
+      "lead|h": 50.0,
+      "lead|i": 20.0,
+      "zinc|a": 10.0,
+      "zinc|b": 30.0,
+      "zinc|c": 50.0,
+      "zinc|d": 30.0,
+      "zinc|e": 30.0,
+      "zinc|f": 40.0,
+      "zinc|g": 20.0,
+      "zinc|h": 40.0,
+      "zinc|i": 30.0,
+      "tin|a": 80.0,
+      "tin|b": 60.0,
+      "tin|c": 10.0,
+      "tin|d": 10.0,
+      "tin|e": 40.0,
+      "tin|f": 30.0,
+      "tin|g": 50.0,
+      "tin|h": 10.0,
+      "tin|i": 50.0,
+      "price|a": 3.89,
+      "price|b": 5.16,
+      "price|c": 5.8,
+      "price|d": 6.9,
+      "price|e": 6.84,
+      "price|f": 7.5,
+      "price|g": 7.3,
+      "price|h": 6.9,
+      "price|i": 7.3
+    },
+    "rb": {
+      "lead": 32.0,
+      "zinc": 28.0,
+      "tin": 40.0
+    },
+    "ce": {
+      "a": 0.0,
+      "b": 0.0,
+      "c": 0.0,
+      "d": 0.0,
+      "e": 0.0,
+      "f": 0.0,
+      "g": 0.0,
+      "h": 0.0,
+      "i": 0.0
+    },
+    "report": {}
+  }
+}

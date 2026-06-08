@@ -1,0 +1,84 @@
+{
+  "sets": {
+    "i": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ],
+    "j": [
+      "route-1",
+      "route-2",
+      "route-3",
+      "route-4",
+      "route-5"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "c": {
+      "a|route-1": 19.8,
+      "a|route-2": 23.1,
+      "a|route-3": 19.8,
+      "a|route-4": 17.6,
+      "a|route-5": 11.0,
+      "b|route-2": 16.5,
+      "b|route-3": 17.6,
+      "b|route-4": 15.4,
+      "b|route-5": 9.9,
+      "c|route-2": 11.0,
+      "c|route-4": 9.9,
+      "c|route-5": 6.6,
+      "d|route-1": 18.7,
+      "d|route-2": 17.6,
+      "d|route-3": 18.7,
+      "d|route-4": 16.5,
+      "d|route-5": 11.0,
+      "b|route-1": 0.0,
+      "c|route-1": 0.0,
+      "c|route-3": 0.0
+    },
+    "pcap": {
+      "a|route-1": 16.0,
+      "a|route-2": 15.0,
+      "a|route-3": 28.0,
+      "a|route-4": 23.0,
+      "a|route-5": 81.0,
+      "b|route-2": 10.0,
+      "b|route-3": 14.0,
+      "b|route-4": 15.0,
+      "b|route-5": 57.0,
+      "c|route-2": 5.0,
+      "c|route-4": 7.0,
+      "c|route-5": 29.0,
+      "d|route-1": 9.0,
+      "d|route-2": 11.0,
+      "d|route-3": 22.0,
+      "d|route-4": 17.0,
+      "d|route-5": 55.0,
+      "b|route-1": 0.0,
+      "c|route-1": 0.0,
+      "c|route-3": 0.0
+    },
+    "aircraft": {
+      "a": 8.0,
+      "b": 19.0,
+      "c": 25.0,
+      "d": 17.0
+    },
+    "fixeddemand": {
+      "route-1": 270.0,
+      "route-2": 120.0,
+      "route-3": 180.0,
+      "route-4": 103.5,
+      "route-5": 570.0
+    },
+    "costbumped": {
+      "route-1": 13.0,
+      "route-2": 13.0,
+      "route-3": 7.7,
+      "route-4": 7.0,
+      "route-5": 3.0
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "sets": {
+    "f": [
+      "face1",
+      "face2",
+      "face3",
+      "face4",
+      "face5",
+      "face6"
+    ],
+    "dice": [
+      "dice1",
+      "dice2",
+      "dice3"
+    ]
+  },
+  "scalar_params": {
+    "flo": 1.0,
+    "fup": 18.0
+  },
+  "indexed_params": {}
+}

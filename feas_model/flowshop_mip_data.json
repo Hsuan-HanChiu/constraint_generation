@@ -1,0 +1,48 @@
+{
+  "sets": {
+    "i": [
+      "i1",
+      "i2",
+      "i3",
+      "i4",
+      "i5",
+      "i6"
+    ],
+    "m": [
+      "bending",
+      "soldering",
+      "assembly"
+    ],
+    "k": [
+      "i1",
+      "i2",
+      "i3",
+      "i4",
+      "i5",
+      "i6"
+    ]
+  },
+  "scalar_params": {},
+  "indexed_params": {
+    "proctime": {
+      "bending|i1": 3,
+      "bending|i2": 6,
+      "bending|i3": 3,
+      "bending|i4": 5,
+      "bending|i5": 5,
+      "bending|i6": 7,
+      "soldering|i1": 5,
+      "soldering|i2": 4,
+      "soldering|i3": 2,
+      "soldering|i4": 4,
+      "soldering|i5": 4,
+      "soldering|i6": 5,
+      "assembly|i1": 5,
+      "assembly|i2": 2,
+      "assembly|i3": 4,
+      "assembly|i4": 6,
+      "assembly|i5": 3,
+      "assembly|i6": 6
+    }
+  }
+}
