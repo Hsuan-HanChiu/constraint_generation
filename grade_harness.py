@@ -37,11 +37,22 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent                      # .../OptiChat_test
 OPTICHAT = ROOT / "optichat_org" / "OptiChat"
+if not OPTICHAT.exists():
+    # Repo was relocated on this machine; fall back to a sibling OptiChat checkout.
+    for _cand in (ROOT / "OptiChat-rh", ROOT / "OptiChat"):
+        if _cand.exists():
+            OPTICHAT = _cand
+            break
 Z3CHECKER = OPTICHAT / "benchmarking" / "z3_constraint_checker.py"
 SYSTEM_PROMPT_FILE = HERE / "constraint_gen_system_prompt.txt"
 DATASETS_DIR = HERE / "datasets"            # all constraint-gen JSONL datasets
 REDUCED_DIR = HERE / "reduced_data"         # small grading instances for MIPs
-MODEL_LIBRARY = OPTICHAT / "model_library" / "feas_model"   # canonical paired source (.py + _data.json)
+# Base models (.py + _data.json) are vendored INTO this project under ./feas_model
+# so grading no longer depends on an external OptiChat checkout. Fall back to the
+# OptiChat model_library only if the local copy is absent (e.g. a fresh clone).
+MODEL_LIBRARY = HERE / "feas_model"
+if not MODEL_LIBRARY.exists():
+    MODEL_LIBRARY = OPTICHAT / "model_library" / "feas_model"
 DATASET = DATASETS_DIR / "agreste_lp293_constraint_gen.jsonl"
 
 # Per-problem base model + data registry. Add new models here as the dataset grows.
@@ -242,7 +253,12 @@ def _resolve_reg(problem_id: str) -> dict:
     So any model_library model graded with a reduced instance just needs its
     reduced_data/<id>_small.json present — no registry edit required."""
     if problem_id in MODEL_REGISTRY:
-        return MODEL_REGISTRY[problem_id]
+        reg = MODEL_REGISTRY[problem_id]
+        # Honor explicit entries only if their base_py still exists; on a relocated
+        # checkout the LLMDatasets/GAMSConversion paths are gone, so fall through to
+        # the model_library convention (which has every problem_id).
+        if Path(reg["base_py"]).exists():
+            return reg
     base_py = MODEL_LIBRARY / f"{problem_id}.py"
     reduced = REDUCED_DIR / f"{problem_id}_small.json"
     data_json = reduced if reduced.exists() else MODEL_LIBRARY / f"{problem_id}_data.json"
@@ -384,6 +400,12 @@ def system_prompt() -> str:
 # ----------------------------------------------------------------------------
 def _strip_fences(text: str) -> str:
     t = text.strip()
+    # Reasoning models (e.g. Qwen3 thinking mode) emit a <think>...</think>
+    # block BEFORE the answer. The reasoning often contains draft
+    # `model.X = Constraint(...)` snippets that would pollute constraint-name
+    # extraction, so keep only what follows the final </think>.
+    if "</think>" in t:
+        t = t.rsplit("</think>", 1)[1].strip()
     if t.startswith("```"):
         t = re.sub(r"^```[a-zA-Z]*\n", "", t)
         t = re.sub(r"\n```$", "", t)

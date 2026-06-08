@@ -1,0 +1,383 @@
+host: gilbreth-n017.rcac.purdue.edu  job: 10956423
+GPU 0: NVIDIA A100-SXM4-40GB (UUID: GPU-6a5a5be5-fcd3-8eca-57a8-f5edede28f49)
+starting vLLM for unsloth/Qwen3.5-9B on :8000 ...
+waiting for vLLM endpoint ...
+vLLM is up after ~570s
+loaded 850 records from 110 dataset files
+model=unsloth/Qwen3.5-9B  base_url=http://localhost:8000/v1  n=1  workers=16
+sampling={'temperature': 0.6, 'top_p': 0.95, 'top_k': 20, 'min_p': 0.0, 'presence_penalty': 0.0, 'repetition_penalty': 1.0}
+server is ready.
+  25/850  pass=0  (43s)
+  50/850  pass=0  (62s)
+  75/850  pass=0  (130s)
+  100/850  pass=0  (160s)
+  125/850  pass=0  (187s)
+  150/850  pass=0  (213s)
+  175/850  pass=0  (243s)
+WARNING: DEPRECATED: Param 'rts' declared with an implicit domain of 'Any'.
+The default domain for Param objects is 'Any'.  However, we will be changing
+that default to 'Reals' in the future.  If you really intend the domain of
+this Paramto be 'Any', you can suppress this warning by explicitly specifying
+'within=Any' to the Param constructor. (deprecated in 5.6.9, will be removed
+in (or after) 6.0) (called from
+/scratch/gilbreth/chiu137/conda_envs/optichat/lib/python3.11/site-
+packages/pyomo/core/base/indexed_component.py:785)
+WARNING: DEPRECATED: Param 'isel' declared with an implicit domain of 'Any'.
+The default domain for Param objects is 'Any'.  However, we will be changing
+that default to 'Reals' in the future.  If you really intend the domain of
+this Paramto be 'Any', you can suppress this warning by explicitly specifying
+'within=Any' to the Param constructor. (deprecated in 5.6.9, will be removed
+in (or after) 6.0) (called from
+/scratch/gilbreth/chiu137/conda_envs/optichat/lib/python3.11/site-
+packages/pyomo/core/base/indexed_component.py:785)
+  200/850  pass=0  (267s)
+  225/850  pass=0  (298s)
+  250/850  pass=0  (322s)
+  275/850  pass=0  (352s)
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+  300/850  pass=0  (374s)
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'cfcb' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+WARNING: Uncopyable field encountered when deep copying Pyomo components
+outside the scope of Block.clone().  There is a distinct possibility that the
+new copy is not complete.  To avoid this situation, please use Block.clone()
+ERROR: Unable to clone Pyomo component attribute. Component 'crcr' contains an
+uncopyable field '_init_values' (<class
+'pyomo.core.base.set.TuplizeValuesInitializer'>).  Setting field to `None` on
+new object
+  325/850  pass=0  (404s)
+  350/850  pass=0  (430s)
+  375/850  pass=0  (461s)
+  400/850  pass=0  (488s)
+  425/850  pass=0  (518s)
+  450/850  pass=0  (546s)
+[130, 150, 140, 160, 100, 120, 150, 180, 170, 160, 120, 130, 150, 176, 185, 120, 130, 140, 170, 190, 120, 170, 130, 150]
+WARNING: Implicitly replacing the Component attribute
+discharge_limit_by_battery_constraint (type=<class
+'pyomo.core.base.constraint.IndexedConstraint'>) on block unknown with a new
+Component (type=<class 'pyomo.core.base.constraint.IndexedConstraint'>). This
+is usually indicative of a modelling error. To avoid this warning, use
+block.del_component() and block.add_component().
+  475/850  pass=0  (573s)
+  500/850  pass=0  (597s)
+  525/850  pass=0  (623s)
+  550/850  pass=0  (650s)
+  575/850  pass=0  (674s)
+  600/850  pass=0  (704s)
+  625/850  pass=0  (731s)
+  650/850  pass=0  (760s)
+  675/850  pass=0  (798s)
+  700/850  pass=0  (831s)
+  725/850  pass=0  (855s)
+  750/850  pass=0  (884s)
+  775/850  pass=0  (908s)
+  800/850  pass=0  (936s)
+  825/850  pass=0  (963s)
+  850/850  pass=0  (991s)
+
+===== EVAL SUMMARY =====
+model: unsloth/Qwen3.5-9B  |  records: 850  |  metric: pass@1
+OVERALL : 0/850 = 0.0%
+  per-constraint: 0/742 = 0.0%
+  whole-set     : 0/108 = 0.0%
+  unparseable/grade-error records (all samples): 850/850
+  12 hardest models (pass rate):
+    STN_mip                  0/4 = 0%
+    agreste_lp293            0/15 = 0%
+    aircraft_lp              0/7 = 0%
+    airsp2_lp134             0/4 = 0%
+    airsp2_lp87              0/3 = 0%
+    airsp_lp121              0/5 = 0%
+    airsp_lp165              0/6 = 0%
+    ajax_lp                  0/4 = 0%
+    allbases_mip             0/8 = 0%
+    ampl_lp2                 0/4 = 0%
+    ampl_lp                  0/4 = 0%
+    andean_fixed             0/26 = 0%
+
+wrote /scratch/gilbreth/chiu137/constraint_generation/eval_10956423.jsonl  (991s elapsed)
+done. results: eval_10956423.jsonl ; server log: vllm_10956423.log

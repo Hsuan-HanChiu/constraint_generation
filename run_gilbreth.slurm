@@ -1,15 +1,23 @@
 #!/bin/bash
 # =============================================================================
-# Gilbreth (Purdue RCAC) job: serve Qwen with vLLM, then run the constraint-gen
-# eval against it and grade every generation by Z3 logical equivalence.
+# Gilbreth (Purdue RCAC) job: serve Qwen 3.5 9B with vLLM, then run the
+# constraint-gen eval against it and grade every generation by Z3 logical
+# equivalence.
 #
-# FILL IN the four <...> placeholders before submitting:  sbatch run_gilbreth.slurm
+# Submit:   sbatch run_gilbreth.slurm
+# Override a knob at submit time, e.g.:   N=5 TEMP=0.7 sbatch run_gilbreth.slurm
+#
+# Verified for this machine (2026-06-04):
+#   * account `canli`, partition `a100-40gb` (a 9B in bf16 ~18GB fits on 40GB)
+#   * single conda env at conda_envs/optichat has BOTH vllm 0.19 and
+#     pyomo+z3-solver+openai, so serving and grading share one env
+#   * model unsloth/Qwen3.5-9B staged into HF_HOME (compute nodes have no internet)
 # =============================================================================
-#SBATCH -A <ALLOCATION>            # <-- your Gilbreth queue/allocation (e.g. standby, or a PI account)
-#SBATCH -p <PARTITION>             # <-- GPU partition name (check `slist` / `sinfo`)
-#SBATCH --gres=gpu:1               # 1 GPU; a 9B model in bf16 (~18GB + KV cache) needs >=24GB (A100/H100; NOT a 16GB V100)
+#SBATCH -A canli
+#SBATCH -p a100-40gb
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=04:00:00
 #SBATCH --job-name=qwen-cgen-eval
@@ -18,31 +26,36 @@
 
 set -euo pipefail
 
-# ---- knobs (override at submit time, e.g. `MODEL=/scratch/.../qwen sbatch ...`) ----
-PROJECT_DIR="<PROJECT_DIR>"        # <-- absolute path to ".../OptiChat_test/constraint generation data" on Gilbreth
-MODEL="${MODEL:-Qwen/Qwen3.5-9B-Instruct}"   # <-- exact HF repo id OR a local/scratch path (see note 1 below)
+# ---- knobs (override at submit time) ---------------------------------------
+PROJECT_DIR="${PROJECT_DIR:-/scratch/gilbreth/chiu137/constraint_generation}"
+MODEL="${MODEL:-unsloth/Qwen3.5-9B}"   # HF repo id (staged in HF_HOME) or a local path
 PORT="${PORT:-8000}"
-VLLM_ENV="${VLLM_ENV:-vllm}"       # conda env that has vllm
-GRADE_ENV="${GRADE_ENV:-opti}"     # conda env that has pyomo + z3-solver + openai
-N="${N:-1}"                        # samples per record (pass@k)
-TEMP="${TEMP:-0.0}"
+CONDA_ENV="${CONDA_ENV:-/scratch/gilbreth/chiu137/conda_envs/optichat}"
+N="${N:-1}"                            # samples per record (pass@k)
+TEMP="${TEMP:-0.6}"                     # Qwen3-recommended; rest of the sampling
+                                       # params (top_p=0.95 top_k=20 min_p=0
+                                       # presence_penalty=0 repetition_penalty=1)
+                                       # are eval_harness.py defaults, logged at startup
+WORKERS="${WORKERS:-16}"               # concurrent request+grade threads; vLLM
+                                       # batches the in-flight requests server-side.
+                                       # Raise (e.g. 32) to push GPU utilization higher.
 
-echo "host: $(hostname)  gpu:"; nvidia-smi -L || true
+# Compute nodes have no internet: serve from the local HF cache only.
+export HF_HOME="${HF_HOME:-/scratch/gilbreth/chiu137/hf_cache}"
+export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 
-# RCAC usually uses Lmod + a shared anaconda; adjust if your setup differs.
-module purge || true
-module load anaconda || true
-source "$(conda info --base)/etc/profile.d/conda.sh"
+echo "host: $(hostname)  job: ${SLURM_JOB_ID:-local}"
+nvidia-smi -L || true
+
+# RCAC: conda lives behind Lmod. Do NOT `module purge` — it strips the external
+# MODULEPATH that provides the conda module. Loading it sets $CONDA_HOME + PATH.
+module load conda/2025.09 || module load conda
+source "$CONDA_HOME/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV"
 
 # -------------------------------------------------------------------------
 # 1) Launch the vLLM OpenAI-compatible server in the background.
-#    NOTE 1 (Gilbreth gotcha): compute nodes typically have NO internet, so a
-#    bare HF repo id will fail to download. Pre-stage weights on a login node:
-#       huggingface-cli download Qwen/Qwen3.5-9B-Instruct --local-dir $SCRATCH/qwen35-9b
-#    then submit with  MODEL=$SCRATCH/qwen35-9b  and set HF_HUB_OFFLINE=1.
 # -------------------------------------------------------------------------
-export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
-conda activate "$VLLM_ENV"
 echo "starting vLLM for $MODEL on :$PORT ..."
 python -m vllm.entrypoints.openai.api_server \
     --model "$MODEL" \
@@ -55,9 +68,12 @@ python -m vllm.entrypoints.openai.api_server \
 VLLM_PID=$!
 trap 'kill $VLLM_PID 2>/dev/null || true' EXIT
 
-# 2) Wait for the server to come up (up to ~10 min for weight load).
+# 2) Wait for the server to come up. First-time vLLM startup includes a
+#    torch.compile pass (~90s) on top of weight load, so allow up to ~25 min.
+#    (eval_harness.py also gates on readiness, so this is belt-and-suspenders;
+#    its real job here is to bail early if vLLM dies during startup.)
 echo "waiting for vLLM endpoint ..."
-for i in $(seq 1 120); do
+for i in $(seq 1 300); do
     if curl -sf "http://localhost:${PORT}/v1/models" >/dev/null 2>&1; then
         echo "vLLM is up after ~$((i*5))s"; break
     fi
@@ -67,8 +83,7 @@ for i in $(seq 1 120); do
     sleep 5
 done
 
-# 3) Run the eval client + Z3 grading in the grading env.
-conda activate "$GRADE_ENV"
+# 3) Run the eval client + Z3 grading (same env), over ALL datasets/*.jsonl.
 cd "$PROJECT_DIR"
 python eval_harness.py \
     --model "$MODEL" \
@@ -76,7 +91,7 @@ python eval_harness.py \
     --api-key EMPTY \
     --n "$N" \
     --temperature "$TEMP" \
-    --workers 8 \
+    --workers "$WORKERS" \
     --out "eval_${SLURM_JOB_ID}.jsonl"
 
 echo "done. results: eval_${SLURM_JOB_ID}.jsonl ; server log: vllm_${SLURM_JOB_ID}.log"

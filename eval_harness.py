@@ -71,7 +71,7 @@ def _is_openai_reasoning(model):
     return m.startswith(("gpt-5", "o1", "o3", "o4"))
 
 
-def _generate(client, model, system, user, temperature, max_tokens, reasoning_effort=None):
+def _generate(client, model, system, user, sampling, max_tokens, reasoning_effort=None):
     kwargs = {"model": model,
               "messages": [{"role": "system", "content": system},
                            {"role": "user", "content": user}]}
@@ -80,19 +80,44 @@ def _generate(client, model, system, user, temperature, max_tokens, reasoning_ef
         if reasoning_effort:
             kwargs["reasoning_effort"] = reasoning_effort
     else:
-        kwargs["temperature"] = temperature
+        # Standard OpenAI sampling params — vLLM accepts these directly.
+        kwargs["temperature"] = sampling["temperature"]
         kwargs["max_tokens"] = max_tokens
-    resp = client.chat.completions.create(**kwargs)
+        kwargs["top_p"] = sampling["top_p"]
+        kwargs["presence_penalty"] = sampling["presence_penalty"]
+        # vLLM-only sampling params: not part of the OpenAI schema, so the OpenAI
+        # client forwards them verbatim via extra_body into the request JSON.
+        kwargs["extra_body"] = {
+            "top_k": sampling["top_k"],
+            "min_p": sampling["min_p"],
+            "repetition_penalty": sampling["repetition_penalty"],
+        }
+    resp = _create_with_retry(client, kwargs)
     return gh._strip_fences(resp.choices[0].message.content or "")
 
 
-def eval_one(idx, r, client, model, system, n, temperature, max_tokens, reasoning_effort=None):
+def _create_with_retry(client, kwargs, retries=5, backoff=2.0):
+    """Retry only transient connectivity failures (server still warming up,
+    momentary drop). Real API errors (bad request, etc.) raise immediately so
+    they aren't silently retried."""
+    import openai
+    transient = (openai.APIConnectionError, openai.APITimeoutError, openai.InternalServerError)
+    for attempt in range(retries + 1):
+        try:
+            return client.chat.completions.create(**kwargs)
+        except transient:
+            if attempt == retries:
+                raise
+            time.sleep(backoff * (attempt + 1))
+
+
+def eval_one(idx, r, client, model, system, n, sampling, max_tokens, reasoning_effort=None):
     """Generate n samples for one record and grade each. pass@k = any sample EQUIVALENT."""
     user = gh.build_user_prompt(r)
     samples, verdicts = [], []
     for _ in range(n):
         try:
-            g = _generate(client, model, system, user, temperature, max_tokens, reasoning_effort)
+            g = _generate(client, model, system, user, sampling, max_tokens, reasoning_effort)
             v = gh.grade(r["problem_id"], g, r["expected_pyomo"])
         except Exception as e:
             g, v = None, {"equivalent": None, "error": f"{type(e).__name__}: {e}"}
@@ -136,6 +161,22 @@ def summarize(results, model, n):
         print(f"    {name:24} {me}/{mt} = {me / mt:.0%}")
 
 
+def _wait_for_server(client, timeout_s, poll_s=5.0):
+    """Poll the OpenAI-compatible endpoint until it lists models (i.e. it is up).
+    Uses a non-retrying, short-timeout probe so each poll fails fast and the
+    overall timeout is actually honored (the default client retries internally)."""
+    probe = client.with_options(max_retries=0, timeout=poll_s)
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        try:
+            probe.models.list()
+            print("server is ready.")
+            return True
+        except Exception:
+            time.sleep(poll_s)
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser(description="Eval an LLM on the constraint-gen dataset (Z3-graded).")
     ap.add_argument("--model", required=True, help="served model id / HF repo / local path")
@@ -146,33 +187,56 @@ def main():
     ap.add_argument("--dataset-glob", default="datasets/*_constraint_gen.jsonl",
                     help="which dataset files to evaluate (default: all)")
     ap.add_argument("--n", type=int, default=1, help="samples per record (pass@k)")
-    ap.add_argument("--temperature", type=float, default=0.0)
-    ap.add_argument("--max-tokens", type=int, default=1024,
-                    help="for OpenAI reasoning models this maps to max_completion_tokens; "
-                         "bump to >=4096 so reasoning+answer fit")
+    # Sampling defaults follow Qwen3's recommended settings. top_p/presence_penalty
+    # are standard OpenAI params; top_k/min_p/repetition_penalty go to vLLM via extra_body.
+    ap.add_argument("--temperature", type=float, default=0.6)
+    ap.add_argument("--top-p", type=float, default=0.95)
+    ap.add_argument("--top-k", type=int, default=20)
+    ap.add_argument("--min-p", type=float, default=0.0)
+    ap.add_argument("--presence-penalty", type=float, default=0.0)
+    ap.add_argument("--repetition-penalty", type=float, default=1.0)
+    ap.add_argument("--max-tokens", type=int, default=4096,
+                    help="reasoning models (Qwen3 thinking, gpt-5/o-series) spend tokens on "
+                         "a think block before the answer, so keep this large enough for "
+                         "reasoning+answer; 1024 truncates ~45%% of these mid-thought")
     ap.add_argument("--reasoning-effort", default=None,
                     choices=[None, "minimal", "low", "medium", "high"],
                     help="OpenAI gpt-5/o-series only; 'low' keeps cost down for this mechanical task")
     ap.add_argument("--limit", type=int, default=None, help="cap #records (smoke test)")
     ap.add_argument("--workers", type=int, default=8, help="concurrent request+grade threads")
+    ap.add_argument("--wait-ready", type=int, default=1200,
+                    help="seconds to wait for the endpoint to come up before dispatching "
+                         "(covers vLLM first-time torch.compile startup)")
     ap.add_argument("--out", default="eval_results.jsonl")
     args = ap.parse_args()
 
     from openai import OpenAI
     client = OpenAI(base_url=args.base_url, api_key=args.api_key)
     system = gh.system_prompt()
+    sampling = {"temperature": args.temperature, "top_p": args.top_p, "top_k": args.top_k,
+                "min_p": args.min_p, "presence_penalty": args.presence_penalty,
+                "repetition_penalty": args.repetition_penalty}
     recs, files = collect_records(args.dataset_glob)
     if args.limit:
         recs = recs[:args.limit]
     print(f"loaded {len(recs)} records from {len(files)} dataset files")
-    print(f"model={args.model}  base_url={args.base_url}  n={args.n}  T={args.temperature}  workers={args.workers}")
+    print(f"model={args.model}  base_url={args.base_url}  n={args.n}  workers={args.workers}")
+    print(f"sampling={sampling}")
+
+    # Block until the endpoint is actually serving before dispatching any work.
+    # vLLM's first-time torch.compile can push startup past the slurm wait loop;
+    # without this gate the first wave of requests would error out permanently.
+    if not _wait_for_server(client, args.wait_ready):
+        print(f"ERROR: server at {args.base_url} not ready after {args.wait_ready}s; aborting.",
+              file=sys.stderr)
+        sys.exit(1)
 
     results = []
     t0 = time.time()
     out_path = args.out if os.path.isabs(args.out) else os.path.join(HERE, args.out)
     with open(out_path, "w") as fout, ThreadPoolExecutor(max_workers=args.workers) as ex:
         futs = {ex.submit(eval_one, i, r, client, args.model, system,
-                          args.n, args.temperature, args.max_tokens, args.reasoning_effort): i
+                          args.n, sampling, args.max_tokens, args.reasoning_effort): i
                 for i, r in enumerate(recs)}
         done = 0
         for fut in as_completed(futs):
