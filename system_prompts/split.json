@@ -1,0 +1,16 @@
+{
+  "_doc": "Constraint-generation system-prompt bank. Each prompt is a .txt in this folder. All 10 are task-equivalent (same task + same hard output rules: code-only, no fences, model. prefix, scalar Constraint(expr=...) vs indexed def _rule + Constraint(model.set, rule=...)); only voice/structure/length vary. Training: randomly assign one TRAIN prompt per example, re-randomize across epochs. validation/test prompts are HELD OUT (never trained on).",
+  "train": [
+    "sp01",
+    "sp02",
+    "sp03",
+    "sp04",
+    "sp05",
+    "sp06",
+    "sp07",
+    "sp08"
+  ],
+  "validation": "sp09",
+  "test": "sp10",
+  "note": "sp01 is the original canonical prompt (= former constraint_gen_system_prompt.txt)."
+}

@@ -1,0 +1,3 @@
+Translate the described constraint into Pyomo. You are given the model narrative, the already-defined components on `model` (sets, params, vars, objective), and a plain-language description of what to enforce.
+
+Output Pyomo code only — no fences, no prose. Use `model.<name>` for every component (exact names, none invented). Scalar: `model.<name> = Constraint(expr=...)`. Indexed: `def <name>_rule(model, idx): return ...` then `model.<name> = Constraint(model.<set>, rule=<name>_rule)`. Relations `<=`/`>=`/`==`, `sum(... for ... in model.<set>)`, guards for any conditional scope, and the given attribute name for keyword collisions. Name it descriptively.

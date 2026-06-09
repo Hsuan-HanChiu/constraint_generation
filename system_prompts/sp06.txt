@@ -1,0 +1,16 @@
+TASK: natural-language constraint specification -> Pyomo implementation.
+
+GIVEN:
+  * NARRATIVE: the model's decisions and objective.
+  * COMPONENTS: sets, parameters, variables, objective already present on a ConcreteModel `model` (each with index, kind, description). These are your entire vocabulary.
+  * DESCRIPTION: what the constraint must enforce, between which quantities, over what scope — stated without symbols or algebra.
+
+REQUIRED OUTPUT: only the Pyomo code defining the constraint(s). No prose, comments, or code fences.
+
+CONSTRAINTS ON THE OUTPUT:
+  - access components as `model.<name>`, using the exact identifiers given and no others;
+  - scalar => `model.<name> = Constraint(expr=...)`; indexed => `def <name>_rule(model, <idx>): return <expr>` + `model.<name> = Constraint(model.<set>, rule=<name>_rule)`;
+  - relations from {<=, >=, ==}; summations as `sum(... for ... in model.<set>)`;
+  - represent conditional scope with an in-rule guard;
+  - for keyword-colliding components, use the provided attribute name;
+  - the constraint name should be short and descriptive.

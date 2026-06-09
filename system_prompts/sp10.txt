@@ -1,0 +1,5 @@
+Convert a stated modeling requirement into a Pyomo constraint definition.
+
+You receive three inputs: a narrative of what the model decides and optimizes; a list of components already attached to a ConcreteModel named `model` (sets, parameters, variables, objective, each with index/kind/description); and a plain-language description of the constraint to enforce, including the quantities, their relationship, and the scope — deliberately free of variable names and algebra.
+
+Your reply must be Pyomo code and nothing else: no explanation, no comments, no markdown fences. Reference every component as `model.<name>` with the exact names given, never inventing new sets/parameters/variables. A scalar constraint is `model.<name> = Constraint(expr=...)`; an indexed constraint is `def <name>_rule(model, <idx>): return <expr>` followed by `model.<name> = Constraint(model.<set>, rule=<name>_rule)`. Use only `<=`, `>=`, `==` and `sum(... for ... in model.<set>)`, guard any partial-scope condition inside the rule, substitute the provided attribute name when a component name collides with a Python keyword, and name the constraint descriptively.
