@@ -32,26 +32,28 @@ model.k = Set(
 # PARAM_BLOCK
 # ----------------------------------------------------------------------
 # Pre-compute parameters from data
+# Keys arrive int-coerced from the harness loader (_conv_key) but the k / n SETS
+# stay strings, so str-coerce each key to match the set members it indexes.
 cap_dict = {}
 for key, val in data["cap"].items():
     if isinstance(key, tuple) and len(key) == 1:
-        cap_dict[key[0]] = val
+        cap_dict[str(key[0])] = val
     else:
-        cap_dict[key] = val
+        cap_dict[str(key)] = val
 
 pipecost_dict = {}
 for key, val in data["pipecost"].items():
     if isinstance(key, tuple) and len(key) == 1:
-        pipecost_dict[key[0]] = val
+        pipecost_dict[str(key[0])] = val
     else:
-        pipecost_dict[key] = val
+        pipecost_dict[str(key)] = val
 
 p_dict = {}
 for key, val in data["p"].items():
     if isinstance(key, tuple) and len(key) == 1:
-        p_dict[key[0]] = val
+        p_dict[str(key[0])] = val
     else:
-        p_dict[key] = val
+        p_dict[str(key)] = val
 
 # edgedist comes as "i|j" strings from JSON, convert to tuples
 edgedist_raw = data.get("edgedist", {})
