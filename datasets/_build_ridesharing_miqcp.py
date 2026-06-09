@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Builder for the ridesharing_mip (ridesharing assignment) constraint-generation dataset.
+"""Builder for the ridesharing_miqcp (ridesharing assignment) constraint-generation dataset.
 
 Real model: model_library/feas_model/ridesharing_miqcp.py (the MIQCP label comes from a
 bilinear x*alpha term in the OBJECTIVE only; both CONSTRAINTS are linear and Z3-gradable).
@@ -8,7 +8,7 @@ Two native constraints: eq_10 (per-request assignment cap) and eq_12 (total-assi
 import json
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent / "ridesharing_mip_constraint_gen.jsonl"
+OUT = Path(__file__).resolve().parent / "ridesharing_miqcp_constraint_gen.jsonl"
 
 COMPONENTS = {
     "sets": [
@@ -93,7 +93,7 @@ records = [
 with open(OUT, "w") as f:
     for r in records:
         f.write(json.dumps({
-            "problem_id": "ridesharing_mip",
+            "problem_id": "ridesharing_miqcp",
             "model_narrative": NARRATIVE,
             "components": COMPONENTS,
             "description": r["description"],

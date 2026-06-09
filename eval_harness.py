@@ -32,7 +32,7 @@ Examples
   # pass@5 with sampling:
   python eval_harness.py --model ... --n 5 --temperature 0.7
 """
-import argparse, glob, json, os, sys, time
+import argparse, glob, json, multiprocessing as mp, os, sys, time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -111,16 +111,55 @@ def _create_with_retry(client, kwargs, retries=5, backoff=2.0):
             time.sleep(backoff * (attempt + 1))
 
 
-def eval_one(idx, r, client, model, system, n, sampling, max_tokens, reasoning_effort=None):
+# Grading runs Z3 (a C++ library loaded in-process). A malformed generated
+# constraint can make Z3 hit an internal ASSERTION and SEGFAULT, which is an
+# OS-level crash that a try/except cannot catch — it would kill the whole eval.
+# So each grade runs in a short-lived forked child: a crash (negative exitcode)
+# or a hang (timeout) fails only THAT record, and the run continues.
+#   - fork (not spawn): child inherits the already-imported gh/pyomo/z3, so no
+#     multi-second re-import per grade.
+#   - per-grade Process (not ProcessPoolExecutor): a pool goes permanently
+#     BrokenProcessPool after one worker segfault, failing all remaining records.
+_MP = mp.get_context("fork")
+
+
+def _grade_child(q, problem_id, generated, expected):
+    try:
+        v = gh.grade(problem_id, generated, expected)
+        q.put({"equivalent": v.get("equivalent"), "error": v.get("error")})
+    except Exception as e:                       # noqa: BLE001 — report, don't crash child
+        q.put({"equivalent": None, "error": f"{type(e).__name__}: {e}"})
+
+
+def _grade_isolated(problem_id, generated, expected, timeout):
+    q = _MP.Queue()
+    p = _MP.Process(target=_grade_child, args=(q, problem_id, generated, expected))
+    p.start()
+    p.join(timeout)
+    if p.is_alive():                              # Z3 hung on a pathological constraint
+        p.terminate(); p.join()
+        return {"equivalent": None, "error": f"GradeTimeout: exceeded {timeout}s"}
+    # Drain the result if the child produced one; a non-zero/negative exitcode with
+    # no result means a native crash (e.g. Z3 SIGSEGV -> exitcode -11).
+    try:
+        return q.get_nowait()
+    except Exception:
+        return {"equivalent": None, "error": f"GradeCrash: child exited {p.exitcode}"}
+
+
+def eval_one(idx, r, client, model, system, n, sampling, max_tokens,
+             reasoning_effort=None, grade_timeout=120):
     """Generate n samples for one record and grade each. pass@k = any sample EQUIVALENT."""
     user = gh.build_user_prompt(r)
     samples, verdicts = [], []
     for _ in range(n):
         try:
             g = _generate(client, model, system, user, sampling, max_tokens, reasoning_effort)
-            v = gh.grade(r["problem_id"], g, r["expected_pyomo"])
-        except Exception as e:
-            g, v = None, {"equivalent": None, "error": f"{type(e).__name__}: {e}"}
+        except Exception as e:                    # generation/connection failure
+            samples.append(None)
+            verdicts.append({"equivalent": None, "error": f"{type(e).__name__}: {e}"})
+            continue
+        v = _grade_isolated(r["problem_id"], g, r["expected_pyomo"], grade_timeout)
         samples.append(g)
         verdicts.append({"equivalent": v.get("equivalent"), "error": v.get("error")})
     passed = any(v["equivalent"] is True for v in verdicts)
@@ -195,10 +234,13 @@ def main():
     ap.add_argument("--min-p", type=float, default=0.0)
     ap.add_argument("--presence-penalty", type=float, default=0.0)
     ap.add_argument("--repetition-penalty", type=float, default=1.0)
-    ap.add_argument("--max-tokens", type=int, default=4096,
+    ap.add_argument("--max-tokens", type=int, default=16384,
                     help="reasoning models (Qwen3 thinking, gpt-5/o-series) spend tokens on "
                          "a think block before the answer, so keep this large enough for "
-                         "reasoning+answer; 1024 truncates ~45%% of these mid-thought")
+                         "reasoning+answer. Measured on this dataset: 1024 truncated ~45%%, and "
+                         "even 4096 truncated 51%% of records mid-reasoning (they never emit code "
+                         "and grade as failures); 16384 lets the reasoning finish. Must satisfy "
+                         "max_prompt(=4689 tok here) + max_tokens <= vLLM --max-model-len.")
     ap.add_argument("--reasoning-effort", default=None,
                     choices=[None, "minimal", "low", "medium", "high"],
                     help="OpenAI gpt-5/o-series only; 'low' keeps cost down for this mechanical task")
@@ -207,6 +249,9 @@ def main():
     ap.add_argument("--wait-ready", type=int, default=1200,
                     help="seconds to wait for the endpoint to come up before dispatching "
                          "(covers vLLM first-time torch.compile startup)")
+    ap.add_argument("--grade-timeout", type=int, default=120,
+                    help="seconds per record for Z3 grading (runs in an isolated child "
+                         "process); a hang or native Z3 crash fails only that record")
     ap.add_argument("--out", default="eval_results.jsonl")
     args = ap.parse_args()
 
@@ -236,7 +281,8 @@ def main():
     out_path = args.out if os.path.isabs(args.out) else os.path.join(HERE, args.out)
     with open(out_path, "w") as fout, ThreadPoolExecutor(max_workers=args.workers) as ex:
         futs = {ex.submit(eval_one, i, r, client, args.model, system,
-                          args.n, sampling, args.max_tokens, args.reasoning_effort): i
+                          args.n, sampling, args.max_tokens, args.reasoning_effort,
+                          args.grade_timeout): i
                 for i, r in enumerate(recs)}
         done = 0
         for fut in as_completed(futs):

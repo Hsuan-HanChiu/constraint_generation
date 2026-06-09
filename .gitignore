@@ -15,3 +15,8 @@ env/
 .DS_Store
 .vscode/
 .idea/
+*.out
+*.jsonl
+*.err
+*.log
+*.pyc

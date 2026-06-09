@@ -19,7 +19,7 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
-#SBATCH --time=04:00:00
+#SBATCH --time=06:00:00
 #SBATCH --job-name=qwen-cgen-eval
 #SBATCH --output=eval_%j.out
 #SBATCH --error=eval_%j.err
@@ -39,6 +39,13 @@ TEMP="${TEMP:-0.6}"                     # Qwen3-recommended; rest of the samplin
 WORKERS="${WORKERS:-16}"               # concurrent request+grade threads; vLLM
                                        # batches the in-flight requests server-side.
                                        # Raise (e.g. 32) to push GPU utilization higher.
+MAXTOK="${MAXTOK:-16384}"              # generation budget. Qwen3.5 reasoning routinely
+                                       # exceeds 4096 (measured: 51% of records truncated
+                                       # mid-thought at 4096), so give it room. Must satisfy
+                                       # max_prompt(~4689) + MAXTOK <= MAX_MODEL_LEN.
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-24576}" # vLLM context = prompt + generation. Qwen3.5-9B
+                                       # supports 262144 natively; capped here for KV memory
+                                       # on the 40GB A100.
 
 # Compute nodes have no internet: serve from the local HF cache only.
 export HF_HOME="${HF_HOME:-/scratch/gilbreth/chiu137/hf_cache}"
@@ -62,7 +69,7 @@ python -m vllm.entrypoints.openai.api_server \
     --served-model-name "$MODEL" \
     --port "$PORT" \
     --dtype bfloat16 \
-    --max-model-len 8192 \
+    --max-model-len "$MAX_MODEL_LEN" \
     --gpu-memory-utilization 0.90 \
     > "vllm_${SLURM_JOB_ID}.log" 2>&1 &
 VLLM_PID=$!
@@ -92,6 +99,7 @@ python eval_harness.py \
     --n "$N" \
     --temperature "$TEMP" \
     --workers "$WORKERS" \
+    --max-tokens "$MAXTOK" \
     --out "eval_${SLURM_JOB_ID}.jsonl"
 
 echo "done. results: eval_${SLURM_JOB_ID}.jsonl ; server log: vllm_${SLURM_JOB_ID}.log"
