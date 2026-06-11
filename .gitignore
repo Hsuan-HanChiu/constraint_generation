@@ -16,7 +16,7 @@ env/
 .vscode/
 .idea/
 *.out
-*.jsonl
+# *.jsonl
 *.err
 *.log
 *.pyc

@@ -108,3 +108,40 @@ The whole line collapses to a **three-layer spine** (小白's framing) that orga
 - **Reporting:** publish two rates — (1) semantic-validity / constraint-correctness, (2) sharp verified pass-rate (excluding/bucketing COLLAPSED). This avoids both "nonsharp is useless" and reward laundering.
 
 Rule of thumb: *every record needs a role-aware liveness route; COLLAPSED records are training-positive but reward-ineligible unless a later witness/core check revives them as LIVE.* Conceptual home / pedagogy = 小白's teaching note (three-layer spine, LIVE/COLLAPSED dichotomy, Z3 witness-or-core technical box, Proxy Benders as the orthogonality example).
+
+### Satisfaction vs equivalence oracles + the verification spine (2026-06-09 standup)
+
+**Oracle-vacuity is specific to EQUIVALENCE oracles, not all solver-verified checks.** Prompted by [[MathConstraint - Automated Generation of Verified Combinatorial Reasoning Instances for LLMs]] (2605.08498), whose verifier checks *satisfaction*:
+- **Satisfaction oracle** — "does this witness satisfy the spec?" Hand it an assignment, solver says yes/no. NO vacuity problem: a witness either satisfies or it doesn't.
+- **Equivalence oracle** (ours, Z3 `Xor(candidate, reference)` unsat) — "does this candidate mean the same as the reference?" HAS the vacuity problem: a redundant/implied constraint doesn't change the solution set, so equivalence can't tell whether it contributes. → contrast-liveness machinery is needed *only* for equivalence-style grading, not satisfaction-style. Good teaching pivot: which oracle types need contrast-liveness and which don't.
+
+**Two distinct three-layer spines (don't conflate; they NEST):**
+- **SYSTEM spine** (architectural, 2026-06-08): proposal / certification / contrast — how a learned-proposal + formal-check system is built.
+- **VERIFICATION spine** (epistemic/debugging, 小白 2026-06-09): harness-correctness / oracle-semantics / contrast-liveness — the ladder of ways a *check* can be meaningless. It is a zoom-in on the certification+contrast half of the system spine.
+
+**Vacuity shows up at BOTH ENDS of the pipeline — unify the verification spine under one question:** *"did this layer do real work, or did it merely not object?"*
+- Layer 1 (harness/model build): can pass vacuously because nothing was actually built/exercised. **Canonical case: `bchoil_mip`** — it BUILT without error and the solver was happy, but the key-coercion bug left the arc set EMPTY, so every constraint was trivially satisfied; "satisfied" meant nothing. (More concrete than an abstract "bad harness" warning — teaches well. Lesson: test model builds through the actual harness loader `gh._load_data`+`gh._exec_base`, not a raw `json.load`.)
+- Layer 2 (oracle semantics): can be wrong because it checks the wrong proposition (satisfaction when you needed equivalence, etc.).
+- Layer 3 (contrast-liveness): can pass vacuously because the control is undiscriminating/redundant (the original oracle-vacuity axis).
+Same PASS-shaped failure ("ran, said PASS, tested nothing"), different location.
+
+**Open decision for Hsuan-Han — the GRPO difficulty-controller (timing call; impl owner = constraint-gen harness / me).** MathConstraint's adaptive generator (parameterized difficulty knob → never saturates) is the curriculum a GRPO loop wants (pass/fail reward gives zero gradient on all-pass groups). **Recommendation: MEASURE FIRST, don't build it yet.** Our difficulty is idiosyncrasy-driven (a quirky LP > a big MIP), NOT size-driven like MathConstraint's CSPs, so the static 184-template set may not saturate fast. Run a baseline GRPO with **per-group, per-template, per-failure-mode** pass-rate instrumentation (小白's guardrail), then diagnose which saturation it is before building anything:
+1. **true (reasoning) saturation** → the only case a difficulty controller should address;
+2. **shortcut saturation** (model exploits template regularity / repeated surface form) → fix with more template/linguistic/schema DIVERSITY, not difficulty scaling;
+3. **solver/format saturation** (emits Z3/Pyomo patterns without robust formulation understanding) → fix by tightening the verifier / task interface.
+Build the controller only for the families that genuinely (1) saturate, and constrain parameter variation to REALISTIC OR regimes (certified-hard ≠ certified-relevant; don't train the model to be great at degenerate Pyomo).
+
+### From verification to explanation: the three-contrast spine + shadow-price = why-not (2026-06-10 standup)
+
+Bridge (today's Lagrangian digest): **the dual multiplier on a constraint is its shadow price, and a why-not query is formally asking for that shadow price.** "Why not allow more than 3 trucks?" = "what is the marginal value of relaxing this binding constraint?" So the same dual apparatus that decomposes a solve also produces the why-not *explanation*. This turns the constraint-generation skill and the explanation skill into two sides of one coin.
+
+**小白's three-contrast explanation taxonomy** (the note's "verification → explanation" turning point) — and it maps almost 1:1 onto OptiChat's actual query types, so the supervision already exists in `testing_library/feas_test`:
+- **A. feasibility contrast** — "did the answer actually change under the intervention?" Grounded in WHAT-IF/new_constraint + WHY-NOT/constraint_rule (the 406 records I built). **Empirical anchor = the 40 vacuous-control records (VACUOUS_CONTROLS.md)** (syntactic flip, oracle unmoved → the A-layer failure made visible).
+- **B. optimality contrast** — "if still feasible, did the objective move, by how much?" Grounded in the `expected_obj` field every OptiChat what-if/why-not carries (stored as `_expected_obj` on each built record). Already latent; one extra target, no new mining.
+- **C. dual/sensitivity contrast** — "why did it move / what constraint is exerting pressure?" Grounded in OptiChat's SENSITIVITY/ROBUSTNESS queries + `expected_duals` (shadow prices). The explanation layer's ground truth, not post-hoc prose.
+
+**Reframe (小白, the thesis sentence):** the taxonomy doesn't ask OptiChat to become a different benchmark — it exposes that OptiChat *already contains three supervision signals*, but current eval collapses them into answer-correctness / constraint-generation. "Verification → explanation" = recover and train against latent explanatory structure already in the test library.
+
+**Layer-C COVERAGE SURVEY (2026-06-10, ran it):** separating "dual exists" from "dual is usable" (小白's guardrail) — **SENSITIVITY: 283 queries, ALL 283 carry well-formed (numeric-dict) AND alignable (string-keyed) `expected_duals`; 0 messy.** ROBUSTNESS: 449 queries, all with `expected_headroom`. So ~732 clean explanation signals already exist; layer-C is NOT data-starved (e.g. agreste good-land shadow price 507.29, medium 25.25).
+
+**Open decision for Hsuan-Han.** Whether "verification → explanation" becomes a near-term dataset/skill (a layer-C / dual-price explanation set) or stays a documented direction. Recommendation (mine + 小白): given the survey shows high, clean coverage, it's a *viable* extension — but don't overcommit until the dual-quality is confirmed end-to-end (can the duals be grounded to a generated explanation and graded?). Frame: "layer C is a coverage-measured extension, not a promise." His call on timing; impl owner = constraint-gen harness / me.
