@@ -7,11 +7,15 @@ Per Hsuan-Han (2026-06-10):
  - record source + info explicitly so queries are trackable
 Tangled multi-statement heuristics (loops / conditional fixes) -> manual-review section (not auto-built).
 """
-import os, re, json, glob
+import os, re, json, glob, sys, importlib.util
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TL = os.path.join(HERE, "..", "optichat_org", "OptiChat", "testing_library", "feas_test")
 DSDIR = os.path.join(HERE, "datasets")
+MODELDIR = os.path.join(HERE, "..", "optichat_org", "OptiChat", "model_library", "feas_model")
+_REPO = os.path.join(HERE, "..", "optichat_org", "OptiChat")
+if _REPO not in sys.path:
+    sys.path.insert(0, _REPO)
 
 def parse_file(p):
     raw = open(p).read()
@@ -33,8 +37,8 @@ def extract_constraint(code):
     """
     body = [l for l in code.split("\n") if l.strip() and not SCAFFOLD.match(l)]
     text = "\n".join(body)
-    # control flow -> messy
-    if re.search(r"^\s*(for |if |while |with )", text, re.M):
+    # TOP-LEVEL control flow -> messy (indented control flow inside a def-rule body is fine)
+    if re.search(r"^(for |if |while |with )", text, re.M):
         return ("messy", code.strip())
     # any unexpected top-level (non-indented) statement that isn't def / model.* -> messy (e.g. `xn_val = ...`)
     for l in body:
@@ -82,6 +86,91 @@ def load_model_meta(model):
                             "intent": r["description"]} for r in per]
     return recs[0]["model_narrative"], comp
 
+# --- fallback: synthesize narrative+components by introspecting the model itself ---
+# Used when a model has clean complex entries but NO _constraint_gen.jsonl seed
+# (e.g. spbenders1/2, thaix). Builds the feas model via the SAME runtime loader
+# OptiChat uses (normalize_model_data), so it is unaffected by grade_harness's
+# _load_data int-coercion quirk. Returns None (→ deferred, old behavior) if the
+# model can't be built or introspected.
+_SYNTH_CACHE = {}
+
+def _idx_str(comp):
+    try:
+        iset = comp.index_set()
+    except Exception:
+        return ""
+    if iset is None:
+        return ""
+    nm = getattr(iset, "name", "")
+    if nm in ("UnindexedComponent_set", "", None):
+        return ""
+    try:
+        subs = list(iset.subsets())
+        if len(subs) > 1:
+            return ",".join(getattr(s, "name", "?") for s in subs)
+    except Exception:
+        pass
+    return nm
+
+def _build_feas_model(model):
+    py = os.path.join(MODELDIR, f"{model}.py")
+    js = os.path.join(MODELDIR, f"{model}_data.json")
+    if not (os.path.exists(py) and os.path.exists(js)):
+        return None
+    from optichat.tools.utility_tools.data_normalize import normalize_model_data
+    raw = json.load(open(js))
+    spec = importlib.util.spec_from_file_location(f"_synthmodel_{model}", py)
+    mod = importlib.util.module_from_spec(spec)
+    mod.__dict__["data"] = normalize_model_data(raw)
+    spec.loader.exec_module(mod)
+    return getattr(mod, "model", None)
+
+def synthesize_meta(model):
+    if model in _SYNTH_CACHE:
+        return _SYNTH_CACHE[model]
+    result = None
+    try:
+        import pyomo.environ as pe
+        m = _build_feas_model(model)
+        if m is not None:
+            sets = []
+            for s in m.component_objects(pe.Set):
+                if s.name.startswith("_"):
+                    continue
+                try:
+                    members = [list(x) if isinstance(x, tuple) else x for x in list(s)]
+                except Exception:
+                    members = []
+                sets.append({"name": s.name, "members": members, "doc": (s.doc or "")})
+            params = [{"name": p.name, "index": _idx_str(p), "kind": "real", "doc": (p.doc or "")}
+                      for p in m.component_objects(pe.Param)]
+            vars_ = []
+            for v in m.component_objects(pe.Var):
+                vals = list(v.values())
+                vars_.append({"name": v.name, "index": _idx_str(v),
+                              "domain": (str(vals[0].domain) if vals else "Reals"),
+                              "doc": (v.doc or "")})
+            obj = {}
+            for o in m.component_objects(pe.Objective):
+                obj = {"sense": "minimize" if o.sense == 1 else "maximize",
+                       "expr_var": (o.doc or o.name)}
+                break
+            cons = [{"name": c.name, "intent": (c.doc or "")}
+                    for c in m.component_objects(pe.Constraint)]
+            comp = {"sets": sets, "params": params, "vars": vars_,
+                    "objective": obj, "constraints": cons}
+            nm = ", ".join(v["name"] for v in vars_) or "decision variables"
+            sense = obj.get("sense", "optimize")
+            narrative = (f"Optimization model '{model}' (metadata auto-synthesized from the "
+                         f"model by build_optichat_queries.py — no curated constraint-gen seed exists). "
+                         f"Sets: {', '.join(s['name'] for s in sets) or 'none'}. "
+                         f"Decision variables: {nm}. Objective: {sense} '{obj.get('expr_var', 'obj')}'.")
+            result = (narrative, comp)
+    except Exception:
+        result = None
+    _SYNTH_CACHE[model] = result
+    return result
+
 dataset = {}        # model -> list of records
 checklist = []      # simple bounds
 manual = []         # messy heuristics
@@ -93,6 +182,8 @@ for path in sorted(glob.glob(os.path.join(TL, "*.txt"))):
     if not isinstance(data, list):
         continue
     meta = load_model_meta(model)
+    if meta is None:
+        meta = synthesize_meta(model)   # fallback for seedless models (introspect the model)
     src = f"testing_library/feas_test/{model}.txt"
     for d in data:
         st = d.get("subtype")

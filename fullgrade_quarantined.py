@@ -9,7 +9,9 @@ HERE = Path(os.path.dirname(os.path.abspath(__file__)))
 TL = HERE / ".." / "optichat_org" / "OptiChat" / "testing_library" / "feas_test"
 PER_RECORD_TIMEOUT = 90  # seconds
 
-SCAFF = re.compile(r"^\s*(model\s*=\s*load_model|description\s*=|new_version\s*=|models_dictionary\s*=\s*solve_model|status\s*=|if status|else\s*:|print\(|#)")
+# SCAFF + control-flow check mirror build_optichat_queries.py (incl. Hsuan-Han's 2026-06-13
+# change: only TOP-LEVEL control flow is messy; indented loops inside a def-rule are fine).
+SCAFF = re.compile(r"^\s*(model\s*=\s*load_model|description\s*=|new_version\s*=|models_dictionary\s*=\s*solve_model|status\s*=|if status|else\s*:|print\(|obj_val\s*=|heur_obj\s*=|#)")
 def parse_file(p):
     raw = open(p).read()
     if "=" * 80 not in raw: return None
@@ -17,7 +19,7 @@ def parse_file(p):
 def extract_constraint(code):
     body = [l for l in code.split("\n") if l.strip() and not SCAFF.match(l)]
     text = "\n".join(body)
-    if re.search(r"^\s*(for |if |while |with )", text, re.M): return None
+    if re.search(r"^(for |if |while |with )", text, re.M): return None
     for l in body:
         if l[:1] in (" ", "\t"): continue
         if l.strip().startswith("def ") or l.strip().startswith("model."): continue
@@ -28,8 +30,9 @@ def is_simple_bound(pyomo):
     if "def " in pyomo or "sum(" in pyomo: return False
     return len(re.findall(r"model\.", pyomo.split("expr=", 1)[-1].rstrip(")"))) == 1
 
-models = ['ccoil_mip','coex_mip','copper_mip','cvrp_mip','fertd_mip','marilyn_mip','maxcut_mip',
-          'openpit_mip','pp_mip','rcpsp_mip','relief_mip','rotdk_mip','swath_mip']
+# quarantine models from the 2026-06-12 clean rebuild partition
+models = ['alum_mip','ccoil_mip','coex_mip','cvrp_mip','fertd_mip','maxcut_mip',
+          'openpit_mip','pp_mip','rcpsp_mip','relief_mip','swath_mip']
 rescued_total = 0; skipped = []; tried = 0
 for m in models:
     data = parse_file(TL / f"{m}.txt")

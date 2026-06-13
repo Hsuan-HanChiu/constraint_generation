@@ -145,3 +145,35 @@ Bridge (today's Lagrangian digest): **the dual multiplier on a constraint is its
 **Layer-C COVERAGE SURVEY (2026-06-10, ran it):** separating "dual exists" from "dual is usable" (小白's guardrail) — **SENSITIVITY: 283 queries, ALL 283 carry well-formed (numeric-dict) AND alignable (string-keyed) `expected_duals`; 0 messy.** ROBUSTNESS: 449 queries, all with `expected_headroom`. So ~732 clean explanation signals already exist; layer-C is NOT data-starved (e.g. agreste good-land shadow price 507.29, medium 25.25).
 
 **Open decision for Hsuan-Han.** Whether "verification → explanation" becomes a near-term dataset/skill (a layer-C / dual-price explanation set) or stays a documented direction. Recommendation (mine + 小白): given the survey shows high, clean coverage, it's a *viable* extension — but don't overcommit until the dual-quality is confirmed end-to-end (can the duals be grounded to a generated explanation and graded?). Frame: "layer C is a coverage-measured extension, not a promise." His call on timing; impl owner = constraint-gen harness / me.
+
+### Satisfaction-oracle = layer-B (expected_obj); Text-to-SQL as the external anchor (2026-06-11 standup)
+
+Today's digest (At the Intersection — Text-to-SQL vs Text-to-Pyomo) sharpened the oracle-types distinction with an external field. **Text-to-SQL's execution-match** (run the query, compare the rows it returns on a DB instance) is a **satisfaction oracle** — no vacuity problem, because a query's meaning is well-approximated by its instance-level output. **小白's key insight:** a mature field's verification *looks* easy not because the semantic problem is absent, but because its **task setup permits instance-level output as a proxy**; the benchmark was built around that proxy. So oracle choice is a property of the TASK, not the model — and the design-lever framing is "which behavioral proxy is justified by this task setup?", not weak-vs-strong in the abstract.
+
+**Mapping onto our layers (record, 小白's phrasing + caveat):**
+- **`expected_obj` = cheap instance-level satisfaction oracle / layer-B optimality-contrast** — checks whether the predicted edit preserves/changes the realized optimum *as expected on THIS instance and perturbation*. Execution-style. (Every OptiChat what-if/why-not query carries `expected_obj`; it's the Text-to-SQL execution-match analogue — the satisfaction oracle we already have on the easy side.)
+- **Z3 logical equivalence = semantic equivalence oracle / layer-A logical meaning** — checks whether the predicted logical object has the intended semantic content, *independent of that instance-level optimum*.
+- **Vacuous / redundant cases = exactly where the former underdetermines the latter** (a redundant constraint doesn't move the optimum, so objective-match passes while equivalence is the only thing that can catch it).
+
+**Caveat (front and center):** objective-match is a satisfaction oracle *only* w.r.t. the particular instance + queried perturbation, NOT global semantic validation — don't overread it. This is also why optimization-model generation needed this week's reduced-vs-full instance grading dance: a constraint's behavior on one instance doesn't certify its meaning.
+
+### Explanation-readiness layering of a single dual signal + basis-fragility probe (2026-06-13 standup)
+
+小白's teaching note "Constraint Value as Local Marginal Signal" (the diet_lp shadow-price examples I handed her) crystallized a SECOND, orthogonal three-layer scheme. **NAMING-COLLISION WARNING: this is NOT the query-type A/B/C contrast taxonomy above (A feasibility / B optimality-expected_obj / C dual-sensitivity).** That one classifies *which contrast a query asks for*. This one classifies *the epistemic status of one constraint's shadow-price signal* — what a single dual is and is not allowed to claim. Keep them distinct; the letter reuse is coincidental.
+
+**The explanation-readiness layers (per-constraint, on its dual):**
+- **A. feasibility-role** — active/slack, region-shaping. Answers only "is this constraint currently binding?" (maps to the query-type A, feasibility-contrast).
+- **B. marginal-value** — local dual sensitivity *within the current basis*. Answers "holding the basis fixed, what does relaxing/tightening one unit do to the objective?" (this is the query-type **C** dual-sensitivity content — note the letter swap).
+- **C. explanation-boundary** — whether that local marginal signal *survives the relevant contrast / perturbation*. This is NEW and is the layer FAILURE_TAXONOMY previously lacked a clean name for. **Crucially it is not another explanation — it is the boundary of one** (小白). Turning it into a "matters / doesn't matter" verdict would just mint a new oracle; it must stay a boundary, not a claim.
+
+**The three-way convergence (why this is load-bearing):** the same sentence — *local marginal signal is necessary but not sufficient for explanation* — showed up three times in one week from three rooms: (1) 小白's classroom pattern "students/LLMs conflate 'constraint is binding' with 'constraint is important'"; (2) the OR position paper [[Explainable Optimization]] (2606.08675, scout-ingested 2026-06-13): mathematical transparency incl. shadow prices is NOT stakeholder justification; (3) the 2026-06-12 shadow-price-reward seed: a policy chasing objective-match mimics importance without meaning (reward-hacking via the satisfaction-equivalence gap). Three corrections, one per layer:
+- classroom-facing: "binding is not important"
+- optimization-facing: "shadow price is local, basis-relative, may be fragile"
+- tooling-facing: the basis-fragility flag below.
+
+**Tooling counterpart — basis-fragility probe (selfcheck, when next touched).** Layer-C explanation-boundary has an observable symptom: the contrast-liveness check (flip the constraint's relation, see whether the feasible region actually changes) is a test of whether the dual is robust or degenerate. A degenerate dual (multiple optimal bases) is exactly where "tighten by one unit" has no stable answer. Per-constraint flag should be THREE-state (not binary), per 小白:
+- `marginal-signal-stable` — local marginal signal appears stable under the tested contrast.
+- `basis-fragile` — local signal is basis-fragile / contrast-unstable.
+- `no-contrast` — no meaningful contrast observed under this perturbation.
+
+**Caveat to preserve (小白):** `basis-fragile` means "do NOT narrate this dual as stakeholder importance," NOT "ignore this constraint." **Fragility is itself information** — it says the model's explanatory surface is unstable there, which is exactly what the taxonomy should catch. The note names the epistemic boundary; selfcheck gives the boundary an observable symptom. Cross-artifact pairing: 小白's note teaches the boundary bottom-up; this taxonomy + the (future) selfcheck flag detect it mechanically.

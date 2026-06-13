@@ -194,9 +194,14 @@ import pyomo.environ as pyo
 # Data loading + base model construction
 # ----------------------------------------------------------------------------
 def _conv_key(k: str):
-    parts = k.split("|")
-    out = [int(x) if x.lstrip("-").isdigit() else x for x in parts]
-    return out[0] if len(out) == 1 else tuple(out)
+    # Mirror optichat's normalize_model_data: numeric parts are int-coerced ONLY
+    # inside pipe-delimited multi-index keys. A bare single key is left as-is, so a
+    # Param indexed by a string set like {'1','2','3'} keeps string keys and builds.
+    # (Was: int-coercing '2'->2 mismatched string set members → Param-build KeyError,
+    # e.g. bchoil/ccoil; production leaves non-pipe keys as strings and builds fine.)
+    if "|" not in k:
+        return k
+    return tuple(int(x) if x.lstrip("-").isdigit() else x for x in k.split("|"))
 
 def _tuplize_members(members):
     """A set's members may be 1-D (scalars) or multi-D (lists/pairs). Pyomo's Set
